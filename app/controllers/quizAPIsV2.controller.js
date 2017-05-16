@@ -98,7 +98,7 @@ exports.getVoteResult = function(req, res) {
     res.json({
       'error': null,
       'result': maxVote,
-      'count': maxCount
+      'count': maxCount,
       'winner': winner
     })
 
