@@ -231,9 +231,9 @@ function shootTheQuestion(quiz, isLastQuestion) {
       'payload': choice
     })
 
-    votes.push(
+    votes.push({
       `${choice}`: []
-    )
+    })
     console.log('choice = ' + choice);
   })
 
