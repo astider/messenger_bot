@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <title>Add New Quiz</title>
+    <script type="text/javascript" src="/js/addquizV2.js"></script>
+  </head>
+  <body>
+    <% include include/header.ejs %>
+    <div id="main">
+      ใส่จำนวนข้อที่ต้องการถาม: <input id="quiznumber" type="number" size="5" onkeyup="createQuizBox()"/>
+      <br />
+      <form id="quizForm" action="/processQuizForm" method="POST">
+        <input id="numbers" name="numbers" type="hidden" value="0" /><br /><br />
+        <div id="theDiv" style="padding: 5px 0px 5px 20px">
+        </div>
+        <br /><br />
+        <input id="submitButton" type="submit" value="บันทึกข้อมูล" />
+        <input type="reset" /><br /><br />
+      </form>
+    </div>
+  </body>
+</html>

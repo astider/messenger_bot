@@ -49,7 +49,8 @@ module.exports = function(app, express) {
   app.get("/info", index.getIndexPage)
   app.get("/policy", index.getPolicyPage)
   app.get("/result/", quizResult.getResult)
-  app.get("/addquiz", quizInput.addQuiz)
+  //app.get("/addquiz", quizInput.addQuiz)addQuizV2
+  app.get("/addquiz", quizInput.addQuizV2)
 
 
   app.get("/getAllStatus", quizControl.getAllStatus)
@@ -74,7 +75,8 @@ module.exports = function(app, express) {
   app.get("/v2/getQuestion", quizAPIsV2.getQuestion)
   app.get("/v2/getAllUsersInfo", quizAPIsV2.getAllUsersInfo)
 
-  app.post("/processQuizForm", jsonParser, urlencodedParser, quizInput.processForm)
+  //app.post("/processQuizForm", jsonParser, urlencodedParser, quizInput.processForm)
+  app.post("/processQuizForm", jsonParser, urlencodedParser, quizInput.processFormV2)
 
   app.get("/*", (req, res) => { res.render("404") } )
 

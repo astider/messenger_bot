@@ -99,6 +99,7 @@ database.ref(`/quiz`).on('value', (snapshot)=>{
 
   if(isQuizOnline) {
     usersWhoVoted = []
+    votes = []
     shootTheQuestion((snapshot.val())[0], isLastQuestion)
   }
   else console.log('quiz added when system is not ready to be played')
