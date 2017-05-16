@@ -98,9 +98,10 @@ database.ref(`/users`).on('child_added', (childSnapshot, prevChildKey) => {
 database.ref(`/quiz`).on('value', (snapshot)=>{
 
   if(isQuizOnline) {
+    quiz = (snapshot.val())[0]
     usersWhoVoted = []
     votes = []
-    shootTheQuestion((snapshot.val())[0], isLastQuestion)
+    shootTheQuestion(quiz, isLastQuestion)
   }
   else console.log('quiz added when system is not ready to be played')
 
@@ -147,6 +148,7 @@ botmaster.on('update', (bot, update) => {
             usersWhoVoted.push(update.sender.id)
 
             if(canAnswer) {
+              console.log(votes);
               votes[ans].push(update.sender.id)
               bot.sendTextMessageTo(replyText[Math.floor(Math.random() * 5)], update.sender.id)
             }
@@ -229,9 +231,8 @@ function shootTheQuestion(quiz, isLastQuestion) {
       'payload': choice
     })
 
-    let choiceString = choice.toString()
     votes.push({
-      choiceString: []
+      choice: []
     })
     console.log('choice = ' + choice);
   })
