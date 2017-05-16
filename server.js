@@ -99,13 +99,6 @@ botmaster.on('update', (bot, update) => {
         userMgt.recordNewUserID(id)
         allIDs.push(id)
 
-        if(enterTime) {
-          messengerBot.sendTextMessageTo('กิจกรรมกำลังจะเริ่มในไม่ช้า', id)
-          setTimeout(()=>{
-            messengerBot.sendDefaultButtonMessageTo(['เข้าร่วม', 'ไม่เข้าร่วม'], id, 'ผู้สนใจสามารถกดเข้าร่วมได้ตามปุ่มด้านล่างนี้เลย')
-          }, 500)
-        }
-
       }
       else console.log('already have this id');
 
