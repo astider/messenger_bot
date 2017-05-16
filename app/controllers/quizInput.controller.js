@@ -7,7 +7,7 @@ exports.addQuiz = function(req, res) {
 }
 
 exports.addQuizV2 = function(req, res) {
-  res.render("addquizV2")
+  res.render("addquiz2")
 }
 
 exports.processForm = function(req, res) {
