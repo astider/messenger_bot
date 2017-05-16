@@ -67,33 +67,32 @@ database.ref(`/users`).on('child_added', (childSnapshot, prevChildKey) => {
   let userID = childSnapshot.key
   console.log(userID + ' added');
 
-  if(allIDs.indexOf(userID) < 0)
+  if(allIDs.indexOf(userID) < 0) {
+
     allIDs.push(userID)
-  else console.log('already have this id');
 
-  if(!isQuizOnline) {
-    messengerBot.sendTextMessageTo(`สวัสดีจ้า มารอร่วมโหวตบูธที่อยากให้ทาง Droidsans ไปดูกันนะ`, userID)
-  }
-
-  if(isQuizOnline && canAnswer) {
-
-    let buttons = []
-    quiz.choices.forEach((choice) => {
-      buttons.push({
-        'content_type': 'text',
-        'title': choice,
-        'payload': choice
-      })
-      console.log('choice = ' + choice);
-    })
-
-    let msg = {
-      text: quiz[currentQuiz].q,
-      quick_replies: buttons
+    if(!isQuizOnline) {
+      messengerBot.sendTextMessageTo(`สวัสดีจ้า มารอร่วมโหวตบูธที่อยากให้ทาง Droidsans ไปดูกันนะ`, userID)
     }
 
-    messengerBot.sendMessageTo(msg, userID)
+    if(isQuizOnline && canAnswer) {
+
+      let buttons = []
+      quiz.choices.forEach((choice) => {
+        buttons.push({
+          'content_type': 'text',
+          'title': choice,
+          'payload': choice
+        })
+        console.log('choice = ' + choice);
+      })
+
+      messengerBot.sendMessageTo({text: quiz[currentQuiz].q, quick_replies: buttons}, userID)
+    }
+
   }
+  else console.log('already have this id');
+
 })
 
 database.ref(`/quiz`).on('value', (snapshot)=>{
@@ -102,7 +101,7 @@ database.ref(`/quiz`).on('value', (snapshot)=>{
     usersWhoVoted = []
     shootTheQuestion((snapshot.val())[0], isLastQuestion)
   }
-  console.log('quiz added when system is not ready to be played')
+  else console.log('quiz added when system is not ready to be played')
 
 })
 
