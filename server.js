@@ -60,7 +60,7 @@ botmaster.addBot(messengerBot)
 
 let allIDs = []
 let usersWhoVoted = []
-let votes = []
+votes = []
 
 database.ref(`/users`).on('child_added', (childSnapshot, prevChildKey) => {
 
