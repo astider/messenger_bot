@@ -98,10 +98,14 @@ database.ref(`/users`).on('child_added', (childSnapshot, prevChildKey) => {
 database.ref(`/quiz`).on('value', (snapshot)=>{
 
   if(isQuizOnline) {
-    quiz = (snapshot.val())[0]
+
     usersWhoVoted = []
     votes = []
-    shootTheQuestion(quiz, isLastQuestion)
+
+    quiz = (snapshot.val())[0]
+    let tempIsLast = quiz.isLastQuestion
+
+    shootTheQuestion(quiz, tempIsLast)
   }
   else console.log('quiz added when system is not ready to be played')
 

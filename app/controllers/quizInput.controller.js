@@ -45,23 +45,19 @@ exports.processFormV2 = function(req, res) {
 
   console.log('processform');
 
-  let q = []
-  let choices = []
-  let length = req.body.numbers
+  let q = req.body.question
+  let choices = req.body.choices
+  let isLast = req.body.lastQuestion
 
-  choices = []
-  for(let j = 1; j <= 4; j++) {
-    choices.push(req.body[`q1c${j}`])
+  let question = {
+    'q': q,
+    'choices': choices,
+    'isLastQuestion': isLast
   }
 
-  q.push({
-    'a': req.body[`q1ans`],
-    'q': req.body[`q1`],
-    'choices': choices
+  database.ref("/quiz").set(question)
+  res.json({
+    'status' : 'done'
   })
-
-  //database.ref("/participants").set([])
-  database.ref("/quiz").set(q)
-  res.send('บันทึกชุดคำถามเรียบร้อย')
 
 }
