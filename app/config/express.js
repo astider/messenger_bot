@@ -4,6 +4,7 @@ let ejs = require('ejs');
 let quizControl = require('../controllers/quizControl.controller.js')
 let quizResult = require('../controllers/quizResult.controller.js')
 let quizInput = require('../controllers/quizInput.controller.js')
+let quizAPIsV2 = require('../controllers/quizAPIsV2.controller.js')
 let quizAPIs = require('../controllers/quizAPIs.controller.js')
 let index = require('../controllers/index.cotnroller.js')
 
@@ -68,6 +69,10 @@ module.exports = function(app, express) {
   app.get("/getAllQuestions", quizAPIs.getAllQuestions)
   app.get("/getParticipantsScoreObject", quizAPIs.getParticipantsScoreObject)
   app.get("/getParticipantsScore", quizAPIs.getParticipantsScore)
+
+  app.get("/v2/getVoteResult", quizAPIsV2.getVoteResult)
+  app.get("/v2/getQuestion", quizAPIsV2.getQuestion)
+  app.get("/v2/getAllUsersInfo", quizAPIsV2.getAllUsersInfo)
 
   app.post("/processQuizForm", jsonParser, urlencodedParser, quizInput.processForm)
 
