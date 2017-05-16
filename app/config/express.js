@@ -71,6 +71,7 @@ module.exports = function(app, express) {
   app.get("/getParticipantsScoreObject", quizAPIs.getParticipantsScoreObject)
   app.get("/getParticipantsScore", quizAPIs.getParticipantsScore)
 
+  app.get("/v2/getRecentVotes", quizAPIsV2.getRecentVotes)  
   app.get("/v2/getVoteResult", quizAPIsV2.getVoteResult)
   app.get("/v2/getQuestion", quizAPIsV2.getQuestion)
   app.get("/v2/getAllUsersInfo", quizAPIsV2.getAllUsersInfo)

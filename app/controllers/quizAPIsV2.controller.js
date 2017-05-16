@@ -113,3 +113,9 @@ exports.getVoteResult = function(req, res) {
   })
 
 }
+
+exports.getRecentVotes = function(req, res) {
+  res.json({
+    'votes' : votes
+  })
+}
