@@ -147,7 +147,6 @@ botmaster.on('update', (bot, update) => {
             usersWhoVoted.push(update.sender.id)
 
             if(canAnswer) {
-              if(!votes) votes.push({ ans: [] })
               votes[ans].push(update.sender.id)
               bot.sendTextMessageTo(replyText[Math.floor(Math.random() * 5)], update.sender.id)
             }
@@ -230,9 +229,9 @@ function shootTheQuestion(quiz, isLastQuestion) {
       'payload': choice
     })
 
-    // votes.push({
-    //   choice: []
-    // })
+    votes.push({
+      choice.toString(): []
+    })
     console.log('choice = ' + choice);
   })
 
