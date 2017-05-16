@@ -229,8 +229,9 @@ function shootTheQuestion(quiz, isLastQuestion) {
       'payload': choice
     })
 
+    let choiceString = choice.toString()
     votes.push({
-      choice.toString(): []
+      choiceString: []
     })
     console.log('choice = ' + choice);
   })
