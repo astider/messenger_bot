@@ -21,10 +21,10 @@ let database = firebase.database()
 
 // quiz management variable
 quiz = null
-enterTime = false
+//enterTime = false
 //openedAtLeastOneTime = false
 isQuizOnline = false
-//readyToStart = false
+readyToStart = false
 isQuizEnd = false
 canAnswer = false
 isLastQuestion = false
@@ -103,7 +103,7 @@ database.ref(`/quiz`).on('value', (snapshot)=>{
     shootTheQuestion((snapshot.val())[0], isLastQuestion)
   }
   console.log('quiz added when system is not ready to be played')
-  
+
 })
 
 // -------------------------------------------------------------------------
