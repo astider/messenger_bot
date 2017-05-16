@@ -224,7 +224,7 @@ function shootTheQuestion(quiz, isLastQuestion) {
   })
 
   let msg = {
-    text: quiz[currentQuiz].q,
+    text: quiz.q,
     quick_replies: buttons
   }
 
