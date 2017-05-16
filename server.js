@@ -133,24 +133,32 @@ botmaster.on('update', (bot, update) => {
 
       if(update.message.quick_reply.payload) {
 
-        let ans = update.message.quick_reply.payload
+        try {
 
-        let replyText = ['ได้รับข้อมูลแล้วจ้า', 'รอลุ้นกันว่ามีคนคิดเหมือนกันเยอะมั้ย', 'มารอลุ้นกันนะ', 'คนอื่นจะเลือกเหมือนกันมั้ยน้า~', 'มาดูกันว่าพี่พัดน้องเก่งจะได้ไปดูที่ไหนต่อกัน']
-        let dupReplyText = ['คุณโหวตมาแล้ว โหวตซ้ำไม่ได้นะ', 'ไม่เอา ไม่โหวตซ้ำสิ ได้ครั้งเดียวนะ', 'โหวตได้ครั้งเดียวนะ รอรอบต่อไปละกัน', 'โหวตมาแล้วเปลี่ยนใจไม่ได้นะ']
+          let ans = update.message.quick_reply.payload
 
-        if(usersWhoVoted.indexOf(update.sender.id) < 0) {
+          let replyText = ['ได้รับข้อมูลแล้วจ้า', 'รอลุ้นกันว่ามีคนคิดเหมือนกันเยอะมั้ย', 'มารอลุ้นกันนะ', 'คนอื่นจะเลือกเหมือนกันมั้ยน้า~', 'มาดูกันว่าพี่พัดน้องเก่งจะได้ไปดูที่ไหนต่อกัน']
+          let dupReplyText = ['คุณโหวตมาแล้ว โหวตซ้ำไม่ได้นะ', 'ไม่เอา ไม่โหวตซ้ำสิ ได้ครั้งเดียวนะ', 'โหวตได้ครั้งเดียวนะ รอรอบต่อไปละกัน', 'โหวตมาแล้วเปลี่ยนใจไม่ได้นะ']
 
-          console.log('user id ', update.sender.id, ans)
-          usersWhoVoted.push(update.sender.id)
+          if(usersWhoVoted.indexOf(update.sender.id) < 0) {
 
-          if(canAnswer) {
-            votes[ans].push(update.sender.id)
-            bot.sendTextMessageTo(replyText[Math.floor(Math.random() * 5)], update.sender.id)
+            console.log('user id ', update.sender.id, ans)
+            usersWhoVoted.push(update.sender.id)
+
+            if(canAnswer) {
+              votes[ans].push(update.sender.id)
+              bot.sendTextMessageTo(replyText[Math.floor(Math.random() * 5)], update.sender.id)
+            }
+            else bot.sendTextMessageTo('มาช้าไปหน่อยนะ หมดเวลาโหวตข้อนี้แล้วจ้า', update.sender.id)
+
           }
-          else bot.sendTextMessageTo('มาช้าไปหน่อยนะ หมดเวลาโหวตข้อนี้แล้วจ้า', update.sender.id)
+          else bot.sendTextMessageTo(dupReplyText[Math.floor(Math.random() * 4)], update.sender.id)
 
         }
-        else bot.sendTextMessageTo(dupReplyText[Math.floor(Math.random() * 4)], update.sender.id)
+        catch(error) {
+          console.log(`answer incoming error : ${error}`)
+        }
+
 
       }
 
