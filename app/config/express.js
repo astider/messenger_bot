@@ -25,8 +25,10 @@ module.exports = function(app, express) {
     var origin = req.get('origin');
     //console.log(req.session);
     if (origin) {
+      console.log(`origin: ${origin}, ....... ${JSON.stringify(origin)}`);
      if (allowedHeader.indexOf(origin) > -1){
-      res.header("Access-Control-Allow-Origin", "*");
+      res.header("Access-Control-Allow-Origin", "*")
+      Access-Control-Allow-Origin
      }
      else{
      return res.status(403).end();
@@ -71,7 +73,7 @@ module.exports = function(app, express) {
   app.get("/getParticipantsScoreObject", quizAPIs.getParticipantsScoreObject)
   app.get("/getParticipantsScore", quizAPIs.getParticipantsScore)
 
-  app.get("/v2/getRecentVotes", quizAPIsV2.getRecentVotes)  
+  app.get("/v2/getRecentVotes", quizAPIsV2.getRecentVotes)
   app.get("/v2/getVoteResult", quizAPIsV2.getVoteResult)
   app.get("/v2/getQuestion", quizAPIsV2.getQuestion)
   app.get("/v2/getAllUsersInfo", quizAPIsV2.getAllUsersInfo)
