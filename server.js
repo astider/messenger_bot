@@ -22,16 +22,16 @@ let database = firebase.database()
 // quiz management variable
 quiz = null
 enterTime = false
-//openedAtLeastOneTime = false
+openedAtLeastOneTime = false
 isQuizOnline = false
 readyToStart = false
 isQuizEnd = false
 canAnswer = false
 isLastQuestion = false
 
-//quizReady = null // will be assigned as ARRAY
+quizReady = null // will be assigned as ARRAY
 
-//let correctUser = []
+let correctUser = []
 
 app.listen(port, () => {
   console.log('Express app started on port ' + port);
