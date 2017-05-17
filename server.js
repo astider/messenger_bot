@@ -21,7 +21,7 @@ let database = firebase.database()
 
 // quiz management variable
 quiz = null
-//enterTime = false
+enterTime = false
 //openedAtLeastOneTime = false
 isQuizOnline = false
 readyToStart = false
