@@ -34,7 +34,7 @@ module.exports = function(app, express) {
      }
     }
 
-    console.log(`req.header = ${req.header}`);
+    console.log(`res.header = ${res.header}`);
     console.log(`req.method = ${req.method}`);
     if ('OPTIONS' == req.method) {
      return res.status(200).end();
