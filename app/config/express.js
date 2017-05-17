@@ -28,13 +28,14 @@ module.exports = function(app, express) {
       console.log(`origin: ${origin}, ....... ${JSON.stringify(origin)}`);
      if (allowedHeader.indexOf(origin) > -1){
       res.header("Access-Control-Allow-Origin", "*")
-      Access-Control-Allow-Origin
      }
      else{
      return res.status(403).end();
      }
     }
 
+    console.log(`req.header = ${req.header}`);
+    console.log(`req.method = ${req.method}`);
     if ('OPTIONS' == req.method) {
      return res.status(200).end();
     }
