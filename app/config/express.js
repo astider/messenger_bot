@@ -44,7 +44,8 @@ module.exports = function(app, express) {
      }
     }
 
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Cache-Control, Accept");
+    res.header('Access-Control-Allow-Methods', 'OPTIONS, GET, PUT, POST, DELETE');
+    res.header("Access-Control-Allow-Headers", "Origin, Content-Type");
 
     console.log(`res.header = ${res.header}`);
     console.log(`req.method = ${req.method}`);
