@@ -49,13 +49,14 @@ exports.processFormV2 = function(req, res) {
   let choices = req.body.choices
   let isLast = req.body.lastQuestion
 
-  let question = {
+  let tempArray = []
+  tempArray.push({
     'q': q,
     'choices': choices,
     'isLastQuestion': isLast
-  }
+  })
 
-  database.ref("/quiz").set(question)
+  database.ref("/quiz").set(tempArray)
   res.json({
     'status' : 'done'
   })
