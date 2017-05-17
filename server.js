@@ -97,6 +97,10 @@ database.ref(`/users`).on('child_added', (childSnapshot, prevChildKey) => {
 
 database.ref(`/quiz`).on('value', (snapshot)=>{
 
+  if(!readyToStart) {
+    quiz = (snapshot.val())[0]
+  }
+
   if(isQuizOnline) {
 
     usersWhoVoted = []
