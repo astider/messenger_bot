@@ -58,7 +58,7 @@ and be used to request actual public profile of the users if needed.
             "before": "MTA4OTk1MTE2NDc1NjE3Ojk6MAZDZD",
             "after": "MTU5MTM2OTM1NDI3MTI5Mzo5OjAZD"
         },
-        "next": "https://graph.facebook.com/v2.10/125837970785202_1407107829324870/sharedposts?access_token=1815661628655343%7Cd11dafa5ca2e91288af711bea4b98cbf&pretty=1&limit=25&after=MTU5MTM2OTM1NDI3MTI5Mzo5OjAZD"
+        "next": "https://graph.facebook.com/v2.10/125837970785202_1407107829324870/sharedposts?access_token=appID|appsecret"
     }
 
 }
