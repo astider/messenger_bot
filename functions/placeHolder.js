@@ -14,6 +14,10 @@ test function
 
 https://graph.facebook.com/v2.10/125837970785202_1407107829324870/sharedposts?access_token=appKey|appSecret
 
+after /v2.10/ is a pageid_postid
+
+
+
 This graph API request requests shared posts data of post from a choosen Droidsans page's post
 
 and will use app key and secret as a token, kept in NODE_ENV of firebase
