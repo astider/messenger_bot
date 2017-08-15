@@ -98,7 +98,7 @@ const recordNewUserID_FBlogin = function (fbloginID, PSID, firebaseAuth) {
     .then(allID => {
 
       if (allID.indexOf(PSID) > -1) {
-        console.log(`duplciate user id, ${userName} already in DB, adding fb login id to DB`)
+        console.log(`duplciate user id, ${userName} already in DB, checking fb login id to DB`)
         db.ref('users').orderByChild('fbid').equalTo(PSID).once('value')
         .then(uSnap => {
 

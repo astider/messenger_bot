@@ -579,7 +579,7 @@ function addNewUser (newUserId) {
 
 	userManagementAPI.recordNewUserID(newUserId)
 	messengerAPI.sendTypingOn(newUserId)
-	console.log('b4 call profile api')
+	console.log('added user /// sending message back')
 	messengerAPI.callProfileAPI(newUserId)
 	.then(profile => {
 
@@ -589,7 +589,7 @@ function addNewUser (newUserId) {
 	})
 	.then(status => {
 
-		if (status.playing || status.canEnter) {
+		if (status.playing || status.canEnter ) {
 			let inviteMessage = {
 				text:
 					'แชทชิงโชค กำลังจะเริ่มในไม่ช้า ต้องการเข้าร่วมเล่นด้วยหรือไม่?',
@@ -616,7 +616,8 @@ function addNewUser (newUserId) {
 			let texts = [
 				`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,
 				// 'ขณะนี้ แชทชิงโชค ยังไม่เริ่ม ถ้าใกล้ถึงช่วงเวลาของกิจกรรมแล้วทางเราจะติดต่อกลับไปนะ'
-				'สัปดาห์นี้แชทชิงโชคเปลี่ยนเวลา จะเริ่มวันอังคารที่ 15 เวลา 2 ทุ่มครับ'
+				// 'สัปดาห์นี้แชทชิงโชคเปลี่ยนเวลา จะเริ่มวันอังคารที่ 15 เวลา 2 ทุ่มครับ'
+				'แชทชิงโชคจะเริ่มในเวลา 2 ทุ่มวันนี้ อดใจรอกันหน่อยนะ :D'
 			]
 
 			sendCascadeMessage(newUserId, texts)
@@ -624,7 +625,7 @@ function addNewUser (newUserId) {
 
 	})
 	.catch(error => {
-		console.log(`error : ${error}`)
+		console.log(`addnewuser error : ${error}`)
 	})
 
 }
@@ -698,12 +699,12 @@ function receivedMessage (event) {
 			
 			// console.log(`USER PAYLOAD = ${messageQRPayload}`)
 
-			if (status.playing && status.currentQuiz > -1 && participants) {
+			if (messageQRPayload != 'เข้าร่วม' && messageQRPayload != 'ไม่เข้าร่วม' && status.playing && status.currentQuiz > -1 && participants) {
 
 				console.log('in answer validation process')
 
 				// idea is : if stringAnswer is true => use messageText else check payload
-				if (!participants[senderID]) addNewUser()
+				if (!participants[senderID]) addNewUser(senderID)
 				else {
 
 					let player = participants[senderID] // to shorten code
@@ -823,12 +824,16 @@ function receivedMessage (event) {
 					sendQuickReplies(senderID, quizMessage)
 				} else {
 					// sendTextMessage(senderID, 'โอเค~ รออีกแป๊บนะ กิจกรรมใกล้จะเริ่มแล้ว')
-					let texts = [
-						'ยินดีต้อนรับเข้าสู่เกม "แชทชิงโชค" โปรดรอคำถามจาก facebook Live',
-						`กติกาการแข่งขัน ผู้ที่สะสมคะแนนได้สูงสุดใน 3 อันดับแรกของแต่ละวัน จะได้รับของรางวัลจากทางรายการ
-    แต้มจะไม่สามารถสะสมข้ามสัปดาห์ได้ และการตัดสินของกรรมการจะถือเป็นที่สิ้นสุด
+		// 			let texts = [
+		// 				'ยินดีต้อนรับเข้าสู่เกม "แชทชิงโชค" โปรดรอคำถามจาก facebook Live',
+		// 				`กติกาการแข่งขัน ผู้ที่สะสมคะแนนได้สูงสุดใน 3 อันดับแรกของแต่ละวัน จะได้รับของรางวัลจากทางรายการ
+    // แต้มจะไม่สามารถสะสมข้ามสัปดาห์ได้ และการตัดสินของกรรมการจะถือเป็นที่สิ้นสุด
 
-    ทีมงานและครอบครัวไม่สามารถร่วมเล่นเกมและรับของรางวัลได้`
+    // ทีมงานและครอบครัวไม่สามารถร่วมเล่นเกมและรับของรางวัลได้`
+		// 			]
+					let texts = [
+						'แชทชิงโชค วันนี้ใครจะได้รางวัลประจำสัปดาห์ 3 รางวัลไป และเดือนนี้ลุ้นรางวัลใหญ่ Galaxy Note 8\r\n',
+						'กติกาเพิ่มเติมอ่านได้ที่ https://droidsans.com/chatchingchoke-august-note8/'
 					]
 
 					sendCascadeMessage(senderID, texts)
