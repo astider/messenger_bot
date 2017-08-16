@@ -572,11 +572,23 @@ module.exports = function (util, messengerFunctions) {
 
 					if (played_reward_keys.indexOf(usersData[key].fbid) > -1) {
 
-						usersData[key].coupon = usersData[key].coupon + 1
-						usersData[key].couponHistory = {
-							[date]: {
+						usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
+						
+						if (usersData[key].couponHistory) {
+
+							usersData[key].couponHistory[date] = {
 								playReward: true
 							}
+
+						}
+						else {
+							
+							usersData[key].couponHistory = {
+								[date]: {
+									playReward: true
+								}
+							}
+							
 						}
 
 						result[usersData[key].fbid] = {
@@ -590,7 +602,7 @@ module.exports = function (util, messengerFunctions) {
 
 					if (top_reward_keys.indexOf(usersData[key].fbid) > -1) {
 
-						usersData[key].coupon = usersData[key].coupon + 1
+						usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
 						
 						if (usersData[key].couponHistory && usersData[key].couponHistory[date]) {
 							usersData[key].couponHistory[date].bonusReward = true
@@ -598,10 +610,10 @@ module.exports = function (util, messengerFunctions) {
 						else {
 
 							usersData[key].couponHistory = {
-							[date]: {
-								bonusReward: true
+								[date]: {
+									bonusReward: true
+								}
 							}
-						}
 
 						}
 						
@@ -617,21 +629,7 @@ module.exports = function (util, messengerFunctions) {
 
 				})
 
-				if (req.query['mode'] == 9) {
-
-					res.json({
-						error: null,
-						normal_count: played_reward_keys.length,
-						bonus_count: top_reward_keys.length,
-						result_count: Object.keys(result).length,
-						// normal: played_reward_keys,
-						// bonus: top_reward_keys,
-						users_count: Object.keys(usersData).length,
-						usersData: usersData
-					})
-
-				}
-				else {
+				if (req.query['mode'] == 99) {
 
 					db.ref(`couponSchedule/${date}`).set(false)
 					.then(() => {
@@ -643,6 +641,20 @@ module.exports = function (util, messengerFunctions) {
 							error: null,
 							message: 'Coupon Sent!!'
 						})
+					})
+
+				}
+				else {
+
+					res.json({
+						error: null,
+						normal_count: played_reward_keys.length,
+						bonus_count: top_reward_keys.length,
+						result_count: Object.keys(result).length,
+						// normal: played_reward_keys,
+						// bonus: top_reward_keys,
+						users_count: Object.keys(usersData).length,
+						usersData: usersData
 					})
 
 				}				

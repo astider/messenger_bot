@@ -64,7 +64,7 @@ const recordNewUserID = function (userId) {
         'profilePic': fetchedProfile.profile_pic,
         'timezone': fetchedProfile.timezone,
         'createdAt': (new Date()).toISOString(),
-        'counpon': 0
+        'coupon': 0
       })
 
     }

@@ -2,9 +2,6 @@ const functions = require('firebase-functions')
 const messengerENV = functions.config().quizshow.messenger
 const axios = require('axios')
 
-console.log('______________________')
-console.log(messengerENV.page_token)
-
 const callProfileAPI = function (userId) {
 	return axios(
 		`https://graph.facebook.com/v2.10/${userId}?fields=first_name,last_name,profile_pic,timezone,gender&access_token=${messengerENV.page_token}`
