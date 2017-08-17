@@ -649,7 +649,7 @@ function receivedMessage (event) {
 
 	// ------- USER ANSWER
 	let status = null
-	let playerInfo = null
+	let participants = null
 	// let allUsers = null
 	let quiz = null
 	let adminAvaiability = false
@@ -673,19 +673,16 @@ function receivedMessage (event) {
 		})
 		.then(quizSnapshot => {
 			quiz = quizSnapshot.val()
-			return db.ref(`participants/${senderID}`).once('value') // _getParticipants()
+			return _getParticipants()
 		})
-		.then(playerSnapshot => {
-			playerInfo = playerSnapshot.val()
-			return db.ref('users').orderByChild('fbid').equalTo(senderID).once('value') // db.ref('users').once('value')
+		.then(participantsSnapshot => {
+			participants = participantsSnapshot.val()
+			return db.ref('users').once('value')
 		})
 		.then(fetchedUsers => {
-			let userObject = fetchedUsers.val()
-			let user = null
-			if (userObject && (Object.keys(userObject).length > 0) )
-				user = userObject[(Object.keys(userObject))[0]]
+			let users = fetchedUsers.val()
+			let allUsers = {}
 
-			/*
 			for (let key in users) {
 				allUsers[users[key].fbid] = {
 					fullName: users[key].firstName + ' ' + users[key].lastName,
@@ -694,7 +691,7 @@ function receivedMessage (event) {
 					profilePic: users[key].profilePic
 				}
 			}
-			*/
+
 			console.log('________________________________')
 			console.log(`_______ ${JSON.stringify(status)} ______`)
 			console.log('________________________________')
@@ -702,114 +699,92 @@ function receivedMessage (event) {
 			
 			// console.log(`USER PAYLOAD = ${messageQRPayload}`)
 
-			if (messageQRPayload != 'เข้าร่วม' && messageQRPayload != 'ไม่เข้าร่วม' && status.playing && status.currentQuiz > -1 && status.currentQuiz < quiz.length && playerInfo) {
+			if (messageQRPayload != 'เข้าร่วม' && messageQRPayload != 'ไม่เข้าร่วม' && status.playing && status.currentQuiz > -1 && participants) {
 
 				console.log('in answer validation process')
 
 				// idea is : if stringAnswer is true => use messageText else check payload
-				// current quiz need to be answered with text
-				if (quiz[status.currentQuiz].stringAnswer) {
-
-					console.log('hello from inside string answer')
-
-					if (!status.canAnswer)
-						sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
-					else if (playerInfo.answerPack[status.currentQuiz].ans)
-						sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
-
-					else if (messageQRPayload == 'noValue') {
-
-						let lowerCasedAnswer = messageText.toLowerCase()
-
-						let confirmAns = {
-							text: `ยืนยันคำตอบเป็น "${messageText}" ?\r\nหากต้องการเปลี่ยนคำตอบให้พิมพ์ใหม่ได้เลย`,
-							quick_replies: [
-								{
-									content_type: 'text',
-									title: 'ยืนยัน',
-									payload: lowerCasedAnswer
-								}
-							]
-						}
-
-						sendQuickReplies(senderID, confirmAns)
-
-					}
-					else {
-
-						sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
-
-						playerInfo.answerPack[status.currentQuiz].ans = messageQRPayload
-						playerInfo.answerPack[status.currentQuiz].at = new Date().getTime()
-
-						if (quiz[status.currentQuiz].a.indexOf(messageQRPayload) > -1) {
-							playerInfo.answerPack[status.currentQuiz].correct = true
-							playerInfo.point++
-						}
-
-						db.ref(`participants/${senderID}`).set(playerInfo)
-
-					}
-
-				}
-				// current quiz use choices
-				else if (quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
-
-					console.log('hello from inside CHOICE answer')
-
-					if (!status.canAnswer)
-						sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
-					else if (playerInfo.answerPack[status.currentQuiz].ans)
-						sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
-					else {
-							
-						sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
-
-						playerInfo.answerPack[status.currentQuiz].ans = messageQRPayload
-						playerInfo.answerPack[status.currentQuiz].at = new Date().getTime()
-
-						if (messageQRPayload == quiz[status.currentQuiz].a) {
-							playerInfo.answerPack[status.currentQuiz].correct = true
-							playerInfo.point++
-						}
-
-						db.ref(`participants/${senderID}`).set(playerInfo)
-
-					}
-
-				}
-				else if (playerInfo.answerPack[status.currentQuiz].ans)
-					sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
-				else if (!status.canAnswer)
-					sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
+				if (!participants[senderID]) addNewUser(senderID)
 				else {
 
-					sendTextMessage(senderID, 'พิมพ์ตอบจะไม่ได้คะแนนนะ กดตอบเอา')
+					let player = participants[senderID] // to shorten code
 
-					let quickReplyChoices = []
+					// current quiz need to be answered with text
+					if (quiz[status.currentQuiz].stringAnswer) {
 
-					quickReplyChoices = quiz[
-						status.currentQuiz
-					].choices.map(choice => {
-						return {
-							content_type: 'text',
-							title: choice,
-							payload: choice
+						console.log('hello from inside string answer')
+
+						if (!status.canAnswer)
+							sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
+						else if (player.answerPack[status.currentQuiz].ans)
+							sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
+
+						else if (messageQRPayload == 'noValue') {
+
+							let lowerCasedAnswer = messageText.toLowerCase()
+
+							let confirmAns = {
+								text: `ยืนยันคำตอบเป็น "${messageText}" ?\r\nหากต้องการเปลี่ยนคำตอบให้พิมพ์ใหม่ได้เลย`,
+								quick_replies: [
+									{
+										content_type: 'text',
+										title: 'ยืนยัน',
+										payload: lowerCasedAnswer
+									}
+								]
+							}
+
+							sendQuickReplies(senderID, confirmAns)
+
 						}
-					})
+						else {
 
-					let quizMessage = {
-						text: quiz[status.currentQuiz].q,
-						quick_replies: quickReplyChoices
+							sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
+
+							player.answerPack[status.currentQuiz].ans = messageQRPayload
+							player.answerPack[status.currentQuiz].at = new Date().getTime()
+
+							if (quiz[status.currentQuiz].a.indexOf(messageQRPayload) > -1) {
+								player.answerPack[status.currentQuiz].correct = true
+								player.point++
+							}
+
+							db.ref(`participants/${senderID}`).set(player)
+
+						}
+
+					}
+					// current quiz use choices
+					else if (quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
+
+						console.log('hello from inside CHOICE answer')
+
+						if (!status.canAnswer)
+							sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
+						else if (player.answerPack[status.currentQuiz].ans)
+							sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
+						else {
+							
+							sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
+
+							player.answerPack[status.currentQuiz].ans = messageQRPayload
+							player.answerPack[status.currentQuiz].at = new Date().getTime()
+
+							if (messageQRPayload == quiz[status.currentQuiz].a) {
+								player.answerPack[status.currentQuiz].correct = true
+								player.point++
+							}
+
+							db.ref(`participants/${senderID}`).set(player)
+
+						}
+
 					}
 
-					setTimeout(() => {
-						sendQuickReplies(senderID, quizMessage)
-					}, 1000)
 				}
 
 			}
-			else if ( messageQRPayload == 'เข้าร่วม' && !playerInfo && status.canEnter ) {
+			else if ( messageQRPayload == 'เข้าร่วม' && ((participants && !participants[senderID]) || !participants) && status.canEnter ) {
 
 				// ------- USER ENTER
 				// console.log(`in the khaoruam // id : ${senderID}`)
@@ -826,12 +801,12 @@ function receivedMessage (event) {
 				let tempParticipant = {
 					point: 0,
 					answerPack: answerTemplate,
-					firstName: user.firstName,
-					lastName: user.lastName,
-					profilePic: user.profilePic
+					firstName: allUsers[senderID].firstName,
+					lastName: allUsers[senderID].lastName,
+					profilePic: allUsers[senderID].profilePic
 				}
 
-				console.log(`new parti: ${user.firstName}`)
+				console.log(`new parti: ${allUsers[senderID].firstName}`)
 				db.ref(`participants/${senderID}`).set(tempParticipant)
 
 				if (status.playing && status.canAnswer) {
@@ -869,7 +844,7 @@ function receivedMessage (event) {
         console.log(`Already has this user in participants`)
       }
 */
-			} else if (messageQRPayload == 'ไม่เข้าร่วม' && !playerInfo) {
+			} else if (messageQRPayload == 'ไม่เข้าร่วม' && !participants[senderID]) {
 				sendTextMessage(senderID, 'ถ้าเปลี่ยนใจก็ทักมาได้นะ')
 
 			} else if (messageText) {
@@ -900,73 +875,57 @@ function receivedMessage (event) {
 								console.log(`running command [${command}]`)
 								let batchRequests = []
 
-								db.ref('users').once('value')
-								.then(userSnap => {
-
-									let allUsers = userSnap.val()
-
-									Object.keys(allUsers).forEach(id => {
-										
-										let bodyData = {
-											recipient: {
-												id: id
-											},
-											message: {
-												text: text
-											}
+								Object.keys(allUsers).forEach(id => {
+									
+									let bodyData = {
+										recipient: {
+											id: id
+										},
+										message: {
+											text: text
 										}
-	
-										batchRequests.push({
-											method: 'POST',
-											relative_url: 'me/messages?include_headers=false',
-											body: param(bodyData)
-										})
-										// sendTextMessage(id, text)
-									})
-	
-									sendBatchMessage(batchRequests)
-									// tell admin that message was sent
-									sendTextMessage(senderID, '## Message sent to ALL USERS')
+									}
 
+									batchRequests.push({
+										method: 'POST',
+										relative_url: 'me/messages?include_headers=false',
+										body: param(bodyData)
+									})
+									// sendTextMessage(id, text)
 								})
-								
+
+								sendBatchMessage(batchRequests)
+								// tell admin that message was sent
+								sendTextMessage(senderID, '## Message sent to ALL USERS')
 							}
 							else if (command == 'ANN_PART') {
 
 								console.log(`running command [${command}]`)
 								let batchRequests = []
 
-								db.ref('participants').once('value')
-								.then(partSnap => {
-
-									let participants = partSnap.val()
-
-									Object.keys(participants).forEach(id => {
-										
-										let bodyData = {
-											recipient: {
-												id: id
-											},
-											message: {
-												text: text
-											}
+								Object.keys(participants).forEach(id => {
+									
+									let bodyData = {
+										recipient: {
+											id: id
+										},
+										message: {
+											text: text
 										}
-	
-										batchRequests.push({
-											method: 'POST',
-											relative_url: 'me/messages?include_headers=false',
-											body: param(bodyData)
-										})
-										
-										// sendTextMessage(id, text)
-									})
-	
-									sendBatchMessage(batchRequests)
-									// tell admin that message was sent
-									sendTextMessage(senderID, '## Message sent to ALL PARTICIPANTS')
+									}
 
+									batchRequests.push({
+										method: 'POST',
+										relative_url: 'me/messages?include_headers=false',
+										body: param(bodyData)
+									})
+									
+									// sendTextMessage(id, text)
 								})
-								
+
+								sendBatchMessage(batchRequests)
+								// tell admin that message was sent
+								sendTextMessage(senderID, '## Message sent to ALL PARTICIPANTS')
 
 							}
 							else {
@@ -978,7 +937,7 @@ function receivedMessage (event) {
 					}
 
 				}
-				else if (!user || !playerInfo) {
+				else if (!allUsers || !allUsers[senderID] || !participants || !participants[senderID]) {
 
 					console.log('user id not found in DB {OR} not in participants -> adding new user')
 					addNewUser(senderID)
@@ -995,7 +954,7 @@ function receivedMessage (event) {
 						if (!status.canAnswer) {
 							sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
 						}
-						else if (playerInfo && playerInfo.answerPack[status.currentQuiz].ans) {
+						else if (participants[senderID] && participants[senderID].answerPack[status.currentQuiz].ans) {
 							sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
 						}
 						else {
@@ -1026,12 +985,15 @@ function receivedMessage (event) {
 					} else if (status.canEnter)
 						sendTextMessage(senderID, 'รอสักครู่นะ กิจกรรมยังไม่เริ่ม')
 				}
-
 			} else if (messageAttachments) {
 				console.log(JSON.stringify(message))
 				console.log('Message with attachment received')
-
-				if ( !user || !playerInfo ) {
+				if (
+					!allUsers ||
+					!allUsers[senderID] ||
+					!participants ||
+					!participants[senderID]
+				) {
 					console.log('user id not found in DB {OR} not in participants -> adding new user')
 					addNewUser(senderID)
 				}
