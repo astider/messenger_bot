@@ -144,9 +144,7 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest(
 				// console.log("Validating webhook")
 				res.status(200).send(req.query['hub.challenge'])
 			} else {
-				console.error(
-					'Failed validation. Make sure the validation tokens match.'
-				)
+				console.error('Failed validation. Make sure the validation tokens match.')
 				res.sendStatus(403)
 			}
 		} else if (req.method == 'POST') {
@@ -166,14 +164,11 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest(
 							receivedMessage(event)
 							// } else if (event.delivery) {
 							//	console.log(`Message delivered to ${event.sender.id}`)
-						} else {
-							if (
-								event.postback &&
-								event.postback.payload == 'userPressedGetStartedButton'
-							) {
-								console.log(
-									`receive get started action from ${event.sender.id}`
-								)
+						}
+						else {
+
+							if (event.postback && event.postback.payload == 'userPressedGetStartedButton') {
+								console.log(`receive get started action from ${event.sender.id}`)
 								addNewUser(event.sender.id)
 							} else
 								console.log(`Webhook Unknown Event: ${JSON.stringify(event)}`)
@@ -352,9 +347,7 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 
 						// check if this quiz has choices
 						if (quiz[status.currentQuiz].choices) {
-							quickReplyChoices = quiz[
-								status.currentQuiz
-							].choices.map(choice => {
+							quickReplyChoices = quiz[status.currentQuiz].choices.map(choice => {
 								return {
 									content_type: 'text',
 									title: choice,
@@ -394,23 +387,20 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 						if (fireQuizAt[status.currentQuiz] == 0) {
 							fireQuizAt[status.currentQuiz] = new Date().getTime()
 
-							db
-								.ref('fireQuizAt')
-								.set(fireQuizAt)
-								.then(() => {
-									return db.ref('canAnswer').set(true)
-								})
-								.then(() => {
-									console.log('sync SENDING')
-									sendBatchMessage(sendQuizBatch)
+							db.ref('fireQuizAt').set(fireQuizAt).then(() => {
+								return db.ref('canAnswer').set(true)
+							})
+							.then(() => {
+								console.log('sync SENDING')
+								sendBatchMessage(sendQuizBatch)
 
-									res.json({
-										error: null,
-										qno: status.currentQuiz,
-										q: quiz[status.currentQuiz].q,
-										choices: quiz[status.currentQuiz].choices
-									})
+								res.json({
+									error: null,
+									qno: status.currentQuiz,
+									q: quiz[status.currentQuiz].q,
+									choices: quiz[status.currentQuiz].choices
 								})
+							})
 						} else {
 							db.ref('canAnswer').set(true).then(() => {
 								console.log('sync SENDING / not set new FQA')
@@ -668,11 +658,7 @@ function receivedMessage (event) {
 		})
 		.then(playerSnapshot => {
 			playerInfo = playerSnapshot.val()
-			return db
-				.ref('users')
-				.orderByChild('fbid')
-				.equalTo(senderID)
-				.once('value') // db.ref('users').once('value')
+			return db.ref('users').orderByChild('fbid').equalTo(senderID).once('value') // db.ref('users').once('value')
 		})
 		.then(fetchedUsers => {
 			let userObject = fetchedUsers.val()
@@ -843,10 +829,12 @@ function receivedMessage (event) {
 
 					// ทีมงานและครอบครัวไม่สามารถร่วมเล่นเกมและรับของรางวัลได้`
 					// 			]
+					
 					let texts = [
 						'แชทชิงโชค วันนี้ใครจะได้รางวัลประจำสัปดาห์ 3 รางวัลไป และเดือนนี้ลุ้นรางวัลใหญ่ Galaxy Note 8\r\n',
 						'กติกาเพิ่มเติมอ่านได้ที่ https://droidsans.com/chatchingchoke-august-note8/\r\n',
-						'สามารถรับชม Live ได้ผ่านทาง https://youtu.be/yRHTbynL__4 '
+						'สามารถรับชม Live ได้ผ่านทาง https://youtu.be/yRHTbynL__4 \r\n\r\n',
+						`ขณะนี้คุณมีคูปองอยู่ ${user.coupon} คูปอง เราขอให้คุณโชคดีกับแชทชิงโชค :)`
 					]
 
 					sendCascadeMessage(senderID, texts)
