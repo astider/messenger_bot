@@ -6,7 +6,8 @@ const firebaseInit = require('./firebase-settings.js')
 
 const functions = firebaseInit.functions
 const admin = firebaseInit.admin
-const env = firebaseInit.env
+// const env = firebaseInit.env
+const env = functions.config()
 const db = admin.database()
 
 /*
@@ -70,8 +71,8 @@ this URL makes a request for user (public) detail such as Full Name
 we will have to match users by "name"
 
 */
-exports.getSharedPostsByApp = function getSharedPostsByApp(pageID,postID,request,response){
-  //We have to use access_token in query
+exports.getSharedPostsByApp = function getSharedPostsByApp (pageID,postID,request,response){
+  // We have to use access_token in query
   axios({
     method: 'GET',
     url: `https://graph.facebook.com/v2.6/${pageID}_${postID}/sharedposts?access_token=${env.chatchingchokeapp.app_id}|${env.chatchingchokeapp.app_secret}`,
@@ -81,18 +82,16 @@ exports.getSharedPostsByApp = function getSharedPostsByApp(pageID,postID,request
       if (res.status == 200) {
 
         let body = res.data
-        console.log("body is")
+        console.log('body is')
         console.log(body)
-        response.json({body:body})
-
-
+        response.json({ body:body })
 
     }
   })
     .catch(error => {
       console.log('Shareposts count error ')
       console.log(`${error}`)
-      response.status(500).json({error:error})
+      response.status(500).json({ error:error })
     })
 
 }
