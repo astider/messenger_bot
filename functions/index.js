@@ -617,7 +617,7 @@ function addNewUser (newUserId) {
 				`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,
 				// 'ขณะนี้ แชทชิงโชค ยังไม่เริ่ม ถ้าใกล้ถึงช่วงเวลาของกิจกรรมแล้วทางเราจะติดต่อกลับไปนะ'
 				// 'สัปดาห์นี้แชทชิงโชคเปลี่ยนเวลา จะเริ่มวันอังคารที่ 15 เวลา 2 ทุ่มครับ'
-				'ไว้พบกับแชทชิงโชคครั้งหน้า วันจันทร์ที่ 21 ส.ค. เวลา 2 ทุ่มเหมือนเดิมนะ'
+				'แชทชิงโชคประจำสัปดาห์นี้จะเริ่ม วันนี้เวลา 2 ทุ่มนะ อย่าลืมมาร่วมสนุกกับพวกเราล่ะ ;)'
 			]
 
 			sendCascadeMessage(newUserId, texts)
@@ -858,7 +858,8 @@ function receivedMessage (event) {
 		// 			]
 					let texts = [
 						'แชทชิงโชค วันนี้ใครจะได้รางวัลประจำสัปดาห์ 3 รางวัลไป และเดือนนี้ลุ้นรางวัลใหญ่ Galaxy Note 8\r\n',
-						'กติกาเพิ่มเติมอ่านได้ที่ https://droidsans.com/chatchingchoke-august-note8/'
+						'กติกาเพิ่มเติมอ่านได้ที่ https://droidsans.com/chatchingchoke-august-note8/\r\n',
+						'สามารถรับชม Live ได้ผ่านทาง https://youtu.be/yRHTbynL__4 '
 					]
 
 					sendCascadeMessage(senderID, texts)
@@ -940,30 +941,36 @@ function receivedMessage (event) {
 								.then(partSnap => {
 
 									let participants = partSnap.val()
+									if (participants) {
 
-									Object.keys(participants).forEach(id => {
-										
-										let bodyData = {
-											recipient: {
-												id: id
-											},
-											message: {
-												text: text
+										Object.keys(participants).forEach(id => {
+											
+											let bodyData = {
+												recipient: {
+													id: id
+												},
+												message: {
+													text: text
+												}
 											}
-										}
-	
-										batchRequests.push({
-											method: 'POST',
-											relative_url: 'me/messages?include_headers=false',
-											body: param(bodyData)
+		
+											batchRequests.push({
+												method: 'POST',
+												relative_url: 'me/messages?include_headers=false',
+												body: param(bodyData)
+											})
+											
+											// sendTextMessage(id, text)
 										})
-										
-										// sendTextMessage(id, text)
-									})
-	
-									sendBatchMessage(batchRequests)
-									// tell admin that message was sent
-									sendTextMessage(senderID, '## Message sent to ALL PARTICIPANTS')
+
+										sendBatchMessage(batchRequests)
+										// tell admin that message was sent
+										sendTextMessage(senderID, '## Message sent to ALL PARTICIPANTS')
+
+									}
+									else {
+										sendTextMessage(senderID, '## ERROR!! PARTICIPANTS not found.')
+									}
 
 								})
 								
