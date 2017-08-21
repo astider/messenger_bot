@@ -1,4 +1,3 @@
-
 const FB = require('fbgraph')
 const axios = require('axios')
 const param = require('jquery-param')
@@ -11,25 +10,29 @@ const db = admin.database()
 
 const messengerAPI = require('./API/messengerProfile.js')
 const userManagementAPI = require('./API/userManagement.js')
-
+const testFunction = require('./placeHolder.js')
 const cors = require('cors')({
-	origin: ['http://localhost:3000', 'https://codelab-a8367.firebaseapp.com', 'https://chatchingchoke.club']
+	origin: [
+		'http://localhost:3000',
+		'https://codelab-a8367.firebaseapp.com',
+		'https://chatchingchoke.club'
+	]
 })
 
 FB.setAccessToken(env.messenger.page_token)
 
 let util = {
-	'getFireQuizAt': _getFireQuizAt,
-	'getParticipants': _getParticipants,
-	'getQuiz': _getQuiz,
-	'getStatus': _getStatus
+	getFireQuizAt: _getFireQuizAt,
+	getParticipants: _getParticipants,
+	getQuiz: _getQuiz,
+	getStatus: _getStatus
 }
 
 let messengerFunctions = {
-	'sendTextMessage': sendTextMessage,
-	'sendCascadeMessage': sendCascadeMessage,
-	'sendQuickReplies': sendQuickReplies,
-	'sendBatchMessage': sendBatchMessage
+	sendTextMessage: sendTextMessage,
+	sendCascadeMessage: sendCascadeMessage,
+	sendQuickReplies: sendQuickReplies,
+	sendBatchMessage: sendBatchMessage
 }
 
 const httpsFunctions = require('./httpsTriggered.js')(util, messengerFunctions)
@@ -93,15 +96,13 @@ function _getStatus () {
 	})
 }
 
-
-
 /*
 exports.addCoupon = functions.https.onRequest((req, res) => {
-	
+
 	db.ref('users').once('value')
 	.then(us => {
 		let users = us.val()
-		
+
 		for (let key in users) {
 			users[key].coupon = 0
 		}
@@ -120,84 +121,90 @@ exports.addCoupon = functions.https.onRequest((req, res) => {
 })
 */
 
-
 // ------------------------------
 
-exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest( (req, res) => {
+exports.testViewSharedPosts = functions.https.onRequest(function (req, res) {
+	if (req.method != 'GET') {
+		return res.status(403).json({})
+	}
+	if (!req.query.pageID || !req.query.postID) {
+		return res.status(400).json({})
+	}
+	testFunction.getSharedPostsByApp(req.query.pageID, req.query.postID, req, res)
+})
 
-	if (req.method == 'GET') {
+exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest(
+	(req, res) => {
+		if (req.method == 'GET') {
+			// console.log('GET Requested')
+			if (
+				req.query['hub.mode'] === 'subscribe' &&
+				req.query['hub.verify_token'] === env.messenger.verify_token
+			) {
+				// console.log("Validating webhook")
+				res.status(200).send(req.query['hub.challenge'])
+			} else {
+				console.error(
+					'Failed validation. Make sure the validation tokens match.'
+				)
+				res.sendStatus(403)
+			}
+		} else if (req.method == 'POST') {
+			let data = req.body
 
-		// console.log('GET Requested')
-		if (
-			req.query['hub.mode'] === 'subscribe' &&
-			req.query['hub.verify_token'] === env.messenger.verify_token
-		) {
-			// console.log("Validating webhook")
-			res.status(200).send(req.query['hub.challenge'])
+			// Make sure this is a page subscription
+			if (data.object === 'page') {
+				// Iterate over each entry - there may be multiple if batched
+				data.entry.forEach(function (entry) {
+					let pageID = entry.id
+					let timeOfEvent = entry.time
+					console.log(`page id [${pageID}] , TOE ${timeOfEvent}`)
 
-		} else {
-			console.error('Failed validation. Make sure the validation tokens match.')
-			res.sendStatus(403)
-		}
-
-	} else if (req.method == 'POST') {
-
-		let data = req.body
-
-		// Make sure this is a page subscription
-		if (data.object === 'page') {
-
-			// Iterate over each entry - there may be multiple if batched
-			data.entry.forEach(function (entry) {
-				let pageID = entry.id
-				let timeOfEvent = entry.time
-				console.log(`page id [${pageID}] , TOE ${timeOfEvent}`)
-
-				// Iterate over each messaging event
-				entry.messaging.forEach(function (event) {
-					if (event.message) {
-						receivedMessage(event)
-					// } else if (event.delivery) {
-					//	console.log(`Message delivered to ${event.sender.id}`)
-					} else {
-						
-						if (event.postback && event.postback.payload == 'userPressedGetStartedButton') {
-							console.log(`receive get started action from ${event.sender.id}`)
-							addNewUser(event.sender.id)
+					// Iterate over each messaging event
+					entry.messaging.forEach(function (event) {
+						if (event.message) {
+							receivedMessage(event)
+							// } else if (event.delivery) {
+							//	console.log(`Message delivered to ${event.sender.id}`)
+						} else {
+							if (
+								event.postback &&
+								event.postback.payload == 'userPressedGetStartedButton'
+							) {
+								console.log(
+									`receive get started action from ${event.sender.id}`
+								)
+								addNewUser(event.sender.id)
+							} else
+								console.log(`Webhook Unknown Event: ${JSON.stringify(event)}`)
 						}
-						else console.log(`Webhook Unknown Event: ${JSON.stringify(event)}`)
-
-					}
+					})
 				})
 
-			})
-
-			// Assume all went well.
-			//
-			// You must send back a 200, within 20 seconds, to let us know
-			// you've successfully received the callback. Otherwise, the request
-			// will time out and we will keep trying to resend.
-			res.sendStatus(200)
+				// Assume all went well.
+				//
+				// You must send back a 200, within 20 seconds, to let us know
+				// you've successfully received the callback. Otherwise, the request
+				// will time out and we will keep trying to resend.
+				res.sendStatus(200)
+			}
 		}
-		
 	}
-})
+)
 
 // -------------------- WEB API
 
-
 exports.addNewUserFromWeb = functions.https.onRequest((req, res) => {
-	cors(req, res, ()  => {
+	cors(req, res, () => {
 		httpsFunctions.addNewUserFromWeb(req, res, env.messenger)
 	})
 })
 
 exports.answerFromWeb = functions.https.onRequest((req, res) => {
-  cors(req, res, () => {
-    httpsFunctions.answerFromWeb(req, res)
-  })
+	cors(req, res, () => {
+		httpsFunctions.answerFromWeb(req, res)
+	})
 })
-
 
 // ---------------------------------------------------------------
 
@@ -251,7 +258,7 @@ exports.restart = functions.https.onRequest((req, res) => {
 
 exports.readLog = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.readLog(req ,res)
+		httpsFunctions.readLog(req, res)
 	})
 })
 
@@ -269,7 +276,7 @@ exports.sendCouponUpdate = functions.https.onRequest((req, res) => {
 /*
 exports.findMe = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		
+
 		db.ref('users').orderByChild('fbid').equalTo('1432315113461939').once('value')
 		.then(obj => {
 			res.json(obj.val())
@@ -323,7 +330,8 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 						db.ref('currentQuiz').set(status.currentQuiz + 1)
 						status.currentQuiz += 1
 						console.log(
-							`update currentQuiz to ${oldc + 1} // is it : ${status.currentQuiz}`
+							`update currentQuiz to ${oldc +
+								1} // is it : ${status.currentQuiz}`
 						)
 					}
 
@@ -335,23 +343,24 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 								"if this is the first question don't forget to use ?next=true param"
 						})
 					else {
-						
 						let quickReplyChoices = []
-						let answerTime = req.query.timer ? parseInt(req.query.timer) + 10 : 70
+						let answerTime = req.query.timer
+							? parseInt(req.query.timer) + 10
+							: 70
 
 						db.ref('answerWindow').set(answerTime)
 
 						// check if this quiz has choices
 						if (quiz[status.currentQuiz].choices) {
-
-							quickReplyChoices = quiz[status.currentQuiz].choices.map(choice => {
+							quickReplyChoices = quiz[
+								status.currentQuiz
+							].choices.map(choice => {
 								return {
 									content_type: 'text',
 									title: choice,
 									payload: choice
 								}
 							})
-
 						}
 
 						// ---------- start preparing batch request
@@ -359,10 +368,9 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 						let sendQuizBatch = []
 
 						Object.keys(participants).forEach(id => {
-
 							let quizBodyData = {
 								recipient: {
-								id: id
+									id: id
 								},
 								message: {
 									text: quiz[status.currentQuiz].q
@@ -379,40 +387,32 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 								relative_url: 'me/messages?include_headers=false',
 								body: param(quizBodyData)
 							})
-
 						})
-						
 
 						if (!fireQuizAt) fireQuizAt = Array(quiz.length).fill(0)
 
 						if (fireQuizAt[status.currentQuiz] == 0) {
-
 							fireQuizAt[status.currentQuiz] = new Date().getTime()
 
-							db.ref('fireQuizAt').set(fireQuizAt)
-							.then(() => {
-								return db.ref('canAnswer').set(true)
-							})
-							.then(() => {
-
-								console.log('sync SENDING')
-								sendBatchMessage(sendQuizBatch)
-
-								res.json({
-									error: null,
-									qno: status.currentQuiz,
-									q: quiz[status.currentQuiz].q,
-									choices: quiz[status.currentQuiz].choices
+							db
+								.ref('fireQuizAt')
+								.set(fireQuizAt)
+								.then(() => {
+									return db.ref('canAnswer').set(true)
 								})
+								.then(() => {
+									console.log('sync SENDING')
+									sendBatchMessage(sendQuizBatch)
 
-							})
-
-						}
-						else {
-							
-							db.ref('canAnswer').set(true)
-							.then(() => {
-
+									res.json({
+										error: null,
+										qno: status.currentQuiz,
+										q: quiz[status.currentQuiz].q,
+										choices: quiz[status.currentQuiz].choices
+									})
+								})
+						} else {
+							db.ref('canAnswer').set(true).then(() => {
 								console.log('sync SENDING / not set new FQA')
 								sendBatchMessage(sendQuizBatch)
 
@@ -422,11 +422,8 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 									q: quiz[status.currentQuiz].q,
 									choices: quiz[status.currentQuiz].choices
 								})
-
 							})
-
 						}
-
 					}
 				}
 			})
@@ -437,15 +434,12 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 	})
 })
 
-
 // ------------------- Messenger Function
 
-
 function sendBatchMessage (reqPack) {
-
 	// REQUEST FORMAT (reqPack must be array of data like this)
 	/*
-		
+
 		let bodyData = {
 			recipient: {
 				id: user.fbid
@@ -465,28 +459,26 @@ function sendBatchMessage (reqPack) {
 	// batch allow 50 commands per request, read this : https://developers.facebook.com/docs/graph-api/making-multiple-requests/
 	let batchLimit = 50
 	for (let i = 0; i < reqPack.length; i += batchLimit) {
-
 		FB.batch(reqPack.slice(i, i + batchLimit), (error, res) => {
-
 			if (error) {
 				console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
-			}
-			else {
-
+			} else {
 				console.log(`batch [${i}] / no error : `)
 				let time = new Date()
-				let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
+				let date =
+					time.getFullYear() +
+					'-' +
+					(time.getMonth() + 1) +
+					'-' +
+					time.getDate()
 				let epochTime = time.getTime()
 
 				res.forEach(response => {
 					db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
 					console.log(response['body'])
 				})
-					
 			}
-
 		})
-
 	}
 }
 
@@ -543,7 +535,10 @@ function callSendAPI (messageData) {
 					)
 				}
 			} else {
-				console.log(`Failed calling Send API ${res.status} / ${res.statusText} / ${res.data.error}`)
+				console.log(
+					`Failed calling Send API ${res.status} / ${res.statusText} / ${res
+						.data.error}`
+				)
 			}
 		})
 		.catch(error => {
@@ -553,98 +548,95 @@ function callSendAPI (messageData) {
 }
 
 function sendCascadeMessage (id, textArray) {
-
-	textArray.reduce((promiseOrder, message) => {
-		return promiseOrder.then(() => {
-			// console.log(message)
-			sendTextMessage(id, message)
-			return new Promise(res => {
-				setTimeout(res, 1000)
+	textArray
+		.reduce((promiseOrder, message) => {
+			return promiseOrder.then(() => {
+				// console.log(message)
+				sendTextMessage(id, message)
+				return new Promise(res => {
+					setTimeout(res, 1000)
+				})
 			})
-		})
-	}, Promise.resolve())
-	.then( () => console.log('send cascade message DONE!'),
-		error => {
-			console.log(`reduce error : ${error} `)
-		}
-	)
-
+		}, Promise.resolve())
+		.then(
+			() => console.log('send cascade message DONE!'),
+			error => {
+				console.log(`reduce error : ${error} `)
+			}
+		)
 }
 
-
 function addNewUser (newUserId) {
-
 	console.log('enter addNewUser')
 	let userProfile = null
 
 	userManagementAPI.recordNewUserID(newUserId)
 	messengerAPI.sendTypingOn(newUserId)
 	console.log('added user /// sending message back')
-	messengerAPI.callProfileAPI(newUserId)
-	.then(profile => {
+	messengerAPI
+		.callProfileAPI(newUserId)
+		.then(profile => {
+			userProfile = profile
+			return _getStatus()
+		})
+		.then(status => {
+			if (status.playing || status.canEnter) {
+				let inviteMessage = {
+					text:
+						'แชทชิงโชค กำลังจะเริ่มในไม่ช้า ต้องการเข้าร่วมเล่นด้วยหรือไม่?',
+					quick_replies: [
+						{
+							content_type: 'text',
+							title: 'เข้าร่วม',
+							payload: 'เข้าร่วม'
+						},
+						{
+							content_type: 'text',
+							title: 'ไม่เข้าร่วม',
+							payload: 'ไม่เข้าร่วม'
+						}
+					]
+				}
 
-		userProfile = profile
-		return _getStatus()
-
-	})
-	.then(status => {
-
-		if (status.playing || status.canEnter ) {
-			let inviteMessage = {
-				text:
-					'แชทชิงโชค กำลังจะเริ่มในไม่ช้า ต้องการเข้าร่วมเล่นด้วยหรือไม่?',
-				quick_replies: [
-					{
-						content_type: 'text',
-						title: 'เข้าร่วม',
-						payload: 'เข้าร่วม'
-					},
-					{
-						content_type: 'text',
-						title: 'ไม่เข้าร่วม',
-						payload: 'ไม่เข้าร่วม'
-					}
+				setTimeout(() => {
+					sendQuickReplies(newUserId, inviteMessage)
+				}, 1000)
+			} else {
+				let texts = [
+					`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,
+					// 'ขณะนี้ แชทชิงโชค ยังไม่เริ่ม ถ้าใกล้ถึงช่วงเวลาของกิจกรรมแล้วทางเราจะติดต่อกลับไปนะ'
+					// 'สัปดาห์นี้แชทชิงโชคเปลี่ยนเวลา จะเริ่มวันอังคารที่ 15 เวลา 2 ทุ่มครับ'
+					'แชทชิงโชคประจำสัปดาห์นี้จะเริ่ม วันนี้เวลา 2 ทุ่มนะ อย่าลืมมาร่วมสนุกกับพวกเราล่ะ ;)'
 				]
+
+				sendCascadeMessage(newUserId, texts)
 			}
-
-			setTimeout(() => {
-				sendQuickReplies(newUserId, inviteMessage)
-			}, 1000)
-
-		} else {
-
-			let texts = [
-				`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,
-				// 'ขณะนี้ แชทชิงโชค ยังไม่เริ่ม ถ้าใกล้ถึงช่วงเวลาของกิจกรรมแล้วทางเราจะติดต่อกลับไปนะ'
-				// 'สัปดาห์นี้แชทชิงโชคเปลี่ยนเวลา จะเริ่มวันอังคารที่ 15 เวลา 2 ทุ่มครับ'
-				'แชทชิงโชคประจำสัปดาห์นี้จะเริ่ม วันนี้เวลา 2 ทุ่มนะ อย่าลืมมาร่วมสนุกกับพวกเราล่ะ ;)'
-			]
-
-			sendCascadeMessage(newUserId, texts)
-		}
-
-	})
-	.catch(error => {
-		console.log(`addnewuser error : ${error}`)
-	})
-
+		})
+		.catch(error => {
+			console.log(`addnewuser error : ${error}`)
+		})
 }
 
 function receivedMessage (event) {
-
 	let senderID = event.sender.id
 	let recipientID = event.recipient.id
 	let timeOfMessage = event.timestamp
 	let message = event.message
 
-	console.log('Received message for user %d and page %d at %d with message:',
-	senderID, recipientID, timeOfMessage)
+	console.log(
+		'Received message for user %d and page %d at %d with message:',
+		senderID,
+		recipientID,
+		timeOfMessage
+	)
 	console.log(JSON.stringify(message))
 
 	// let messageId = message.mid
 	let messageText = message.text
-	let messageQRPayload = message.quick_reply ? message.quick_reply.payload : 'noValue'
-	// let getStartedPayload = 
+	let messageQRPayload = message.quick_reply
+		? message.quick_reply.payload
+		: 'noValue'
+	// let getStartedPayload =
 	let messageAttachments = message.attachments
 
 	// ------- USER ANSWER
@@ -660,10 +652,9 @@ function receivedMessage (event) {
 			admins = snapshot.val()
 
 			if (Object.keys(admins).length > 0) {
-				if (admins[senderID])
-					adminAvaiability = true
+				if (admins[senderID]) adminAvaiability = true
 			}
-			
+
 			// console.log(`admin : ${JSON.stringify(admins)}`)
 			return _getStatus()
 		})
@@ -677,13 +668,17 @@ function receivedMessage (event) {
 		})
 		.then(playerSnapshot => {
 			playerInfo = playerSnapshot.val()
-			return db.ref('users').orderByChild('fbid').equalTo(senderID).once('value') // db.ref('users').once('value')
+			return db
+				.ref('users')
+				.orderByChild('fbid')
+				.equalTo(senderID)
+				.once('value') // db.ref('users').once('value')
 		})
 		.then(fetchedUsers => {
 			let userObject = fetchedUsers.val()
 			let user = null
-			if (userObject && (Object.keys(userObject).length > 0) )
-				user = userObject[(Object.keys(userObject))[0]]
+			if (userObject && Object.keys(userObject).length > 0)
+				user = userObject[Object.keys(userObject)[0]]
 
 			/*
 			for (let key in users) {
@@ -699,26 +694,29 @@ function receivedMessage (event) {
 			console.log(`_______ ${JSON.stringify(status)} ______`)
 			console.log('________________________________')
 			// ----------------------------------------------------------------------------------------
-			
+
 			// console.log(`USER PAYLOAD = ${messageQRPayload}`)
 
-			if (messageQRPayload != 'เข้าร่วม' && messageQRPayload != 'ไม่เข้าร่วม' && status.playing && status.currentQuiz > -1 && status.currentQuiz < quiz.length && playerInfo) {
-
+			if (
+				messageQRPayload != 'เข้าร่วม' &&
+				messageQRPayload != 'ไม่เข้าร่วม' &&
+				status.playing &&
+				status.currentQuiz > -1 &&
+				status.currentQuiz < quiz.length &&
+				playerInfo
+			) {
 				console.log('in answer validation process')
 
 				// idea is : if stringAnswer is true => use messageText else check payload
 				// current quiz need to be answered with text
 				if (quiz[status.currentQuiz].stringAnswer) {
-
 					console.log('hello from inside string answer')
 
 					if (!status.canAnswer)
 						sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
 					else if (playerInfo.answerPack[status.currentQuiz].ans)
 						sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
-
 					else if (messageQRPayload == 'noValue') {
-
 						let lowerCasedAnswer = messageText.toLowerCase()
 
 						let confirmAns = {
@@ -733,10 +731,7 @@ function receivedMessage (event) {
 						}
 
 						sendQuickReplies(senderID, confirmAns)
-
-					}
-					else {
-
+					} else {
 						sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
 
 						playerInfo.answerPack[status.currentQuiz].ans = messageQRPayload
@@ -748,13 +743,11 @@ function receivedMessage (event) {
 						}
 
 						db.ref(`participants/${senderID}`).set(playerInfo)
-
 					}
-
-				}
-				// current quiz use choices
-				else if (quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
-
+				} else if (
+					quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1
+				) {
+					// current quiz use choices
 					console.log('hello from inside CHOICE answer')
 
 					if (!status.canAnswer)
@@ -762,7 +755,6 @@ function receivedMessage (event) {
 					else if (playerInfo.answerPack[status.currentQuiz].ans)
 						sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
 					else {
-							
 						sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
 
 						playerInfo.answerPack[status.currentQuiz].ans = messageQRPayload
@@ -774,23 +766,17 @@ function receivedMessage (event) {
 						}
 
 						db.ref(`participants/${senderID}`).set(playerInfo)
-
 					}
-
-				}
-				else if (playerInfo.answerPack[status.currentQuiz].ans)
+				} else if (playerInfo.answerPack[status.currentQuiz].ans)
 					sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
 				else if (!status.canAnswer)
 					sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
 				else {
-
 					sendTextMessage(senderID, 'พิมพ์ตอบจะไม่ได้คะแนนนะ กดตอบเอา')
 
 					let quickReplyChoices = []
 
-					quickReplyChoices = quiz[
-						status.currentQuiz
-					].choices.map(choice => {
+					quickReplyChoices = quiz[status.currentQuiz].choices.map(choice => {
 						return {
 							content_type: 'text',
 							title: choice,
@@ -807,10 +793,11 @@ function receivedMessage (event) {
 						sendQuickReplies(senderID, quizMessage)
 					}, 1000)
 				}
-
-			}
-			else if ( messageQRPayload == 'เข้าร่วม' && !playerInfo && status.canEnter ) {
-
+			} else if (
+				messageQRPayload == 'เข้าร่วม' &&
+				!playerInfo &&
+				status.canEnter
+			) {
 				// ------- USER ENTER
 				// console.log(`in the khaoruam // id : ${senderID}`)
 
@@ -849,13 +836,13 @@ function receivedMessage (event) {
 					sendQuickReplies(senderID, quizMessage)
 				} else {
 					// sendTextMessage(senderID, 'โอเค~ รออีกแป๊บนะ กิจกรรมใกล้จะเริ่มแล้ว')
-		// 			let texts = [
-		// 				'ยินดีต้อนรับเข้าสู่เกม "แชทชิงโชค" โปรดรอคำถามจาก facebook Live',
-		// 				`กติกาการแข่งขัน ผู้ที่สะสมคะแนนได้สูงสุดใน 3 อันดับแรกของแต่ละวัน จะได้รับของรางวัลจากทางรายการ
-    // แต้มจะไม่สามารถสะสมข้ามสัปดาห์ได้ และการตัดสินของกรรมการจะถือเป็นที่สิ้นสุด
+					// 			let texts = [
+					// 				'ยินดีต้อนรับเข้าสู่เกม "แชทชิงโชค" โปรดรอคำถามจาก facebook Live',
+					// 				`กติกาการแข่งขัน ผู้ที่สะสมคะแนนได้สูงสุดใน 3 อันดับแรกของแต่ละวัน จะได้รับของรางวัลจากทางรายการ
+					// แต้มจะไม่สามารถสะสมข้ามสัปดาห์ได้ และการตัดสินของกรรมการจะถือเป็นที่สิ้นสุด
 
-    // ทีมงานและครอบครัวไม่สามารถร่วมเล่นเกมและรับของรางวัลได้`
-		// 			]
+					// ทีมงานและครอบครัวไม่สามารถร่วมเล่นเกมและรับของรางวัลได้`
+					// 			]
 					let texts = [
 						'แชทชิงโชค วันนี้ใครจะได้รางวัลประจำสัปดาห์ 3 รางวัลไป และเดือนนี้ลุ้นรางวัลใหญ่ Galaxy Note 8\r\n',
 						'กติกาเพิ่มเติมอ่านได้ที่ https://droidsans.com/chatchingchoke-august-note8/\r\n',
@@ -872,14 +859,12 @@ function receivedMessage (event) {
 */
 			} else if (messageQRPayload == 'ไม่เข้าร่วม' && !playerInfo) {
 				sendTextMessage(senderID, 'ถ้าเปลี่ยนใจก็ทักมาได้นะ')
-
 			} else if (messageText) {
 				// ------- USER MESSAGE NORMALLY
 				// console.log('IN get message')
 				// If we receive a text message, check to see if it matches a keyword
 				// and send back the example. Otherwise, just echo the text we received.
 				if (adminAvaiability) {
-
 					console.log(`admin check return true : ${adminAvaiability} `)
 
 					if (admins[senderID]) {
@@ -888,26 +873,20 @@ function receivedMessage (event) {
 
 						if (splitted.length <= 1) {
 							sendTextMessage(senderID, '## ERROR!! INVALID COMMAND SYNTAX')
-						}
-						else {
-
+						} else {
 							console.log('to run command')
-							
+
 							let command = splitted[0]
 							let text = splitted[1]
 
 							if (command == 'ANN_ALL') {
-
 								console.log(`running command [${command}]`)
 								let batchRequests = []
 
-								db.ref('users').once('value')
-								.then(userSnap => {
-
+								db.ref('users').once('value').then(userSnap => {
 									let allUsers = userSnap.val()
 
 									Object.keys(allUsers).forEach(id => {
-										
 										let bodyData = {
 											recipient: {
 												id: id
@@ -916,7 +895,7 @@ function receivedMessage (event) {
 												text: text
 											}
 										}
-	
+
 										batchRequests.push({
 											method: 'POST',
 											relative_url: 'me/messages?include_headers=false',
@@ -924,27 +903,20 @@ function receivedMessage (event) {
 										})
 										// sendTextMessage(id, text)
 									})
-	
+
 									sendBatchMessage(batchRequests)
 									// tell admin that message was sent
 									sendTextMessage(senderID, '## Message sent to ALL USERS')
-
 								})
-								
-							}
-							else if (command == 'ANN_PART') {
-
+							} else if (command == 'ANN_PART') {
 								console.log(`running command [${command}]`)
 								let batchRequests = []
 
-								db.ref('participants').once('value')
-								.then(partSnap => {
-
+								db.ref('participants').once('value').then(partSnap => {
 									let participants = partSnap.val()
-									if (participants) {
 
+									if (participants) {
 										Object.keys(participants).forEach(id => {
-											
 											let bodyData = {
 												recipient: {
 													id: id
@@ -953,59 +925,58 @@ function receivedMessage (event) {
 													text: text
 												}
 											}
-		
+
 											batchRequests.push({
 												method: 'POST',
 												relative_url: 'me/messages?include_headers=false',
 												body: param(bodyData)
 											})
-											
+
 											// sendTextMessage(id, text)
 										})
 
 										sendBatchMessage(batchRequests)
 										// tell admin that message was sent
-										sendTextMessage(senderID, '## Message sent to ALL PARTICIPANTS')
-
+										sendTextMessage(
+											senderID,
+											'## Message sent to ALL PARTICIPANTS'
+										)
+									} else {
+										sendTextMessage(
+											senderID,
+											'## ERROR!! PARTICIPANTS not found.'
+										)
 									}
-									else {
-										sendTextMessage(senderID, '## ERROR!! PARTICIPANTS not found.')
-									}
-
 								})
-								
-
-							}
-							else {
+							} else {
 								sendTextMessage(senderID, '## ERROR!! COMMAND NOT FOUND')
 							}
-
 						}
-
 					}
-
-				}
-				else if (!user || !playerInfo) {
-
-					console.log('user id not found in DB {OR} not in participants -> adding new user')
+				} else if (!user || !playerInfo) {
+					console.log(
+						'user id not found in DB {OR} not in participants -> adding new user'
+					)
 					addNewUser(senderID)
-
 				} else if (!status.playing && !status.canEnter) {
-
-					console.log('this user is in our sigth, but game is end or not started yet, tell the user!')
-					sendTextMessage(senderID,'ขณะนี้ แชทชิงโชค ยังไม่เริ่ม ถ้าใกล้ถึงช่วงเวลาของกิจกรรมแล้วทางเราจะติดต่อกลับไปนะ')
-
+					console.log(
+						'this user is in our sigth, but game is end or not started yet, tell the user!'
+					)
+					sendTextMessage(
+						senderID,
+						'ขณะนี้ แชทชิงโชค ยังไม่เริ่ม ถ้าใกล้ถึงช่วงเวลาของกิจกรรมแล้วทางเราจะติดต่อกลับไปนะ'
+					)
 				} else {
 					// else if(!participants)
 					if (status.playing) {
-
 						if (!status.canAnswer) {
 							sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
-						}
-						else if (playerInfo && playerInfo.answerPack[status.currentQuiz].ans) {
+						} else if (
+							playerInfo &&
+							playerInfo.answerPack[status.currentQuiz].ans
+						) {
 							sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
-						}
-						else {
+						} else {
 							sendTextMessage(senderID, 'พิมพ์ตอบจะไม่ได้คะแนนนะ กดตอบเอา')
 
 							let quickReplyChoices = []
@@ -1029,20 +1000,19 @@ function receivedMessage (event) {
 								sendQuickReplies(senderID, quizMessage)
 							}, 1000)
 						}
-
 					} else if (status.canEnter)
 						sendTextMessage(senderID, 'รอสักครู่นะ กิจกรรมยังไม่เริ่ม')
 				}
-
 			} else if (messageAttachments) {
 				console.log(JSON.stringify(message))
 				console.log('Message with attachment received')
 
-				if ( !user || !playerInfo ) {
-					console.log('user id not found in DB {OR} not in participants -> adding new user')
+				if (!user || !playerInfo) {
+					console.log(
+						'user id not found in DB {OR} not in participants -> adding new user'
+					)
 					addNewUser(senderID)
 				}
-
 			}
 
 			// ----------------------------------------------------------------------------------------
@@ -1052,35 +1022,32 @@ function receivedMessage (event) {
 		})
 }
 
-
 // ------------------------ TIMER  -------------------------
 
-// this approach has problem with rapidly fire quiz 
+// this approach has problem with rapidly fire quiz
 // so, don't do it
 exports.answerGap = functions.database.ref('canAnswer').onWrite(event => {
-	
 	let canAnswer = event.data.val()
 	console.log(`canAnswer was changed to : ${canAnswer} `)
-	
+
 	if (canAnswer) {
+		db
+			.ref('answerWindow')
+			.once('value')
+			.then(awSnap => {
+				let gap = awSnap.val()
+				console.log(
+					`cuz canAnswer is [${canAnswer}] -> set [${gap}] seconds timer `
+				)
 
-		db.ref('answerWindow').once('value')
-		.then(awSnap => {
-			
-			let gap = awSnap.val()
-			console.log(`cuz canAnswer is [${canAnswer}] -> set [${gap}] seconds timer `)
-
-			setTimeout(() => {
-				db.ref('canAnswer').set(false)
-				console.log('_______________________')
-				console.log('NOW YOU CAN\'T ANSWER ME')
-			}, gap * 1000)
-
-		})
-		.catch(error => {
-			console.log(`get answer gap error in answerGap trigerr: ${error} `)
-		})
-		
+				setTimeout(() => {
+					db.ref('canAnswer').set(false)
+					console.log('_______________________')
+					console.log("NOW YOU CAN'T ANSWER ME")
+				}, gap * 1000)
+			})
+			.catch(error => {
+				console.log(`get answer gap error in answerGap trigerr: ${error} `)
+			})
 	}
-
 })
