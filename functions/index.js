@@ -128,6 +128,7 @@ exports.testViewSharedPosts = functions.https.onRequest(function (req, res) {
 	testFunction.getSharedPostsByApp(req.query.pageID, req.query.postID, req, res)
 })
 
+
 exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) => {
 	if (req.method == 'GET') {
 		// console.log('GET Requested')
@@ -255,11 +256,12 @@ exports.sendCouponUpdate = functions.https.onRequest((req, res) => {
 		httpsFunctions.updateCouponBalanceToUsers(req, res)
 	})
 })
-/*
+
 exports.findMe = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-
-		db.ref('users').orderByChild('fbid').equalTo('1432315113461939').once('value')
+		// 1432315113461939 nontapat
+		// 1124390080993810 robert
+		db.ref('users').orderByChild('fbid').equalTo('1124390080993810').once('value')
 		.then(obj => {
 			res.json(obj.val())
 		})
@@ -272,7 +274,7 @@ exports.findMe = functions.https.onRequest((req, res) => {
 
 	})
 })
-*/
+
 
 exports.sendQuiz = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
@@ -814,10 +816,10 @@ function receivedMessage (event) {
 								db.ref('users').once('value').then(userSnap => {
 									let allUsers = userSnap.val()
 
-									Object.keys(allUsers).forEach(id => {
+									Object.keys(allUsers).forEach(key => {
 										let bodyData = {
 											recipient: {
-												id: id
+												id: allUsers[key].fbid
 											},
 											message: {
 												text: text
