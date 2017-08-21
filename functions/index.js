@@ -11,7 +11,7 @@ const db = admin.database()
 
 const messengerAPI = require('./API/messengerProfile.js')
 const userManagementAPI = require('./API/userManagement.js')
-
+const testFunction = require('./placeHolder.js')
 const cors = require('cors')({
 	origin: ['http://localhost:3000', 'https://codelab-a8367.firebaseapp.com', 'https://chatchingchoke.club']
 })
@@ -97,11 +97,11 @@ function _getStatus () {
 
 /*
 exports.addCoupon = functions.https.onRequest((req, res) => {
-	
+
 	db.ref('users').once('value')
 	.then(us => {
 		let users = us.val()
-		
+
 		for (let key in users) {
 			users[key].coupon = 0
 		}
@@ -122,6 +122,18 @@ exports.addCoupon = functions.https.onRequest((req, res) => {
 
 
 // ------------------------------
+
+exports.testViewSharedPosts = functions.https.onRequest(function(req,res){
+ if(req.method!="GET"){
+	return res.status(403).json({})
+
+ }
+ if(!req.query.pageID || !req.query.postID){
+	 return res.status(400).json({})
+ }
+ testFunction.getSharedPostsByApp(req.query.pageID,req.query.postID,req,res)
+
+});
 
 exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest( (req, res) => {
 
@@ -160,7 +172,7 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest( (req, res) =
 					// } else if (event.delivery) {
 					//	console.log(`Message delivered to ${event.sender.id}`)
 					} else {
-						
+
 						if (event.postback && event.postback.payload == 'userPressedGetStartedButton') {
 							console.log(`receive get started action from ${event.sender.id}`)
 							addNewUser(event.sender.id)
@@ -179,7 +191,7 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest( (req, res) =
 			// will time out and we will keep trying to resend.
 			res.sendStatus(200)
 		}
-		
+
 	}
 })
 
@@ -269,7 +281,7 @@ exports.sendCouponUpdate = functions.https.onRequest((req, res) => {
 /*
 exports.findMe = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		
+
 		db.ref('users').orderByChild('fbid').equalTo('1432315113461939').once('value')
 		.then(obj => {
 			res.json(obj.val())
@@ -335,7 +347,7 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 								"if this is the first question don't forget to use ?next=true param"
 						})
 					else {
-						
+
 						let quickReplyChoices = []
 						let answerTime = req.query.timer ? parseInt(req.query.timer) + 10 : 70
 
@@ -381,7 +393,7 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 							})
 
 						})
-						
+
 
 						if (!fireQuizAt) fireQuizAt = Array(quiz.length).fill(0)
 
@@ -409,7 +421,7 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 
 						}
 						else {
-							
+
 							db.ref('canAnswer').set(true)
 							.then(() => {
 
@@ -445,7 +457,7 @@ function sendBatchMessage (reqPack) {
 
 	// REQUEST FORMAT (reqPack must be array of data like this)
 	/*
-		
+
 		let bodyData = {
 			recipient: {
 				id: user.fbid
@@ -482,7 +494,7 @@ function sendBatchMessage (reqPack) {
 					db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
 					console.log(response['body'])
 				})
-					
+
 			}
 
 		})
@@ -644,7 +656,7 @@ function receivedMessage (event) {
 	// let messageId = message.mid
 	let messageText = message.text
 	let messageQRPayload = message.quick_reply ? message.quick_reply.payload : 'noValue'
-	// let getStartedPayload = 
+	// let getStartedPayload =
 	let messageAttachments = message.attachments
 
 	// ------- USER ANSWER
@@ -663,7 +675,7 @@ function receivedMessage (event) {
 				if (admins[senderID])
 					adminAvaiability = true
 			}
-			
+
 			// console.log(`admin : ${JSON.stringify(admins)}`)
 			return _getStatus()
 		})
@@ -699,7 +711,7 @@ function receivedMessage (event) {
 			console.log(`_______ ${JSON.stringify(status)} ______`)
 			console.log('________________________________')
 			// ----------------------------------------------------------------------------------------
-			
+
 			// console.log(`USER PAYLOAD = ${messageQRPayload}`)
 
 			if (messageQRPayload != 'เข้าร่วม' && messageQRPayload != 'ไม่เข้าร่วม' && status.playing && status.currentQuiz > -1 && status.currentQuiz < quiz.length && playerInfo) {
@@ -762,7 +774,7 @@ function receivedMessage (event) {
 					else if (playerInfo.answerPack[status.currentQuiz].ans)
 						sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
 					else {
-							
+
 						sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
 
 						playerInfo.answerPack[status.currentQuiz].ans = messageQRPayload
@@ -891,7 +903,7 @@ function receivedMessage (event) {
 						else {
 
 							console.log('to run command')
-							
+
 							let command = splitted[0]
 							let text = splitted[1]
 
@@ -906,7 +918,7 @@ function receivedMessage (event) {
 									let allUsers = userSnap.val()
 
 									Object.keys(allUsers).forEach(id => {
-										
+
 										let bodyData = {
 											recipient: {
 												id: id
@@ -915,7 +927,7 @@ function receivedMessage (event) {
 												text: text
 											}
 										}
-	
+
 										batchRequests.push({
 											method: 'POST',
 											relative_url: 'me/messages?include_headers=false',
@@ -923,13 +935,13 @@ function receivedMessage (event) {
 										})
 										// sendTextMessage(id, text)
 									})
-	
+
 									sendBatchMessage(batchRequests)
 									// tell admin that message was sent
 									sendTextMessage(senderID, '## Message sent to ALL USERS')
 
 								})
-								
+
 							}
 							else if (command == 'ANN_PART') {
 
@@ -942,7 +954,7 @@ function receivedMessage (event) {
 									let participants = partSnap.val()
 
 									Object.keys(participants).forEach(id => {
-										
+
 										let bodyData = {
 											recipient: {
 												id: id
@@ -951,22 +963,22 @@ function receivedMessage (event) {
 												text: text
 											}
 										}
-	
+
 										batchRequests.push({
 											method: 'POST',
 											relative_url: 'me/messages?include_headers=false',
 											body: param(bodyData)
 										})
-										
+
 										// sendTextMessage(id, text)
 									})
-	
+
 									sendBatchMessage(batchRequests)
 									// tell admin that message was sent
 									sendTextMessage(senderID, '## Message sent to ALL PARTICIPANTS')
 
 								})
-								
+
 
 							}
 							else {
@@ -1048,18 +1060,18 @@ function receivedMessage (event) {
 
 // ------------------------ TIMER  -------------------------
 
-// this approach has problem with rapidly fire quiz 
+// this approach has problem with rapidly fire quiz
 // so, don't do it
 exports.answerGap = functions.database.ref('canAnswer').onWrite(event => {
-	
+
 	let canAnswer = event.data.val()
 	console.log(`canAnswer was changed to : ${canAnswer} `)
-	
+
 	if (canAnswer) {
 
 		db.ref('answerWindow').once('value')
 		.then(awSnap => {
-			
+
 			let gap = awSnap.val()
 			console.log(`cuz canAnswer is [${canAnswer}] -> set [${gap}] seconds timer `)
 
@@ -1073,7 +1085,7 @@ exports.answerGap = functions.database.ref('canAnswer').onWrite(event => {
 		.catch(error => {
 			console.log(`get answer gap error in answerGap trigerr: ${error} `)
 		})
-		
+
 	}
 
 })
