@@ -496,9 +496,11 @@ module.exports = function (util, messengerFunctions) {
 			// let allPlayers = []
 			let whoGetPlayCoupon = []
 			let topUsers = []
+			let whoGetSpecialBonus = []
 
 			let bestScore = 0
 			let date = req.query['dateOfEvent']
+			let bonusQuestion = (req.query['bonusQ']) ? req.query['bonusQ'] : -1
 
 			db.ref(`couponSchedule/${date}`).once('value')
 			.then(csSnap => {
@@ -526,9 +528,14 @@ module.exports = function (util, messengerFunctions) {
 						id: key,
 						point: participants[key].point,
 						answerCount: answerAmount,
-						played_reward_coupon: (answerAmount >= 3) ? true : false
+						played_reward_coupon: (answerAmount >= 3) ? true : false,
+						specialBonus: (bonusQuestion > -1) ? ((participants[key].answerPack[bonusQuestion].correct) ? true : false ) : false
 					}
 
+				})
+
+				whoGetSpecialBonus = allPlayers.filter(user => {
+					return user.specialBonus
 				})
 
 				whoGetPlayCoupon = allPlayers.filter(user => {
@@ -558,6 +565,10 @@ module.exports = function (util, messengerFunctions) {
 				
 				usersData = userSnap.val()
 
+				let special_reward_keys = whoGetSpecialBonus.map(player => {
+					return player.id
+				})
+
 				let played_reward_keys = whoGetPlayCoupon.map(player => {
 					return player.id
 				})
@@ -570,6 +581,7 @@ module.exports = function (util, messengerFunctions) {
 
 				Object.keys(usersData).map(key => {
 
+					// ticket for users who answer >= 3 times
 					if (played_reward_keys.indexOf(usersData[key].fbid) > -1) {
 
 						usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
@@ -599,7 +611,38 @@ module.exports = function (util, messengerFunctions) {
 
 					}
 
+					// special ticket for specific question
+					if (special_reward_keys.indexOf(usersData[key].fbid) > -1) {
+						
+						usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
+												
+						if (usersData[key].couponHistory) {
+						
+							usersData[key].couponHistory[date] = {
+								specialBonus: true
+							}
+						
+						}
+						else {
+													
+							usersData[key].couponHistory = {
+								[date]: {
+									specialBonus: true
+								}
+							}
+													
+						}
+						
+						result[usersData[key].fbid] = {
+							key: key,
+							id: usersData[key].fbid,
+							coupon: usersData[key].coupon,
+							specialTicket: true
+						}
+						
+					}
 
+					// bonus for players who get max point
 					if (top_reward_keys.indexOf(usersData[key].fbid) > -1) {
 
 						usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
@@ -626,6 +669,7 @@ module.exports = function (util, messengerFunctions) {
 						}
 
 					}
+
 
 				})
 
