@@ -110,8 +110,13 @@ exports.getSharedPostsByApp = function getSharedPostsByApp (pageID,postID,reques
     axiousRequestForFBSharedPost(`https://graph.facebook.com/v2.10/${pageID}_${postID}/sharedposts?access_token=${env.chatchingchokeapp.app_id}|${env.chatchingchokeapp.app_secret}`)
 
     .then(res => {
-
-        response.json({ body:res })
+        var ids = [];
+        var extractor =  /(\d+)_*/
+        res.forEach(obj=>{
+        var extracted = extractor.exec(obj.id);
+          ids.push(extracted[1]);
+        });
+        response.json({ ids:ids })
 
 
   })
