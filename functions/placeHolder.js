@@ -71,22 +71,54 @@ this URL makes a request for user (public) detail such as Full Name
 we will have to match users by "name"
 
 */
+function axiousRequestForFBSharedPost(startURL){
+var completeData = [];
+
+  const getFBShared = URL => axios.get(
+       URL
+   ).then(response => {
+    //  console.log(response.data)
+       // add the contacts of this response to the array
+       if(response.data.data.length>0)completeData= completeData.concat(response.data.data);
+       if (response.data.paging) {
+           return getFBShared(response.data.paging.next);
+       } else {
+           // this was the last page, return the collected contacts
+           return completeData;
+       }
+   }).catch(error=>{
+     console.log(error)
+     return error;
+   });
+   return getFBShared(startURL);
+
+
+
+}
+
+
+
+
+
+
+
 exports.getSharedPostsByApp = function getSharedPostsByApp (pageID,postID,request,response){
+  // page scope ID of page "DS" is used as the main ID
+  //
   // We have to use access_token in query
-  axios({
-    method: 'GET',
-    url: `https://graph.facebook.com/v2.6/${pageID}_${postID}/sharedposts?access_token=${env.chatchingchokeapp.app_id}|${env.chatchingchokeapp.app_secret}`,
 
-  })
+    axiousRequestForFBSharedPost(`https://graph.facebook.com/v2.10/${pageID}_${postID}/sharedposts?access_token=${env.chatchingchokeapp.app_id}|${env.chatchingchokeapp.app_secret}`)
+
     .then(res => {
-      if (res.status == 200) {
+        var ids = [];
+        var extractor =  /(\d+)_*/
+        res.forEach(obj=>{
+        var extracted = extractor.exec(obj.id);
+          ids.push(extracted[1]);
+        });
+        response.json({ ids:ids })
 
-        let body = res.data
-        console.log('body is')
-        console.log(body)
-        response.json({ body:body })
 
-    }
   })
     .catch(error => {
       console.log('Shareposts count error ')

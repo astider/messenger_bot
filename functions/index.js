@@ -54,7 +54,7 @@ function _getAdmin () {
 }
 
 function _getStatus () {
-	
+
 	return new Promise((resolve, reject) => {
 		let canEnter = false
 		let playing = false
@@ -125,7 +125,7 @@ exports.testViewSharedPosts = functions.https.onRequest(function (req, res) {
 	if (!req.query.pageID || !req.query.postID) {
 		return res.status(400).json({})
 	}
-	testFunction.getSharedPostsByApp(req.query.pageID, req.query.postID, req, res)
+	testFunction.getSharedPostsByApp(functions.config().chatchingchokeapp.page_id, req.query.postID, req, res)
 })
 
 
