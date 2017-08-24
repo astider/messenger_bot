@@ -125,7 +125,12 @@ exports.testViewSharedPosts = functions.https.onRequest(function (req, res) {
 	if (!req.query.postID) {
 		return res.status(400).json({})
 	}
-	testFunction.getSharedPostsByApp(functions.config().chatchingchokeapp.page_id, req.query.postID, req, res)
+	req.query.pageID = functions.config().chatchingchokeapp.page_id
+	req.accessToken = `${functions.config().chatchingchokeapp.app_id}|${functions.config().chatchingchokeapp.app_secret}`
+	cors(req, res, () => {
+			httpsFunctions.sendCouponOfSharedPost(req,res);
+	})
+
 })
 
 

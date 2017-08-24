@@ -6,6 +6,83 @@ const axios = require('axios')
 
 const db = firebaseInit.admin.database()
 
+
+
+function axiousRequestForFBSharedPost(startURL){
+var completeData = [];
+
+  const getFBShared = URL => axios.get(
+       URL
+   ).then(response => {
+
+        console.log(response.data)
+          // add the contacts of this response to the array
+          if(response.data.data.length>0)completeData= completeData.concat(response.data.data);
+          if (response.data.paging) {
+              return getFBShared(response.data.paging.next);
+          } else {
+              // this was the last page, return the collected contacts
+              return completeData;
+          }
+     }
+
+   ).catch(error=>{
+     console.log("oh, error is here")
+    //  console.log(error)
+    throw  error
+   });
+   console.log("fb axios request URL is ",startURL)
+   return getFBShared(startURL);
+
+
+
+}
+
+
+
+
+
+
+
+function getSharedPostsByApp (pageID,postID,accessToken){
+  // page scope ID of page "DS" is used as the main ID`
+  //
+  // We have to use access_token in query
+  return new Promise(function(resolve,reject){
+    axiousRequestForFBSharedPost(`https://graph.facebook.com/v2.10/${pageID}_${postID}/sharedposts?access_token=${accessToken}`)
+
+    .then(res => {
+        var ids = [];
+        var extractor =  /(\d+)_*/
+        res.forEach(obj=>{
+        var extracted = extractor.exec(obj.id);
+          ids.push(extracted[1]);
+        });
+
+
+  return resolve(ids)
+
+  })
+
+    .catch(error => {
+      console.log('Shareposts count error ')
+      console.log(`${error}`)
+      return reject(error)
+      // throw error
+    })
+
+  });
+
+}
+
+
+
+
+
+
+
+
+
 module.exports = function (util, messengerFunctions) {
 
   let module = {}
@@ -44,7 +121,7 @@ module.exports = function (util, messengerFunctions) {
 			})
 			.then(uidSnap => {
 				let uids = uidSnap.val()
-				
+
 				if (uids) ucount = Object.keys(uids).length
 
 				res.json({
@@ -65,7 +142,7 @@ module.exports = function (util, messengerFunctions) {
           error: `error in ${error} `
         })
       })
-      
+
   }
 
 	module.getParticipants = function (req, res) {
@@ -92,7 +169,7 @@ module.exports = function (util, messengerFunctions) {
 		util.getStatus()
 		.then(status => {
 			currentQuiz = status.currentQuiz
-			return util.getQuiz()	
+			return util.getQuiz()
 		})
 		.then(quizSnapshot => {
 			quiz = quizSnapshot.val()
@@ -285,7 +362,7 @@ module.exports = function (util, messengerFunctions) {
 							}
 						]
 					}
-						
+
 				}
 
 				sendRequestBatch.push({
@@ -356,7 +433,7 @@ module.exports = function (util, messengerFunctions) {
 					relative_url: 'me/messages?include_headers=false',
 					body: param(bodyData)
 				})
-					
+
 			})
 
 			messengerFunctions.sendBatchMessage(sendResultRequests)
@@ -439,7 +516,7 @@ module.exports = function (util, messengerFunctions) {
 				Object.keys(rB).forEach(date => {
 					bat = Object.assign(bat, rB[date])
 				})
-					
+
 				let error = {
 					detail : [],
 					count : 0
@@ -482,8 +559,154 @@ module.exports = function (util, messengerFunctions) {
 
 	}
 
-	module.sendCoupon = function (req, res) {
 
+
+  // this function create coupon for users that shares our post
+  module.sendCouponOfSharedPost = function (req, res) {
+    //get ids of users that share target post
+    getSharedPostsByApp(req.query.pageID,req.query.postID,req.accessToken)
+    .then(data=>{
+      let rewardedIDs = data;
+      if (req.query['approveCommand'] != 'IAgreeToGiveTheseCouponToPlayersWhoMetRequirement')
+        return res.json({ error: 'you don\'t have permission' })
+    if (!req.query['postID'])return res.json({ error: 'invalid parameters' })
+
+        console.log("rewarded IDs is ",rewardedIDs)
+        let participants = null
+        let usersData = null
+
+        // let allPlayers = []
+        let whoGetPlayCoupon = []
+        let topUsers = []
+        let whoGetSpecialBonus = []
+
+        let bestScore = 0
+        let date = req.query['dateOfEvent']
+        let bonusQuestion = ( req.query['bonusQ'] && !isNaN(req.query['bonusQ']) ) ? req.query['bonusQ'] : -1
+        console.log(`bonus q = ${bonusQuestion}`)
+        console.log(date)
+        db.ref(`couponSchedule/${date}`).once('value')
+  }).then(csSnap => {
+    console.log(csSnap)
+      console.log("after querying coupon")
+				let couponSchedule = csSnap.val()
+				if (couponSchedule == null) throw 'event time error, check couponSchedule'
+        console.log("passed coupon val")
+        return db.ref('users/').once('value')
+			}).then(userSnap => {
+        console.log("after querying users")
+				usersData = userSnap.val()
+      // variable rewardedIDs
+
+
+				let result = {}
+				let proofOfCount = 0
+				let idInBonus = []
+        let postID = req.query.postID
+				Object.keys(usersData).map(key => {
+
+					// if users fb_loginid appears in rewardedIDs, give a coupon... IF THERE IS NO DUPLICATE!
+					if (rewardedIDs.indexOf(usersData[key].fb_loginid) > -1) {
+
+						//
+
+						if (usersData[key].couponHistory) {
+              // if a user has couponHistory
+              //check if couponHistoryOn[date]and[req.query.postID]is false
+              if(!usersData[key].couponHistory[date][postID]){
+                // doesn't have postID in history
+                //add coupon.
+                usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
+                usersData[key].couponHistory = {
+                  [date]: {
+                    [postID]:true
+                  }
+                }
+              }
+              else{
+                // already has coupon of this postID, no result.
+              }
+
+
+						}
+						else {
+              // ah yes, we can be sure in this case that the user never has any record ofcoupon
+              // add coupon
+                usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
+							usersData[key].couponHistory = {
+								[date]: {
+									[postID]:true
+								}
+							}
+
+						}
+
+						result[usersData[key].fbid] = {
+							key: key,
+							id: usersData[key].fbid,
+
+							coupon: usersData[key].coupon
+						}
+
+					}
+
+
+				})
+
+				if (req.query['mode'] == 99) {
+
+
+					return db.ref('users').set(usersData).then(() => {
+						res.json({
+							error: null,
+							message: 'Coupon Sent!!'
+						})
+					})
+
+				}
+				else {
+
+					res.json({
+						error: null,
+
+						result_count: Object.keys(result).length,
+
+						users_count: Object.keys(usersData).length,
+						usersData: usersData
+
+					})
+
+				}
+
+
+		}).catch(error => {
+  				console.log(`error : ${error}`)
+  				res.json({
+  					error: error
+  				})
+  			})
+
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	module.sendCoupon = function (req, res) {
 		if (req.query['approveCommand'] != 'IAgreeToGiveTheseCouponToPlayersWhoMetRequirement')
 			res.json({ error: 'you don\'t have permission' })
 		else if (!req.query['dateOfEvent'])
@@ -512,7 +735,7 @@ module.exports = function (util, messengerFunctions) {
 				return db.ref('participants').once('value')
 			})
 			.then(partSnap => {
-				
+
 				participants = partSnap.val()
 
 				let allPlayers = Object.keys(participants).map(key => {
@@ -542,7 +765,7 @@ module.exports = function (util, messengerFunctions) {
 							specialBonus: false
 						}
 					}
-					
+
 
 				})
 
@@ -574,7 +797,7 @@ module.exports = function (util, messengerFunctions) {
 
 			})
 			.then(userSnap => {
-				
+
 				usersData = userSnap.val()
 
 				let special_reward_keys = whoGetSpecialBonus.map(player => {
@@ -599,7 +822,7 @@ module.exports = function (util, messengerFunctions) {
 					if (played_reward_keys.indexOf(usersData[key].fbid) > -1) {
 
 						usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-						
+
 						if (usersData[key].couponHistory) {
 
 							usersData[key].couponHistory[date] = {
@@ -608,13 +831,13 @@ module.exports = function (util, messengerFunctions) {
 
 						}
 						else {
-							
+
 							usersData[key].couponHistory = {
 								[date]: {
 									playReward: true
 								}
 							}
-							
+
 						}
 
 						result[usersData[key].fbid] = {
@@ -630,7 +853,7 @@ module.exports = function (util, messengerFunctions) {
 						proofOfCount++
 						idInBonus.push(usersData[key].fbid)
 						usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-												
+
 						if (usersData[key].couponHistory && usersData[key].couponHistory[date]) {
 							usersData[key].couponHistory[date].specialBonus = true
 						}
@@ -651,14 +874,14 @@ module.exports = function (util, messengerFunctions) {
 							specialTicket: true
 						}
 						*/
-						
+
 					}
 
 					// bonus for players who get max point
 					if (top_reward_keys.indexOf(usersData[key].fbid) > -1) {
 
 						usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-						
+
 						if (usersData[key].couponHistory && usersData[key].couponHistory[date]) {
 							usersData[key].couponHistory[date].bonusReward = true
 						}
@@ -671,7 +894,7 @@ module.exports = function (util, messengerFunctions) {
 							}
 
 						}
-						
+
 
 						result[usersData[key].fbid] = {
 							key: key,
@@ -717,8 +940,8 @@ module.exports = function (util, messengerFunctions) {
 						// idInBonus: idInBonus
 					})
 
-				}				
-				
+				}
+
 
 			})
 			.catch(error => {
@@ -753,7 +976,7 @@ module.exports = function (util, messengerFunctions) {
 
 				let participantKeys = Object.keys(participants)
 				let partWhoGetCoupon = Object.keys(usersData).map(key => {
-					
+
 					let user = usersData[key]
 					if (user.coupon > 0) {
 
@@ -765,14 +988,14 @@ module.exports = function (util, messengerFunctions) {
 
 					}
 					else return null
-					
+
 				})
 
 				// remove null
 				partWhoGetCoupon = partWhoGetCoupon.filter(user => {
 					return user != undefined
 				})
-				
+
 				// filter to get only user who played the last game
 				partWhoGetCoupon = partWhoGetCoupon.filter(user => {
 					return participantKeys.indexOf(user.id) > -1
@@ -797,11 +1020,11 @@ module.exports = function (util, messengerFunctions) {
 						relative_url: 'me/messages?include_headers=false',
 						body: param(bodyData)
 					})
-						
+
 				})
 
 				messengerFunctions.sendBatchMessage(sendResultRequests)
-				
+
 
 				res.json({
 					error: null,
@@ -855,7 +1078,7 @@ module.exports = function (util, messengerFunctions) {
 					console.log(`data.id : ${data.id}`)
 					userManagementAPI.recordNewUserID_FBlogin(uid, data.id, firebaseAuth)
 					.then(userData => {
-						
+
 						res.json({
 							error: null,
 							PSID: userData.PSID,
@@ -870,7 +1093,7 @@ module.exports = function (util, messengerFunctions) {
 				else res.json({
 					error: `response with status code ${response.status}`,
 					error_code: `HTTP status code ${response.status}`
-				})				
+				})
 
 			})
 			.catch(err => {
@@ -915,9 +1138,9 @@ module.exports = function (util, messengerFunctions) {
 				else return util.getStatus()
       })
       .then(fStatus => {
-		
+
 				status = fStatus
-		
+
         if (!status.playing) throw { code: 1, message: 'quiz not started' }
         else if (!status.canAnswer) throw { code: 1, message: 'quiz timeout' }
         else if (participantInfo.answerPack[status.currentQuiz].ans.length > 0) throw { code: 2, message: 'already answered' }
@@ -925,16 +1148,16 @@ module.exports = function (util, messengerFunctions) {
 
       })
       .then(quizSnap => {
-        
+
 				let quiz = quizSnap.val()
 				let isCorrect = false
-				
+
 				if (!quiz.stringAnswer && !quiz.choices) throw { code: 2, message: 'what the f with this quiz, it has no choices and not support string answer' }
 					// if (quiz.choices.indexOf(answer) == -1 ) throw { code: 2, message: 'answer not in choices scope ?!' }
 					// else if (answer == quiz.a) isCorrect = true
 				else if (quiz.choices && answer == quiz.a) isCorrect = true
 				else if (quiz.stringAnswer && quiz.a.indexOf(normalizedAnswer) > -1) isCorrect = true
-					
+
         if (isCorrect) {
           participantInfo.answerPack[status.currentQuiz].correct = true
 					participantInfo.point++
@@ -942,27 +1165,27 @@ module.exports = function (util, messengerFunctions) {
 
 				participantInfo.answerPack[status.currentQuiz].at = (new Date()).getTime()
 				participantInfo.answerPack[status.currentQuiz].ans = answer
-				
+
         db.ref(`participants/${PSID}/`).set(participantInfo)
         .then(() => {
 
           console.log(`update participant [${PSID}] answer for quiz no [${status.currentQuiz}] success`)
-          
+
           res.json({
             error: null,
             message: 'update success'
           })
-          
+
         })
 
       })
       .catch(error => {
 
 				console.log(`Error found in [answerFromWeb]: ${error}`)
-				
+
 				if (error.code) res.json({ error: error.code, message: error.message })
 				else res.json({ error: 3, message: error })
-		
+
       })
 
     }
