@@ -566,43 +566,48 @@ module.exports = function (util, messengerFunctions) {
     //get ids of users that share target post
     getSharedPostsByApp(req.query.pageID,req.query.postID,req.accessToken)
     .then(data=>{
-      let rewardedIDs = data;
+
       if (req.query['approveCommand'] != 'IAgreeToGiveTheseCouponToPlayersWhoMetRequirement')
         return res.json({ error: 'you don\'t have permission' })
     if (!req.query['postID'])return res.json({ error: 'invalid parameters' })
 
-        console.log("rewarded IDs is ",rewardedIDs)
+
         let participants = null
         let usersData = null
-
+        req.rewardedIDs=data;
         // let allPlayers = []
         let whoGetPlayCoupon = []
         let topUsers = []
         let whoGetSpecialBonus = []
-
+        let rewardedIDs = data;
+        console.log("rewarded IDs is ",rewardedIDs)
         let bestScore = 0
         let date = req.query['dateOfEvent']
         let bonusQuestion = ( req.query['bonusQ'] && !isNaN(req.query['bonusQ']) ) ? req.query['bonusQ'] : -1
         console.log(`bonus q = ${bonusQuestion}`)
         console.log(date)
-        db.ref(`couponSchedule/${date}`).once('value')
+        return db.ref(`couponSchedule/${date}`).once('value')
   }).then(csSnap => {
-    console.log(csSnap)
+    // console.log(csSnap)
+        // console.log("rewarded IDs is ",rewardedIDs)
       console.log("after querying coupon")
 				let couponSchedule = csSnap.val()
 				if (couponSchedule == null) throw 'event time error, check couponSchedule'
         console.log("passed coupon val")
         return db.ref('users/').once('value')
 			}).then(userSnap => {
+
         console.log("after querying users")
 				usersData = userSnap.val()
       // variable rewardedIDs
-
+          // console.log("rewarded IDs is ",rewardedIDs)
 
 				let result = {}
 				let proofOfCount = 0
 				let idInBonus = []
         let postID = req.query.postID
+        let date =req.query.dateOfEvent
+        let rewardedIDs = req.rewardedIDs;
 				Object.keys(usersData).map(key => {
 
 					// if users fb_loginid appears in rewardedIDs, give a coupon... IF THERE IS NO DUPLICATE!
@@ -617,11 +622,12 @@ module.exports = function (util, messengerFunctions) {
                 // doesn't have postID in history
                 //add coupon.
                 usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-                usersData[key].couponHistory = {
-                  [date]: {
-                    [postID]:true
-                  }
-                }
+                usersData[key].couponHistory[date][postID] =true
+                // {
+                //   [date]: {
+                //     [postID]:true
+                //   }
+                // }
               }
               else{
                 // already has coupon of this postID, no result.
