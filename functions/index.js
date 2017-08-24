@@ -158,9 +158,44 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) =>
 						//	console.log(`Message delivered to ${event.sender.id}`)
 					} else {
 						if (event.postback && event.postback.payload == 'userPressedGetStartedButton') {
+
 							console.log(`receive get started action from ${event.sender.id}`)
 							addNewUser(event.sender.id)
-						} else console.log(`Webhook Unknown Event: ${JSON.stringify(event)}`)
+
+							let welcomeText = `ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค จันทร์นี้ 2 ทุ่ม เพียงตอบคำถามขั้นต่ำ 3 ข้อ ทาง youtube.com/droidsans ก็มีสิทธิ์ร่วมลุ้นรับเครื่อง galaxy Note 8 ฟรี! 
+							กติกาอ่านเพิ่มเติมได้ที่ https://droidsans.com/chatchingchoke-august-note8/
+							อย่าลืมเข้ามาร่วมสนุกกับพวกเรานะ`
+
+							sendTextMessage(event.sender.id, welcomeText)
+
+						}
+						else if (event.postback && event.postback.payload == 'checkMyCoupon') {
+
+							let id = event.sender.id
+
+							db.ref('users').orderByChild('fbid').equalTo(id).once('value')
+							.then(userInfo => {
+
+								let userObject = userInfo.val()
+								let user = null
+								if (userObject && Object.keys(userObject).length > 0) {
+									
+									user = userObject[Object.keys(userObject)[0]]
+									let couponCount = user.coupon
+
+									let couponText = `ขณะนี้คุณมีคูปองสะสมรวม ${couponCount} คูปอง`
+
+									sendTextMessage(id, couponText)
+
+								}
+
+							})
+							.catch(error => {
+								console.error(`error getting coupon info for user : ${error}`)
+							})
+
+						}
+						else console.log(`Webhook Unknown Event: ${JSON.stringify(event)}`)
 					}
 				})
 			})
@@ -565,7 +600,8 @@ function addNewUser (newUserId) {
 					`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,
 					// 'ขณะนี้ แชทชิงโชค ยังไม่เริ่ม ถ้าใกล้ถึงช่วงเวลาของกิจกรรมแล้วทางเราจะติดต่อกลับไปนะ'
 					// 'สัปดาห์นี้แชทชิงโชคเปลี่ยนเวลา จะเริ่มวันอังคารที่ 15 เวลา 2 ทุ่มครับ'
-					'แชทชิงโชคประจำสัปดาห์นี้จะเริ่ม วันนี้เวลา 2 ทุ่มนะ อย่าลืมมาร่วมสนุกกับพวกเราล่ะ ;)'
+					// 'แชทชิงโชคประจำสัปดาห์นี้จะเริ่ม วันนี้เวลา 2 ทุ่มนะ อย่าลืมมาร่วมสนุกกับพวกเราล่ะ ;)'
+					'แชทชิงชิงครั้งหน้า วันจันทร์ที่ 28 สิงหาคม เวลา 2 ทุ่ม ครั้งสุดท้ายแล้วก่อนจับรางวัล Galaxy Note8 อย่าลืมมาร่วมเล่นกับพวกเรานะ ;)'
 				]
 
 				sendCascadeMessage(newUserId, texts)
@@ -879,7 +915,7 @@ function receivedMessage (event) {
 					}
 				} else if (!user || !playerInfo) {
 					console.log('user id not found in DB {OR} not in participants -> adding new user')
-					addNewUser(senderID)
+					setTimeout( addNewUser(senderID), 1500)
 				} else if (!status.playing && !status.canEnter) {
 					console.log('this user is in our sigth, but game is end or not started yet, tell the user!')
 					sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค ยังไม่เริ่ม ถ้าใกล้ถึงช่วงเวลาของกิจกรรมแล้วทางเราจะติดต่อกลับไปนะ')
@@ -920,7 +956,7 @@ function receivedMessage (event) {
 
 				if (!user || !playerInfo) {
 					console.log('user id not found in DB {OR} not in participants -> adding new user')
-					addNewUser(senderID)
+					setTimeout( addNewUser(senderID), 1500)
 				}
 			}
 

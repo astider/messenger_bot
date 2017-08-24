@@ -500,7 +500,8 @@ module.exports = function (util, messengerFunctions) {
 
 			let bestScore = 0
 			let date = req.query['dateOfEvent']
-			let bonusQuestion = (req.query['bonusQ']) ? req.query['bonusQ'] : -1
+			let bonusQuestion = ( req.query['bonusQ'] && !isNaN(req.query['bonusQ']) ) ? req.query['bonusQ'] : -1
+			console.log(`bonus q = ${bonusQuestion}`)
 
 			db.ref(`couponSchedule/${date}`).once('value')
 			.then(csSnap => {
@@ -523,14 +524,25 @@ module.exports = function (util, messengerFunctions) {
 					}, 0)
 
 					// console.log(`answer count = ${answerAmount}`)
-
-					return {
-						id: key,
-						point: participants[key].point,
-						answerCount: answerAmount,
-						played_reward_coupon: (answerAmount >= 3) ? true : false,
-						specialBonus: (bonusQuestion > -1) ? ((participants[key].answerPack[bonusQuestion].correct) ? true : false ) : false
+					if (bonusQuestion > -1) {
+						return {
+							id: key,
+							point: participants[key].point,
+							answerCount: answerAmount,
+							played_reward_coupon: (answerAmount >= 3) ? true : false,
+							specialBonus: (participants[key].answerPack[bonusQuestion].correct) ? true : false
+						}
 					}
+					else {
+						return {
+							id: key,
+							point: participants[key].point,
+							answerCount: answerAmount,
+							played_reward_coupon: (answerAmount >= 3) ? true : false,
+							specialBonus: false
+						}
+					}
+					
 
 				})
 
@@ -578,6 +590,8 @@ module.exports = function (util, messengerFunctions) {
 				})
 
 				let result = {}
+				let proofOfCount = 0
+				let idInBonus = []
 
 				Object.keys(usersData).map(key => {
 
@@ -613,32 +627,30 @@ module.exports = function (util, messengerFunctions) {
 
 					// special ticket for specific question
 					if (special_reward_keys.indexOf(usersData[key].fbid) > -1) {
-						
+						proofOfCount++
+						idInBonus.push(usersData[key].fbid)
 						usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
 												
-						if (usersData[key].couponHistory) {
-						
-							usersData[key].couponHistory[date] = {
-								specialBonus: true
-							}
-						
+						if (usersData[key].couponHistory && usersData[key].couponHistory[date]) {
+							usersData[key].couponHistory[date].specialBonus = true
 						}
 						else {
-													
+
 							usersData[key].couponHistory = {
 								[date]: {
 									specialBonus: true
 								}
 							}
-													
+
 						}
-						
+						/*
 						result[usersData[key].fbid] = {
 							key: key,
 							id: usersData[key].fbid,
 							coupon: usersData[key].coupon,
 							specialTicket: true
 						}
+						*/
 						
 					}
 
@@ -694,11 +706,15 @@ module.exports = function (util, messengerFunctions) {
 						error: null,
 						normal_count: played_reward_keys.length,
 						bonus_count: top_reward_keys.length,
+						sp_count: special_reward_keys.length,
+						counter: proofOfCount,
 						result_count: Object.keys(result).length,
 						// normal: played_reward_keys,
 						// bonus: top_reward_keys,
 						users_count: Object.keys(usersData).length,
 						usersData: usersData
+						// special_reward_keys: special_reward_keys,
+						// idInBonus: idInBonus
 					})
 
 				}				
