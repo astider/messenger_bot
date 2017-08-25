@@ -742,11 +742,23 @@ function receivedMessage (event) {
 						playerInfo.answerPack[status.currentQuiz].ans = messageQRPayload
 						playerInfo.answerPack[status.currentQuiz].at = new Date().getTime()
 
-						// if (messageQRPayload == quiz[status.currentQuiz].a) {
-						if (quiz[status.currentQuiz].a.indexOf(messageQRPayload) >= 0) {
-							playerInfo.answerPack[status.currentQuiz].correct = true
-							playerInfo.point++
+						if (Array.isArray(quiz[status.currentQuiz].a)) {
+
+							if (quiz[status.currentQuiz].a.indexOf(messageQRPayload) >= 0) {
+								playerInfo.answerPack[status.currentQuiz].correct = true
+								playerInfo.point++
+							}
+
 						}
+						else {
+
+							if (messageQRPayload == quiz[status.currentQuiz].a) {
+								playerInfo.answerPack[status.currentQuiz].correct = true
+								playerInfo.point++
+							}
+
+						}
+						
 
 						db.ref(`participants/${senderID}`).set(playerInfo)
 					}
