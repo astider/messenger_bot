@@ -555,7 +555,7 @@ function sendCascadeMessage (id, textArray) {
 				// console.log(message)
 				sendTextMessage(id, message)
 				return new Promise(res => {
-					setTimeout(res, 1000)
+					setTimeout(res, 1100)
 				})
 			})
 		}, Promise.resolve())
@@ -693,7 +693,9 @@ function receivedMessage (event) {
 
 				// idea is : if stringAnswer is true => use messageText else check payload
 				// current quiz need to be answered with text
+
 				if (quiz[status.currentQuiz].stringAnswer) {
+
 					console.log('hello from inside string answer')
 
 					if (!status.canAnswer) sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
@@ -713,6 +715,7 @@ function receivedMessage (event) {
 						}
 
 						sendQuickReplies(senderID, confirmAns)
+
 					} else {
 						sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
 
@@ -726,6 +729,7 @@ function receivedMessage (event) {
 
 						db.ref(`participants/${senderID}`).set(playerInfo)
 					}
+
 				} else if (quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
 					// current quiz use choices
 					console.log('hello from inside CHOICE answer')
@@ -738,13 +742,15 @@ function receivedMessage (event) {
 						playerInfo.answerPack[status.currentQuiz].ans = messageQRPayload
 						playerInfo.answerPack[status.currentQuiz].at = new Date().getTime()
 
-						if (messageQRPayload == quiz[status.currentQuiz].a) {
+						// if (messageQRPayload == quiz[status.currentQuiz].a) {
+						if (quiz[status.currentQuiz].a.indexOf(messageQRPayload) >= 0) {
 							playerInfo.answerPack[status.currentQuiz].correct = true
 							playerInfo.point++
 						}
 
 						db.ref(`participants/${senderID}`).set(playerInfo)
 					}
+
 				} else if (playerInfo.answerPack[status.currentQuiz].ans) sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
 				else if (!status.canAnswer) sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
 				else {
