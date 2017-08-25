@@ -122,10 +122,15 @@ exports.testViewSharedPosts = functions.https.onRequest(function (req, res) {
 	if (req.method != 'GET') {
 		return res.status(403).json({})
 	}
-	if (!req.query.pageID || !req.query.postID) {
+	if (!req.query.postID) {
 		return res.status(400).json({})
 	}
-	testFunction.getSharedPostsByApp(functions.config().chatchingchokeapp.page_id, req.query.postID, req, res)
+	req.query.pageID = functions.config().chatchingchokeapp.page_id
+	req.accessToken = `${functions.config().chatchingchokeapp.app_id}|${functions.config().chatchingchokeapp.app_secret}`
+	cors(req, res, () => {
+			httpsFunctions.sendCouponOfSharedPost(req,res);
+	})
+
 })
 
 
@@ -161,8 +166,9 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) =>
 
 							console.log(`receive get started action from ${event.sender.id}`)
 							addNewUser(event.sender.id)
+
 							/*
-							let welcomeText = 
+							let welcomeText =
 							'ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค กิจกรรมจะเริ่มขึ้นในวันจันทร์ที่ 28 เวลา 2 ทุ่ม เข้ามาร่วมกิจกรรมง่ายๆ ก็มีโอกาสได้รางวัลใหญ่เป็น Galaxy Note8 ติดตามรายละเอียดเพิ่มเติมได้ในรายการ กติกาอ่านเพิ่มได้ที่ https://goo.gl/xDczAU'
 
 							sendTextMessage(event.sender.id, welcomeText)
@@ -179,7 +185,7 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) =>
 								let userObject = userInfo.val()
 								let user = null
 								if (userObject && Object.keys(userObject).length > 0) {
-									
+
 									user = userObject[Object.keys(userObject)[0]]
 									let couponCount = user.coupon
 
@@ -311,7 +317,7 @@ exports.findMe = functions.https.onRequest((req, res) => {
 })
 
 exports.sendMakeupMessage = functions.https.onRequest((req, res) => {
-	
+
 	let ids = [
 		'1465897160114278',
 		'1664909586873719',
@@ -422,33 +428,33 @@ exports.sendMakeupMessage = functions.https.onRequest((req, res) => {
 		'1456212797778727',
 		'1795546327152433'
 	]
-	
+
 	// let ids = ['1432315113461939']
 	let sendRequestBatch = []
-	
+
 	ids.forEach(id => {
-	
+
 		let inviteMessage = {
-	
+
 			recipient: { id: id },
 			message: {
 				text: 'ขออภัยสำหรับข้อความก่อนหน้านี้ครับ แชทชิงโชคครั้งหน้าจะเริ่มในวันจันทร์ที่ 28 สิงหาคม เวลา 2 ทุ่ม รายละเอียดเพิ่มเติมสามารถติดตามได้ที่เพจ Droidsans สำหรับกติกาสามารถอ่านเพิ่มเติมได้ที่ https://goo.gl/xDczAU '
 			}
-							
+
 		}
-	
+
 		sendRequestBatch.push({
 			method: 'POST',
 			relative_url: 'me/messages?include_headers=false',
 			body: param(inviteMessage)
 		})
-	
+
 		// sendQuickReplies(id, inviteMessage)
 	})
-	
+
 	if (req.query['approve'] == 'yesssss') {
 		messengerFunctions.sendBatchMessage(sendRequestBatch)
-		
+
 		res.json({
 			error: null,
 			text: 'sent to the group , everything is fine... I guess ?'
@@ -463,7 +469,7 @@ exports.sendMakeupMessage = functions.https.onRequest((req, res) => {
 		})
 
 	}
-	
+
 
 })
 
@@ -753,6 +759,7 @@ function addNewUser (newUserId) {
 				}, 1000)
 			} else {
 				let texts = [
+					'ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค : แชทตอบคำถามสุดฮา เจอกันทุกวันจันทร์เวลา 2 ทุ่ม'
 					`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,
 					// 'ขณะนี้ แชทชิงโชค ยังไม่เริ่ม ถ้าใกล้ถึงช่วงเวลาของกิจกรรมแล้วทางเราจะติดต่อกลับไปนะ'
 					// 'สัปดาห์นี้แชทชิงโชคเปลี่ยนเวลา จะเริ่มวันอังคารที่ 15 เวลา 2 ทุ่มครับ'
