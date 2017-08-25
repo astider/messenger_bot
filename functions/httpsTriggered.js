@@ -616,21 +616,30 @@ module.exports = function (util, messengerFunctions) {
 						//
 
 						if (usersData[key].couponHistory) {
+              console.log("user has coupon history")
               // if a user has couponHistory
               //check if couponHistoryOn[date]and[req.query.postID]is false
-              if(!usersData[key].couponHistory[date][postID]){
-                // doesn't have postID in history
+              if(!usersData[key].couponHistory[date]){
+                // doesn't have date & postID in history
                 //add coupon.
+                console.log("user has coupon history, but not with the date and postID")
+                // create couponHistory[date]
                 usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-                usersData[key].couponHistory[date][postID] =true
+                usersData[key].couponHistory[date]={
+                  [postID]:true
+                }
+
                 // {
                 //   [date]: {
                 //     [postID]:true
                 //   }
                 // }
               }
-              else{
-                // already has coupon of this postID, no result.
+              // user has history of [date], but doesn't have [postID]
+              // set it to true
+              else if (!usersData[key].couponHistory[date][postID]){
+                usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
+                usersData[key].couponHistory[date][postID] =true
               }
 
 
