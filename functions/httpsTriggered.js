@@ -8,7 +8,7 @@ const db = firebaseInit.admin.database()
 
 
 
-function axiousRequestForFBSharedPost(startURL){
+function axiousRequestForFBSharedPost (startURL){
 var completeData = [];
 
   const getFBShared = URL => axios.get(
@@ -17,7 +17,7 @@ var completeData = [];
 
         console.log(response.data)
           // add the contacts of this response to the array
-          if(response.data.data.length>0)completeData= completeData.concat(response.data.data);
+          if (response.data.data.length > 0)completeData = completeData.concat(response.data.data);
           if (response.data.paging) {
               return getFBShared(response.data.paging.next);
           } else {
@@ -26,12 +26,12 @@ var completeData = [];
           }
      }
 
-   ).catch(error=>{
-     console.log("oh, error is here")
+   ).catch(error => {
+     console.log('oh, error is here')
     //  console.log(error)
     throw  error
    });
-   console.log("fb axios request URL is ",startURL)
+   console.log('fb axios request URL is ',startURL)
    return getFBShared(startURL);
 
 
@@ -48,13 +48,13 @@ function getSharedPostsByApp (pageID,postID,accessToken){
   // page scope ID of page "DS" is used as the main ID`
   //
   // We have to use access_token in query
-  return new Promise(function(resolve,reject){
+  return new Promise(function (resolve,reject){
     axiousRequestForFBSharedPost(`https://graph.facebook.com/v2.10/${pageID}_${postID}/sharedposts?access_token=${accessToken}`)
 
     .then(res => {
         var ids = [];
         var extractor =  /(\d+)_*/
-        res.forEach(obj=>{
+        res.forEach(obj => {
         var extracted = extractor.exec(obj.id);
           ids.push(extracted[1]);
         });
@@ -563,24 +563,24 @@ module.exports = function (util, messengerFunctions) {
 
   // this function create coupon for users that shares our post
   module.sendCouponOfSharedPost = function (req, res) {
-    //get ids of users that share target post
+    // get ids of users that share target post
     getSharedPostsByApp(req.query.pageID,req.query.postID,req.accessToken)
-    .then(data=>{
+    .then(data => {
 
       if (req.query['approveCommand'] != 'IAgreeToGiveTheseCouponToPlayersWhoMetRequirement')
         return res.json({ error: 'you don\'t have permission' })
-    if (!req.query['postID'])return res.json({ error: 'invalid parameters' })
+    if (!req.query['postID']) return res.json({ error: 'invalid parameters' })
 
 
         let participants = null
         let usersData = null
-        req.rewardedIDs=data;
+        req.rewardedIDs = data;
         // let allPlayers = []
         let whoGetPlayCoupon = []
         let topUsers = []
         let whoGetSpecialBonus = []
         let rewardedIDs = data;
-        console.log("rewarded IDs is ",rewardedIDs)
+        console.log('rewarded IDs is ',rewardedIDs)
         let bestScore = 0
         let date = req.query['dateOfEvent']
         let bonusQuestion = ( req.query['bonusQ'] && !isNaN(req.query['bonusQ']) ) ? req.query['bonusQ'] : -1
@@ -590,14 +590,14 @@ module.exports = function (util, messengerFunctions) {
   }).then(csSnap => {
     // console.log(csSnap)
         // console.log("rewarded IDs is ",rewardedIDs)
-      console.log("after querying coupon")
+      console.log('after querying coupon')
 				let couponSchedule = csSnap.val()
 				if (couponSchedule == null) throw 'event time error, check couponSchedule'
-        console.log("passed coupon val")
+        console.log('passed coupon val')
         return db.ref('users/').once('value')
 			}).then(userSnap => {
 
-        console.log("after querying users")
+        console.log('after querying users')
 				usersData = userSnap.val()
       // variable rewardedIDs
           // console.log("rewarded IDs is ",rewardedIDs)
@@ -606,7 +606,7 @@ module.exports = function (util, messengerFunctions) {
 				let proofOfCount = 0
 				let idInBonus = []
         let postID = req.query.postID
-        let date =req.query.dateOfEvent
+        let date = req.query.dateOfEvent
         let rewardedIDs = req.rewardedIDs;
 				Object.keys(usersData).map(key => {
 
@@ -616,16 +616,16 @@ module.exports = function (util, messengerFunctions) {
 						//
 
 						if (usersData[key].couponHistory) {
-              console.log("user has coupon history")
+              console.log('user has coupon history')
               // if a user has couponHistory
-              //check if couponHistoryOn[date]and[req.query.postID]is false
-              if(!usersData[key].couponHistory[date]){
+              // check if couponHistoryOn[date]and[req.query.postID]is false
+              if (!usersData[key].couponHistory[date]){
                 // doesn't have date & postID in history
-                //add coupon.
-                console.log("user has coupon history, but not with the date and postID")
+                // add coupon.
+                console.log('user has coupon history, but not with the date and postID')
                 // create couponHistory[date]
                 usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-                usersData[key].couponHistory[date]={
+                usersData[key].couponHistory[date] = {
                   [postID]:true
                 }
 
@@ -639,7 +639,7 @@ module.exports = function (util, messengerFunctions) {
               // set it to true
               else if (!usersData[key].couponHistory[date][postID]){
                 usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-                usersData[key].couponHistory[date][postID] =true
+                usersData[key].couponHistory[date][postID] = true
               }
 
 
@@ -1170,7 +1170,21 @@ module.exports = function (util, messengerFunctions) {
 				if (!quiz.stringAnswer && !quiz.choices) throw { code: 2, message: 'what the f with this quiz, it has no choices and not support string answer' }
 					// if (quiz.choices.indexOf(answer) == -1 ) throw { code: 2, message: 'answer not in choices scope ?!' }
 					// else if (answer == quiz.a) isCorrect = true
-				else if (quiz.choices && answer == quiz.a) isCorrect = true
+				else if (quiz.choices && answer == quiz.a) {
+
+					if ( Array.isArray(quiz.a) ) {
+
+						if (quiz.a.indexOf(answer) >= 0)
+							isCorrect = true
+					
+					}
+					else {
+
+						if (quiz.a == answer)
+							isCorrect = true
+					}
+
+				}
 				else if (quiz.stringAnswer && quiz.a.indexOf(normalizedAnswer) > -1) isCorrect = true
 
         if (isCorrect) {
