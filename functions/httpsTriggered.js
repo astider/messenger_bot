@@ -706,6 +706,146 @@ module.exports = function (util, messengerFunctions) {
 
 
 
+  module.requestCouponOfSharedPosts = function (req, res) {
+    // get ids of users that share target post
+    getSharedPostsByApp(req.query.pageID,req.query.postID,req.accessToken)
+    .then(data => {
+
+      if (req.query['approveCommand'] != 'IAgreeToGiveTheseCouponToPlayersWhoMetRequirement')
+        return res.json({ error: 'you don\'t have permission' })
+    if (!req.query['postID']) return res.json({ error: 'invalid parameters' })
+
+
+        let participants = null
+        let usersData = null
+        req.rewardedIDs = data;
+        // let allPlayers = []
+        let whoGetPlayCoupon = []
+        let topUsers = []
+        let whoGetSpecialBonus = []
+        let rewardedIDs = data;
+        console.log('rewarded IDs is ',rewardedIDs)
+        let bestScore = 0
+        let date = req.query['dateOfEvent']
+        let bonusQuestion = ( req.query['bonusQ'] && !isNaN(req.query['bonusQ']) ) ? req.query['bonusQ'] : -1
+        console.log(`bonus q = ${bonusQuestion}`)
+        console.log(date)
+        return db.ref(`couponSchedule/${date}`).once('value')
+  }).then(csSnap => {
+    // console.log(csSnap)
+        // console.log("rewarded IDs is ",rewardedIDs)
+      console.log('after querying coupon')
+        let couponSchedule = csSnap.val()
+        if (couponSchedule == null) throw 'event time error, check couponSchedule'
+        console.log('passed coupon val')
+        return db.ref('users/').once('value')
+      }).then(userSnap => {
+
+        console.log('after querying users')
+        usersData = userSnap.val()
+      // variable rewardedIDs
+          // console.log("rewarded IDs is ",rewardedIDs)
+
+        let result = {}
+        let proofOfCount = 0
+        let idInBonus = []
+        let postID = req.query.postID
+        let date = req.query.dateOfEvent
+        let rewardedIDs = req.rewardedIDs;
+        Object.keys(usersData).map(key => {
+
+          // if users fb_loginid appears in rewardedIDs, give a coupon... IF THERE IS NO DUPLICATE!
+          if (rewardedIDs.indexOf(usersData[key].fb_loginid) > -1) {
+
+            //
+
+            if (usersData[key].couponHistory) {
+              console.log('user has coupon history')
+              // if a user has couponHistory
+              // check if couponHistoryOn[date]and[req.query.postID]is false
+              if (!usersData[key].couponHistory[date]){
+                // doesn't have date & postID in history
+                // add coupon.
+                console.log('user has coupon history, but not with the date and postID')
+                // create couponHistory[date]
+                usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
+                usersData[key].couponHistory[date] = {
+                  [postID]:true
+                }
+
+                // {
+                //   [date]: {
+                //     [postID]:true
+                //   }
+                // }
+              }
+              // user has history of [date], but doesn't have [postID]
+              // set it to true
+              else if (!usersData[key].couponHistory[date][postID]){
+                usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
+                usersData[key].couponHistory[date][postID] = true
+              }
+
+
+            }
+            else {
+              // ah yes, we can be sure in this case that the user never has any record ofcoupon
+              // add coupon
+                usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
+              usersData[key].couponHistory = {
+                [date]: {
+                  [postID]:true
+                }
+              }
+
+            }
+
+            result[usersData[key].fbid] = {
+              key: key,
+              id: usersData[key].fbid,
+
+              coupon: usersData[key].coupon
+            }
+
+          }
+
+
+        })
+
+        if (req.query['mode'] == 99) {
+
+
+          return db.ref('users').set(usersData).then(() => {
+            res.json({
+              error: null,
+              message: 'Coupon Sent!!'
+            })
+          })
+
+        }
+        else {
+
+          res.json({
+            error: null,
+
+            result_count: Object.keys(result).length,
+
+            users_count: Object.keys(usersData).length,
+            usersData: usersData
+
+          })
+
+        }
+
+
+    }).catch(error => {
+          console.log(`error : ${error}`)
+          res.json({
+            error: error
+          })
+        })
+
+  }
 
 
 
@@ -1176,7 +1316,7 @@ module.exports = function (util, messengerFunctions) {
 
 						if (quiz.a.indexOf(answer) >= 0)
 							isCorrect = true
-					
+
 					}
 					else {
 
