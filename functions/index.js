@@ -118,6 +118,27 @@ exports.addCoupon = functions.https.onRequest((req, res) => {
 
 // ------------------------------
 
+exports.testFrontFunctionFacebook = functions.https.onRequest(function (req, res) {
+	if (req.method != 'POST') {
+		return res.status(403).json({})
+	}
+	// req.body will be json of
+	/*
+	{
+	postURL,
+	fbid
+}
+	*/
+	console.log(req.body)
+	res.json({})
+	// req.query.pageID = functions.config().chatchingchokeapp.page_id
+	// req.accessToken = `${functions.config().chatchingchokeapp.app_id}|${functions.config().chatchingchokeapp.app_secret}`
+	// cors(req, res, () => {
+	// 		httpsFunctions.sendCouponOfSharedPost(req,res);
+	// })
+
+})
+
 exports.testViewSharedPosts = functions.https.onRequest(function (req, res) {
 	if (req.method != 'GET') {
 		return res.status(403).json({})
@@ -758,7 +779,7 @@ function receivedMessage (event) {
 							}
 
 						}
-						
+
 
 						db.ref(`participants/${senderID}`).set(playerInfo)
 					}
