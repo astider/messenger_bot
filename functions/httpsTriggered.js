@@ -1170,7 +1170,7 @@ module.exports = function (util, messengerFunctions) {
 				if (!quiz.stringAnswer && !quiz.choices) throw { code: 2, message: 'what the f with this quiz, it has no choices and not support string answer' }
 					// if (quiz.choices.indexOf(answer) == -1 ) throw { code: 2, message: 'answer not in choices scope ?!' }
 					// else if (answer == quiz.a) isCorrect = true
-				else if (quiz.choices && answer == quiz.a) {
+				else if (quiz.choices && !quiz.stringAnswer) {
 
 					if ( Array.isArray(quiz.a) ) {
 
@@ -1212,7 +1212,10 @@ module.exports = function (util, messengerFunctions) {
 
 				console.log(`Error found in [answerFromWeb]: ${error}`)
 
-				if (error.code) res.json({ error: error.code, message: error.message })
+				if (error.code) {
+					console.log(`Error found in [answerFromWeb]: ${JSON.stringify(error)}`)
+					res.json({ error: error.code, message: error.message })
+				}
 				else res.json({ error: 3, message: error })
 
       })
