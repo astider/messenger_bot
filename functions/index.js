@@ -499,22 +499,30 @@ function sendBatchMessage (reqPack) {
 
 	// batch allow 50 commands per request, read this : https://developers.facebook.com/docs/graph-api/making-multiple-requests/
 	let batchLimit = 50
+	
 	for (let i = 0; i < reqPack.length; i += batchLimit) {
-		FB.batch(reqPack.slice(i, i + batchLimit), (error, res) => {
-			if (error) {
-				console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
-			} else {
-				console.log(`batch [${i}] / no error : `)
-				let time = new Date()
-				let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
-				let epochTime = time.getTime()
 
-				res.forEach(response => {
-					db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
-					console.log(response['body'])
-				})
-			}
-		})
+		// setTimeout( function () {
+
+			FB.batch(reqPack.slice(i, i + batchLimit), (error, res) => {
+				if (error) {
+					console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
+				} else {
+					console.log(`batch [${i}] / no error : `)
+					let time = new Date()
+					let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
+					let epochTime = time.getTime()
+	
+					res.forEach(response => {
+						db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
+						console.log(response['body'])
+					})
+				}
+			})
+
+		// }, 200 )
+		
+
 	}
 }
 
@@ -630,10 +638,12 @@ function addNewUser (newUserId) {
 
 		} else {
 
+			// welcome message
 			let texts = [
 				'ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค : แชทตอบคำถามสุดฮา เจอกันทุกวันจันทร์เวลา 2 ทุ่ม',
 				`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,					
-				'กิจกรรมตอบคำถามลุ้นรับ Galaxy Note 8 กำลังจะเริ่มขึ้นแล้ว เตรียมเข้ามาร่วมเล่นกันได้ตอน 2 ทุ่มนะ อ่านรายละเอียดเพิ่มเติมได้ที่ https://goo.gl/xDczAU'
+				// 'กิจกรรมตอบคำถามลุ้นรับ Galaxy Note 8 กำลังจะเริ่มขึ้นแล้ว เตรียมเข้ามาร่วมเล่นกันได้ตอน 2 ทุ่มนะ อ่านรายละเอียดเพิ่มเติมได้ที่ https://goo.gl/xDczAU'
+				'ตอนนี้ยังไม่ถึงเวลากิจกรรม ไว้เราจะติดต่อกลับไปอีกครั้งนะ'
 			]
 
 			sendCascadeMessage(newUserId, texts)
@@ -792,6 +802,7 @@ function receivedMessage (event) {
 				} else if (playerInfo.answerPack[status.currentQuiz].ans) sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
 				else if (!status.canAnswer) sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
 				else {
+
 					sendTextMessage(senderID, 'พิมพ์ตอบจะไม่ได้คะแนนนะ กดตอบเอา')
 
 					let quickReplyChoices = []
@@ -812,7 +823,9 @@ function receivedMessage (event) {
 					setTimeout(() => {
 						sendQuickReplies(senderID, quizMessage)
 					}, 1000)
+
 				}
+
 			} else if (messageQRPayload == 'เข้าร่วม' && !playerInfo && status.canEnter) {
 				// ------- USER ENTER
 				// console.log(`in the khaoruam // id : ${senderID}`)
@@ -967,7 +980,7 @@ function receivedMessage (event) {
 							}
 						}
 					}
-				} else if (!user || !playerInfo) {
+				} else if (!user || (user && !playerInfo) ) {
 
 					console.log('user id not found in DB {OR} not in participants -> adding new user')
 					setTimeout( addNewUser(senderID), 1500)
@@ -975,11 +988,12 @@ function receivedMessage (event) {
 				} else if (!status.playing && !status.canEnter) {
 
 					console.log('this user is in our sigth, but game is end or not started yet, tell the user!')
-					sendTextMessage(senderID, 'คืนนี้แล้วนะ สำหรับการร่วมกิจกรรมลุ้นรับ Galaxy Note 8 อย่าลืมมาเจอกันตอน 2 ทุ่ม และเข้าไปดู Live กันได้ที่ youtube.com/droidsans จ้า')
+					sendTextMessage(senderID, 'ขณะนี้หมดช่วงเวลาเล่นเกมแล้ว รอติดตามการจับฉลากหาผู้โชคดีว่าใครจะได้ Galaxy Note 8 ไปครองในวันศุกร์นี้เวลา 20.00 น.')
 				
 				} else {
 					// else if(!participants)
 					if (status.playing) {
+
 						if (!status.canAnswer) {
 							sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
 						} else if (playerInfo && playerInfo.answerPack[status.currentQuiz].ans) {
@@ -1006,14 +1020,17 @@ function receivedMessage (event) {
 								sendQuickReplies(senderID, quizMessage)
 							}, 1000)
 						}
+
 					} else if (status.canEnter) sendTextMessage(senderID, 'รอสักครู่นะ กิจกรรมยังไม่เริ่ม')
+
 				}
+
 			} else if (messageAttachments) {
 				console.log(JSON.stringify(message))
 				console.log('Message with attachment received')
 
 				if (!user || !playerInfo) {
-					console.log('user id not found in DB {OR} not in participants -> adding new user')
+					console.log('[ATTACHMENT] user id not found in DB {OR} not in participants -> adding new user')
 					setTimeout( addNewUser(senderID), 1500)
 				}
 			}
