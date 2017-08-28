@@ -591,22 +591,18 @@ function sendCascadeMessage (id, textArray) {
 function addNewUser (newUserId) {
 	console.log('enter addNewUser')
 	let userProfile = null
-	let userInfoFromDB = null
 
 	userManagementAPI.recordNewUserID(newUserId)
 	messengerAPI.sendTypingOn(newUserId)
 	console.log('added user /// sending message back')
 
-	db.ref('users').orderByChild('fbid').equalTo(newUserId).once('value')
-	.then(uSnap => {
-		userInfoFromDB = uSnap.val()
-		return messengerAPI.callProfileAPI(newUserId)
-	})
+	messengerAPI.callProfileAPI(newUserId)
 	.then(profile => {
 		userProfile = profile
 		return _getStatus()
 	})
 	.then(status => {
+
 		if (status.playing || status.canEnter) {
 			let inviteMessage = {
 				text: 'แชทชิงโชค กำลังจะเริ่มในไม่ช้า ต้องการเข้าร่วมเล่นด้วยหรือไม่?',
@@ -630,20 +626,11 @@ function addNewUser (newUserId) {
 
 		} else {
 
-			// for current users
-			if(userInfoFromDB != null) {
-				let texts = [
-					`คืนนี้แล้วนะ สำหรับการร่วมกิจกรรมลุ้นรับ Galaxy Note 8 อย่าลืมมาเจอกันตอน 2 ทุ่ม และเข้าไปดู Live กันได้ที่ youtube.com/droidsans จ้า`
-				]
-			}
-			// for new users
-			else {
-				let texts = [
-					'ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค : แชทตอบคำถามสุดฮา เจอกันทุกวันจันทร์เวลา 2 ทุ่ม',
-					`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,					
-					'กิจกรรมตอบคำถามลุ้นรับ Galaxy Note 8 จะเริ่มขึ้นในวันจันทร์ที่ 28 เวลา 2 ทุ่ม เข้ามาร่วมกิจกรรมง่ายๆ ก็มีโอกาสได้รางวัลใหญ่เป็น Galaxy Note 8 อ่านรายละเอียดเพิ่มเติมได้ที่ https://goo.gl/xDczAU อย่าลืมมาร่วมเล่นกับพวกเรานะ ;)'
-				]
-			}
+			let texts = [
+				'ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค : แชทตอบคำถามสุดฮา เจอกันทุกวันจันทร์เวลา 2 ทุ่ม',
+				`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,					
+				'กิจกรรมตอบคำถามลุ้นรับ Galaxy Note 8 จะเริ่มขึ้นในวันจันทร์ที่ 28 เวลา 2 ทุ่ม เข้ามาร่วมกิจกรรมง่ายๆ ก็มีโอกาสได้รางวัลใหญ่เป็น Galaxy Note 8 อ่านรายละเอียดเพิ่มเติมได้ที่ https://goo.gl/xDczAU อย่าลืมมาร่วมเล่นกับพวกเรานะ ;)'
+			]
 
 			sendCascadeMessage(newUserId, texts)
 		}
@@ -885,7 +872,9 @@ function receivedMessage (event) {
       }
 */
 			} else if (messageQRPayload == 'ไม่เข้าร่วม' && !playerInfo) {
+
 				sendTextMessage(senderID, 'ถ้าเปลี่ยนใจก็ทักมาได้นะ')
+
 			} else if (messageText) {
 				// ------- USER MESSAGE NORMALLY
 				// console.log('IN get message')
@@ -975,11 +964,15 @@ function receivedMessage (event) {
 						}
 					}
 				} else if (!user || !playerInfo) {
+
 					console.log('user id not found in DB {OR} not in participants -> adding new user')
 					setTimeout( addNewUser(senderID), 1500)
+
 				} else if (!status.playing && !status.canEnter) {
+
 					console.log('this user is in our sigth, but game is end or not started yet, tell the user!')
-					sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค ยังไม่เริ่ม ถ้าใกล้ถึงช่วงเวลาของกิจกรรมแล้วทางเราจะติดต่อกลับไปนะ')
+					sendTextMessage(senderID, 'คืนนี้แล้วนะ สำหรับการร่วมกิจกรรมลุ้นรับ Galaxy Note 8 อย่าลืมมาเจอกันตอน 2 ทุ่ม และเข้าไปดู Live กันได้ที่ youtube.com/droidsans จ้า')
+				
 				} else {
 					// else if(!participants)
 					if (status.playing) {
