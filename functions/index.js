@@ -119,23 +119,27 @@ exports.addCoupon = functions.https.onRequest((req, res) => {
 // ------------------------------
 
 exports.testFrontFunctionFacebook = functions.https.onRequest(function (req, res) {
-	if (req.method != 'POST') {
-		return res.status(403).json({})
+
+	cors(req, res, () => {
+		if (req.method != 'POST') {
+			return res.status(403).json({})
+		}
+		// req.body will be json of
+		/*
+		{
+		postURL,
+		fbid
 	}
-	// req.body will be json of
-	/*
-	{
-	postURL,
-	fbid
-}
-	*/
-	console.log(req.body)
-	res.json({})
-	// req.query.pageID = functions.config().chatchingchokeapp.page_id
-	// req.accessToken = `${functions.config().chatchingchokeapp.app_id}|${functions.config().chatchingchokeapp.app_secret}`
-	// cors(req, res, () => {
-	// 		httpsFunctions.sendCouponOfSharedPost(req,res);
-	// })
+		*/
+		console.log(req.body)
+		res.json({})
+		// req.query.pageID = functions.config().chatchingchokeapp.page_id
+		// req.accessToken = `${functions.config().chatchingchokeapp.app_id}|${functions.config().chatchingchokeapp.app_secret}`
+		// cors(req, res, () => {
+		// 		httpsFunctions.sendCouponOfSharedPost(req,res);
+		// })
+	})
+
 
 })
 
@@ -640,7 +644,7 @@ function addNewUser (newUserId) {
 			else {
 				let texts = [
 					'ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค : แชทตอบคำถามสุดฮา เจอกันทุกวันจันทร์เวลา 2 ทุ่ม',
-					`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,					
+					`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,
 					'กิจกรรมตอบคำถามลุ้นรับ Galaxy Note 8 จะเริ่มขึ้นในวันจันทร์ที่ 28 เวลา 2 ทุ่ม เข้ามาร่วมกิจกรรมง่ายๆ ก็มีโอกาสได้รางวัลใหญ่เป็น Galaxy Note 8 อ่านรายละเอียดเพิ่มเติมได้ที่ https://goo.gl/xDczAU อย่าลืมมาร่วมเล่นกับพวกเรานะ ;)'
 				]
 			}
