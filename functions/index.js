@@ -323,6 +323,12 @@ exports.sendCouponUpdate = functions.https.onRequest((req, res) => {
 	})
 })
 
+exports.assignCounponNumber = functions.https.onRequest((req, res) => {
+	cors(req, res, () => {
+		httpsFunctions.assignCounponNumber(req, res)
+	})
+})
+
 exports.findMe = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
 		// 1432315113461939 nontapat

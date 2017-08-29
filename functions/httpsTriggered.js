@@ -855,7 +855,76 @@ module.exports = function (util, messengerFunctions) {
 
 
 
+	module.assignCounponNumber = function (req, res) {
 
+		db.ref('/users').once('value')
+		.then(usersSnap => {
+			
+			let couponCount = 0
+			let couponMatching = {}
+			let users = usersSnap.val()
+		
+			Object.keys(users).map(key => {
+				couponCount += (users[key].coupon) ? users[key].coupon : 0
+			})
+		
+			console.log(`coupon amount: ${couponCount}`)
+		
+			let numbers = []
+			for (let i = 1; i <= couponCount; i++ )
+				numbers.push(i)
+		
+			for (let i = numbers.length - 1; i > 0; i--) {
+
+				let j = Math.floor(Math.random() * (i + 1))
+				let temp = numbers[i]
+				numbers[i] = numbers[j]
+				numbers[j] = temp
+
+			}
+		
+			let counter = 0
+			let mutableUsers = users
+	
+			Object.keys(users).map(key => {
+		
+				if (mutableUsers[key].coupon) {
+		
+					mutableUsers[key].couponNumber = []
+		
+					for (let i = 0; i < mutableUsers[key].coupon; i++) {
+						
+						mutableUsers[key].couponNumber.push(numbers[counter])
+						couponMatching[numbers[counter]] = {
+							'fbid': mutableUsers[key].fbid,
+							'firstName': mutableUsers[key].firstName,
+							'lastName': mutableUsers[key].lastName,
+							'profilePic': mutableUsers[key].profilePic
+						}
+	
+						counter++
+	
+					}
+		
+				}
+		
+			})
+			
+			// console.log(`new users: ${JSON.stringify(users, null, 4)}`)
+			// console.log(`check counter = ${counter} | ${couponCount}`)
+			res.json({
+				counter: counter,
+				couponCount: couponCount,
+				users: mutableUsers,
+				pair: couponMatching
+			})
+		
+		})
+		.catch(error => {
+			console.log(`assign coupon number error : ${error}`)
+		})
+
+	}
 
 
 
@@ -1157,6 +1226,7 @@ module.exports = function (util, messengerFunctions) {
 				})
 
 				// only send to user who get coupon
+				let testA = []
 				partWhoGetCoupon.forEach(user => {
 
 					let bodyData = {
@@ -1169,6 +1239,8 @@ module.exports = function (util, messengerFunctions) {
 					}
 
 					if (user.bonus) bodyData.message.text += ' ขอแสดงความยินดีด้วย เพราะคุณเป็นหนึ่งในผู้เล่นที่มีคะแนนสูงสุดประจำสัปดาห์นี้ :D'
+
+					testA.push(bodyData.message.text)
 
 					sendResultRequests.push({
 						method: 'POST',
@@ -1185,6 +1257,7 @@ module.exports = function (util, messengerFunctions) {
 					error: null,
 					// result: partWhoGetCoupon,
 					// textToBeSent: testA
+					amount: testA.length,
 					message: 'message is on the way!'
 				})
 
