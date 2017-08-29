@@ -323,11 +323,17 @@ exports.sendCouponUpdate = functions.https.onRequest((req, res) => {
 	})
 })
 
-exports.assignCounponNumber = functions.https.onRequest((req, res) => {
+exports.getCouponPair = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.assignCounponNumber(req, res)
+		httpsFunctions.getCouponPair(req, res)
 	})
 })
+
+// exports.assignCounponNumber = functions.https.onRequest((req, res) => {
+// 	cors(req, res, () => {
+// 		httpsFunctions.assignCounponNumber(req, res)
+// 	})
+// })
 
 exports.findMe = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
@@ -981,7 +987,36 @@ function receivedMessage (event) {
 										sendTextMessage(senderID, '## ERROR!! PARTICIPANTS not found.')
 									}
 								})
-							} else {
+							}
+							else if (command == 'MY_COUPON') {
+
+								db.ref('users').orderByChild('fbid').equalTo(senderID).once('value')
+								.then(userInfoSnap => {
+									
+									let userInfo = userInfoSnap.val()
+									let key = (Object.keys(userInfo))[0]
+									userInfo = userInfo[key]
+
+									if (userInfo.coupon) {
+
+										let messages = []
+										messages.push(`คุณมีคูปอง ${userInfo.coupon} ใบ มีหมายเลขดังนี้`)
+										
+										userInfo.couponNumber.map(num => {
+											messages.push(num)
+										})
+
+										sendCascadeMessage(senderID, messages)
+
+									}
+									else {
+										sendTextMessage(senderID, '## You don\'t have any coupon.')
+									}
+
+								})
+
+							}
+							else {
 								sendTextMessage(senderID, '## ERROR!! COMMAND NOT FOUND')
 							}
 						}

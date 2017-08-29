@@ -912,11 +912,18 @@ module.exports = function (util, messengerFunctions) {
 			
 			// console.log(`new users: ${JSON.stringify(users, null, 4)}`)
 			// console.log(`check counter = ${counter} | ${couponCount}`)
+			// res.json({
+			// 	counter: counter,
+			// 	couponCount: couponCount,
+			// 	users: mutableUsers,
+			// 	pair: couponMatching
+			// })
+			db.ref('/users').set(mutableUsers)
+			db.ref('/couponPair').set(couponMatching)
+
 			res.json({
-				counter: counter,
-				couponCount: couponCount,
-				users: mutableUsers,
-				pair: couponMatching
+				error: null,
+				message: 'successfully assign coupon'
 			})
 		
 		})
@@ -927,7 +934,38 @@ module.exports = function (util, messengerFunctions) {
 	}
 
 
+	module.getCouponPair = function (req, res) {
 
+		if (!req.query['couponNumber'] || isNaN(req.query['couponNumber'])) res.json({ error: 'Invalid param', message: 'please specify couponNumber' })
+		else {
+			
+			let couponNumber = parseInt(req.query['couponNumber'])
+
+			db.ref(`couponPair/${couponNumber}`).once('value')
+			.then(pairSnapshot => {
+
+				let user = pairSnapshot.val()
+				if (!user) res.json({ error: null, message: 'no result' })
+				else res.json({
+					error: null,
+					couponNumber: couponNumber,
+					matchedUser: user
+				})
+
+			})
+			.catch(error => {
+
+				console.error(`error found in getCouponPair: ${error}`)
+				res.json({
+					error: error,
+					message: 'please specify couponNumber'
+				})
+
+			})
+
+		}
+
+	}
 
 
 	module.sendCoupon = function (req, res) {
