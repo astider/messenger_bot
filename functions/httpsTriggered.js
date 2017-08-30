@@ -86,7 +86,7 @@ function checkUserPostsForShare(userID,pageID,postID,accessToken){
   //
   // We have to use access_token in query
   return new Promise(function (resolve,reject){
-    axiousRequestFBUserFeedOnlyDS(`https://graph.facebook.com/v2.10/${userID}/feed?access_token=${accessToken}`,pageID,postID)
+    axiousRequestFBUserFeedOnlyDS(`https://graph.facebook.com/v2.10/${userID}/feed?access_token=${accessToken}&fields=link,story,message,id,parent_id`,pageID,postID)
 
     .then(res => {
       // an array with a single element or none.
