@@ -86,7 +86,7 @@ function checkUserPostsForShare(userID,pageID,postID,accessToken){
   //
   // We have to use access_token in query
   return new Promise(function (resolve,reject){
-    axiousRequestFBUserFeedOnlyDS(`https://graph.facebook.com/v2.10/${userID}/feed?access_token=${accessToken}&fields=link,story,message,id,parent_id`,pageID,postID)
+    axiousRequestFBUserFeedOnlyDS(`https://graph.facebook.com/v2.10/${userID}/feed?fields=link,story,message,id,parent_id&access_token=${accessToken}`,pageID,postID)
 
     .then(res => {
       // an array with a single element or none.
@@ -159,10 +159,77 @@ module.exports = function (util, messengerFunctions) {
 
   let module = {}
   module.testCheckUserSharedPost = function(req,res){
-    checkUserPostsForShare(req.query.userID,req.pageID,req.postID,req.accessToken).then(found=>{
-      return res.json({found:found})
+    checkUserPostsForShare(req.query.userID,req.pageID,req.postID,req.accessToken)
+    .then(found=>{
+      if(!found){
+
+        return res.status(404).json({error:"ไม่พบการแชร์โพสต์ที่ทดสอบ"})
+
+      }
+      return db.ref('users').orderByChild('fb_loginid').equalTo(req.query.userID).once('value')
+    })
+    .then(userNotFold=>{
+      if(!userNotFold){
+        return res.status(404).json({error:"ไม่พบเจอในระบบ"})
+      }
+          let usersData = userNotFold.val()
+          let couponIsAdded=false;
+      						let userKey;
+                  var postID = req.postID;
+                  var date = "2017-08-28"
+                    Object.keys(usersData).map(key => {
+                      userKey=key;
+                      if (usersData[key].couponHistory) {
+
+                        if (!usersData[key].couponHistory[date]){
+
+                          console.log('user has coupon history, but not with the date and postID')
+                          couponIsAdded=true
+                          usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
+                          usersData[key].couponHistory[date] = {
+                            [postID]:true
+                          }
+
+                        }
+                        else if (!usersData[key].couponHistory[date][postID]){
+                          couponIsAdded=true
+                          usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
+                          usersData[key].couponHistory[date][postID] = true
+                        }
+                      }
+                      else {
+                        couponIsAdded=true;
+                          usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
+                        usersData[key].couponHistory = {
+                          [date]: {
+                            [postID]:true
+                          }
+                        }
+
+                      }
+                    });
+                    if (req.query['mode'] == 99) {
+                      var toBeSet = usersData[userKey]
+
+            					return db.ref(`users/${userKey}`).set(toBeSet).then(() => {
+            						res.json({
+            							error: null,
+                          couponIsAdded:couponIsAdded
+            						})
+            					})
+
+            				}
+                    else{
+                      return res.json({userKey:userKey,
+                        userData:usersData
+
+                      })
+
+                    }
+
     })
     .catch(error=>{
+      console.log(error)
       return res.status(500).json({})
     })
   }
