@@ -142,7 +142,21 @@ exports.testFrontFunctionFacebook = functions.https.onRequest(function (req, res
 
 
 })
+exports.viewIfUserSharePost =functions.https.onRequest(function (req, res) {
+	if (req.method != 'GET') {
+		return res.status(403).json({})
+	}
+	if (!req.query.userID) {
+		return res.status(400).json({})
+	}
+	req.pageID = functions.config().chatchingchokeapp.page_id
+	req.postID = functions.config().chatchingchokeapp.target_post
+	req.accessToken = `${functions.config().chatchingchokeapp.app_id}|${functions.config().chatchingchokeapp.app_secret}`
+	cors(req, res, () => {
+			httpsFunctions.testCheckUserSharedPost(req,res);
+	})
 
+})
 exports.testViewSharedPosts = functions.https.onRequest(function (req, res) {
 	if (req.method != 'GET') {
 		return res.status(403).json({})
@@ -511,7 +525,7 @@ function sendBatchMessage (reqPack) {
 
 	// batch allow 50 commands per request, read this : https://developers.facebook.com/docs/graph-api/making-multiple-requests/
 	let batchLimit = 50
-	
+
 	for (let i = 0; i < reqPack.length; i += batchLimit) {
 
 		// setTimeout( function () {
@@ -524,7 +538,7 @@ function sendBatchMessage (reqPack) {
 					let time = new Date()
 					let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
 					let epochTime = time.getTime()
-	
+
 					res.forEach(response => {
 						db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
 						console.log(response['body'])
@@ -533,7 +547,7 @@ function sendBatchMessage (reqPack) {
 			})
 
 		// }, 200 )
-		
+
 
 	}
 }
@@ -653,7 +667,7 @@ function addNewUser (newUserId) {
 			// welcome message
 			let texts = [
 				'ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค : แชทตอบคำถามสุดฮา เจอกันทุกวันจันทร์เวลา 2 ทุ่ม',
-				`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,					
+				`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,
 				// 'กิจกรรมตอบคำถามลุ้นรับ Galaxy Note 8 กำลังจะเริ่มขึ้นแล้ว เตรียมเข้ามาร่วมเล่นกันได้ตอน 2 ทุ่มนะ อ่านรายละเอียดเพิ่มเติมได้ที่ https://goo.gl/xDczAU'
 				'ตอนนี้ยังไม่ถึงเวลากิจกรรม ไว้เราจะติดต่อกลับไปอีกครั้งนะ'
 			]
@@ -992,7 +1006,7 @@ function receivedMessage (event) {
 
 								db.ref('users').orderByChild('fbid').equalTo(senderID).once('value')
 								.then(userInfoSnap => {
-									
+
 									let userInfo = userInfoSnap.val()
 									let key = (Object.keys(userInfo))[0]
 									userInfo = userInfo[key]
@@ -1001,7 +1015,7 @@ function receivedMessage (event) {
 
 										let messages = []
 										messages.push(`คุณมีคูปอง ${userInfo.coupon} ใบ มีหมายเลขดังนี้`)
-										
+
 										userInfo.couponNumber.map(num => {
 											messages.push(num)
 										})
@@ -1030,7 +1044,7 @@ function receivedMessage (event) {
 
 					console.log('this user is in our sigth, but game is end or not started yet, tell the user!')
 					sendTextMessage(senderID, 'ขณะนี้หมดช่วงเวลาเล่นเกมแล้ว รอติดตามการจับฉลากหาผู้โชคดีว่าใครจะได้ Galaxy Note 8 ไปครองในวันศุกร์นี้เวลา 20.00 น.')
-				
+
 				} else {
 					// else if(!participants)
 					if (status.playing) {
