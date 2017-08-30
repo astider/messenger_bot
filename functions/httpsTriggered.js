@@ -74,7 +74,7 @@ var completeData = [];
        }
    }).catch(error=>{
      console.log(error)
-     return null;
+     return [];
    });
    return getFBShared(startURL);
 
