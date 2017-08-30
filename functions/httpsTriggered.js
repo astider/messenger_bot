@@ -38,7 +38,79 @@ var completeData = [];
 
 }
 
+function axiousRequestFBUserFeedOnlyDS(startURL,targetPageID,targetPostID){
+  console.log(`param is ${startURL}`)
+  console.log(`other param is ${targetPageID} ${targetPostID}`)
+var completeData = [];
 
+  const getFBShared = URL => axios.get(
+       URL
+   ).then(response => {
+    //  console.log(response.data)
+    //  console.log(response.data)
+       // add the contacts of this response to the array
+       if(response.data.data.length>0){
+         for(var i = 0; i <response.data.data.length;i++){
+           if(response.data.data[i].parent_id){
+             let extractor = /(\d+)_(\d+)/;
+             let extracted = extractor.exec(response.data.data[i].parent_id)
+             let pageID = extracted[1]; let postID= extracted[2];
+             console.log(`pageID and post ID is ${pageID} ${postID}`)
+             if(pageID==targetPageID){
+               if(postID==targetPostID){
+                 completeData.push(response.data.data[i]);
+                 console.log("found target Post on this user timeline")
+                 return completeData;
+               }
+             }
+           }
+         }
+       }
+       if (response.data.paging) {
+           return getFBShared(response.data.paging.next);
+       } else {
+           // this was the last page, return the collected contacts
+           return completeData;
+       }
+   }).catch(error=>{
+     console.log(error)
+     return null;
+   });
+   return getFBShared(startURL);
+
+
+
+}
+function checkUserPostsForShare(userID,pageID,postID,accessToken){
+  // page scope ID of page "DS" is used as the main ID`
+  //
+  // We have to use access_token in query
+  return new Promise(function (resolve,reject){
+    axiousRequestFBUserFeedOnlyDS(`https://graph.facebook.com/v2.10/${userID}/feed?access_token=${accessToken}&fields=link,story,message,id,parent_id`,pageID,postID)
+
+    .then(res => {
+      // an array with a single element or none.
+        if(res.length>0){
+            return resolve(true)
+        }
+        else{
+            return resolve(false)
+        }
+
+
+
+  })
+
+    .catch(error => {
+      console.log('Shareposts count error ')
+      console.log(`${error}`)
+      return reject(error)
+      // throw error
+    })
+
+  });
+
+}
 
 
 
@@ -86,7 +158,14 @@ function getSharedPostsByApp (pageID,postID,accessToken){
 module.exports = function (util, messengerFunctions) {
 
   let module = {}
-
+  module.testCheckUserSharedPost = function(req,res){
+    checkUserPostsForShare(req.query.userID,req.pageID,req.postID,req.accessToken).then(found=>{
+      return res.json({found:found})
+    })
+    .catch(error=>{
+      return res.status(500).json({})
+    })
+  }
   // --------- START HERE
   module.getOverallStatus = function (req, res) {
 
@@ -859,21 +938,21 @@ module.exports = function (util, messengerFunctions) {
 
 		db.ref('/users').once('value')
 		.then(usersSnap => {
-			
+
 			let couponCount = 0
 			let couponMatching = {}
 			let users = usersSnap.val()
-		
+
 			Object.keys(users).map(key => {
 				couponCount += (users[key].coupon) ? users[key].coupon : 0
 			})
-		
+
 			console.log(`coupon amount: ${couponCount}`)
-		
+
 			let numbers = []
 			for (let i = 1; i <= couponCount; i++ )
 				numbers.push(i)
-		
+
 			for (let i = numbers.length - 1; i > 0; i--) {
 
 				let j = Math.floor(Math.random() * (i + 1))
@@ -882,18 +961,18 @@ module.exports = function (util, messengerFunctions) {
 				numbers[j] = temp
 
 			}
-		
+
 			let counter = 0
 			let mutableUsers = users
-	
+
 			Object.keys(users).map(key => {
-		
+
 				if (mutableUsers[key].coupon) {
-		
+
 					mutableUsers[key].couponNumber = []
-		
+
 					for (let i = 0; i < mutableUsers[key].coupon; i++) {
-						
+
 						mutableUsers[key].couponNumber.push(numbers[counter])
 						couponMatching[numbers[counter]] = {
 							'fbid': mutableUsers[key].fbid,
@@ -901,15 +980,15 @@ module.exports = function (util, messengerFunctions) {
 							'lastName': mutableUsers[key].lastName,
 							'profilePic': mutableUsers[key].profilePic
 						}
-	
+
 						counter++
-	
+
 					}
-		
+
 				}
-		
+
 			})
-			
+
 			// console.log(`new users: ${JSON.stringify(users, null, 4)}`)
 			// console.log(`check counter = ${counter} | ${couponCount}`)
 			// res.json({
@@ -925,7 +1004,7 @@ module.exports = function (util, messengerFunctions) {
 				error: null,
 				message: 'successfully assign coupon'
 			})
-		
+
 		})
 		.catch(error => {
 			console.log(`assign coupon number error : ${error}`)
@@ -938,7 +1017,7 @@ module.exports = function (util, messengerFunctions) {
 
 		if (!req.query['couponNumber'] || isNaN(req.query['couponNumber'])) res.json({ error: 'Invalid param', message: 'please specify couponNumber' })
 		else {
-			
+
 			let couponNumber = parseInt(req.query['couponNumber'])
 
 			db.ref(`couponPair/${couponNumber}`).once('value')
