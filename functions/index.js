@@ -490,6 +490,11 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 // ------------------- Messenger Function
 
 function sendBatchMessage (reqPack) {
+	sendBatchMessageWithDelay(reqPack, 0)
+}
+
+function sendBatchMessageWithDelay (reqPack, delay) {
+
 	// REQUEST FORMAT (reqPack must be array of data like this)
 	/*
 
@@ -514,7 +519,7 @@ function sendBatchMessage (reqPack) {
 	
 	for (let i = 0; i < reqPack.length; i += batchLimit) {
 
-		// setTimeout( function () {
+		setTimeout( function () {
 
 			FB.batch(reqPack.slice(i, i + batchLimit), (error, res) => {
 				if (error) {
@@ -532,11 +537,12 @@ function sendBatchMessage (reqPack) {
 				}
 			})
 
-		// }, 200 )
-		
+		}, delay )
 
 	}
+
 }
+
 
 function sendQuickReplies (recipientId, quickReplies) {
 	let messageData = {
@@ -691,6 +697,54 @@ function receivedMessage (event) {
 	let adminAvaiability = false
 	let admins = null
 
+	db.ref(`/winners/${senderID}`).once('value')
+	.then(winnerSnap => {
+
+		let winnerInfo = winnerSnap.val()
+
+		if (winnerInfo == null || !winnerInfo.approved) sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการปรับปรุง ผู้เล่นยังคงสามารถตรวจสอบจำนวนคูปองได้เช่นเดิมผ่านเมนูของ Messenger') // sendTextMessage(senderID, 'คุณไม่ใช่ผู้ได้รับรางวัล')
+		else {
+			
+			if (winnerInfo.confirm) sendTextMessage(senderID, 'คุณได้ยืนยันสิทธิ์รับรางวัลแล้ว')
+			else {
+				
+				if (messageQRPayload == 'noValue') {
+					
+					let confirmAns = {
+						text: `ยินดีด้วย คุณ "${winnerInfo.firstName}" ?\r\nกรุณากดยืนยันสิทธิ์ในการรับรางวัล หาไม่ได้กดจะถือว่าคุณสละสิทธิ์`,
+						quick_replies: [
+							{
+								content_type: 'text',
+								title: 'ยืนยันสิทธิ์รับรางวัล',
+								payload: 'winnerConfirmed'
+							}
+						]
+					}
+
+					sendQuickReplies(senderID, confirmAns)
+
+				}
+				else if (messageQRPayload == 'winnerConfirmed') {
+
+					winnerInfo.confirm = true
+					db.ref(`/winners/${senderID}`).set(winnerInfo)
+					.then(() => {
+						console.log(`user ${senderID} confirmed the right to get prize`)
+						sendTextMessage(senderID, 'ทางทีมงานได้รับการยืนยันเรียบร้อย รอการติดต่อกลับไปนะ :D')
+					})
+
+				}
+
+			}
+
+		}
+		
+	})
+	.catch(error => {
+		console.error(`receive message error ${error}`)
+	})
+
+	/*
 	_getAdmin()
 		.then(snapshot => {
 			admins = snapshot.val()
@@ -714,21 +768,20 @@ function receivedMessage (event) {
 			playerInfo = playerSnapshot.val()
 			return db.ref('users').orderByChild('fbid').equalTo(senderID).once('value') // db.ref('users').once('value')
 		})
-		.then(fetchedUsers => {
-			let userObject = fetchedUsers.val()
+		.then(fetchedUser => {
+			let userObject = fetchedUser.val()
 			let user = null
 			if (userObject && Object.keys(userObject).length > 0) user = userObject[Object.keys(userObject)[0]]
 
-			/*
-			for (let key in users) {
-				allUsers[users[key].fbid] = {
-					fullName: users[key].firstName + ' ' + users[key].lastName,
-					firstName: users[key].firstName,
-					lastName: users[key].lastName,
-					profilePic: users[key].profilePic
-				}
-			}
-			*/
+			// for (let key in users) {
+			// 	allUsers[users[key].fbid] = {
+			// 		fullName: users[key].firstName + ' ' + users[key].lastName,
+			// 		firstName: users[key].firstName,
+			// 		lastName: users[key].lastName,
+			// 		profilePic: users[key].profilePic
+			// 	}
+			// }
+			
 			console.log('________________________________')
 			console.log(`_______ ${JSON.stringify(status)} ______`)
 			console.log('________________________________')
@@ -894,12 +947,12 @@ function receivedMessage (event) {
 
 					sendCascadeMessage(senderID, texts)
 				}
-				/*
-      }
-      else {
-        console.log(`Already has this user in participants`)
-      }
-*/
+				
+      // }
+      // else {
+      //   console.log(`Already has this user in participants`)
+			// }
+			
 			} else if (messageQRPayload == 'ไม่เข้าร่วม' && !playerInfo) {
 
 				sendTextMessage(senderID, 'ถ้าเปลี่ยนใจก็ทักมาได้นะ')
@@ -1081,6 +1134,8 @@ function receivedMessage (event) {
 		.catch(error => {
 			console.error(`there's an error in receiving message: ${error}`)
 		})
+
+	*/
 }
 
 // ------------------------ TIMER  -------------------------
