@@ -38,7 +38,7 @@ var completeData = [];
 
 }
 
-function axiousRequestFBUserFeedOnlyDS(startURL,targetPageID,targetPostID){
+function axiousRequestFBUserFeedOnlyDS (startURL,targetPageID,targetPostID){
   console.log(`param is ${startURL}`)
   console.log(`other param is ${targetPageID} ${targetPostID}`)
 var completeData = [];
@@ -49,17 +49,17 @@ var completeData = [];
     //  console.log(response.data)
     //  console.log(response.data)
        // add the contacts of this response to the array
-       if(response.data.data.length>0){
-         for(var i = 0; i <response.data.data.length;i++){
-           if(response.data.data[i].parent_id){
+       if (response.data.data.length > 0){
+         for (var i = 0; i < response.data.data.length;i++){
+           if (response.data.data[i].parent_id){
              let extractor = /(\d+)_(\d+)/;
              let extracted = extractor.exec(response.data.data[i].parent_id)
-             let pageID = extracted[1]; let postID= extracted[2];
+             let pageID = extracted[1]; let postID = extracted[2];
              console.log(`pageID and post ID is ${pageID} ${postID}`)
-             if(pageID==targetPageID){
-               if(postID==targetPostID){
+             if (pageID == targetPageID){
+               if (postID == targetPostID){
                  completeData.push(response.data.data[i]);
-                 console.log("found target Post on this user timeline")
+                 console.log('found target Post on this user timeline')
                  return completeData;
                }
              }
@@ -72,7 +72,7 @@ var completeData = [];
            // this was the last page, return the collected contacts
            return completeData;
        }
-   }).catch(error=>{
+   }).catch(error => {
      console.log(error)
      return [];
    });
@@ -81,7 +81,7 @@ var completeData = [];
 
 
 }
-function checkUserPostsForShare(userID,pageID,postID,accessToken){
+function checkUserPostsForShare (userID,pageID,postID,accessToken){
   // page scope ID of page "DS" is used as the main ID`
   //
   // We have to use access_token in query
@@ -90,10 +90,10 @@ function checkUserPostsForShare(userID,pageID,postID,accessToken){
 
     .then(res => {
       // an array with a single element or none.
-        if(res.length>0){
+        if (res.length > 0){
             return resolve(true)
         }
-        else{
+        else {
             return resolve(false)
         }
 
@@ -158,33 +158,33 @@ function getSharedPostsByApp (pageID,postID,accessToken){
 module.exports = function (util, messengerFunctions) {
 
   let module = {}
-  module.testCheckUserSharedPost = function(req,res){
+  module.testCheckUserSharedPost = function (req,res){
     checkUserPostsForShare(req.query.userID,req.pageID,req.postID,req.accessToken)
-    .then(found=>{
-      if(!found){
+    .then(found => {
+      if (!found){
 
-        return res.status(404).json({error:"ไม่พบการแชร์โพสต์ที่ทดสอบ"})
+        return res.status(404).json({ error:'ไม่พบการแชร์โพสต์ที่ทดสอบ' })
 
       }
       return db.ref('users').orderByChild('fb_loginid').equalTo(req.query.userID).once('value')
     })
-    .then(userNotFold=>{
-      if(!userNotFold){
-        return res.status(404).json({error:"ไม่พบเจอในระบบ"})
+    .then(userNotFold => {
+      if (!userNotFold){
+        return res.status(404).json({ error:'ไม่พบเจอในระบบ' })
       }
           let usersData = userNotFold.val()
-          let couponIsAdded=false;
+          let couponIsAdded = false;
       						let userKey;
                   var postID = req.postID;
-                  var date = "2017-08-28"
+                  var date = '2017-08-28'
                     Object.keys(usersData).map(key => {
-                      userKey=key;
+                      userKey = key;
                       if (usersData[key].couponHistory) {
 
                         if (!usersData[key].couponHistory[date]){
 
                           console.log('user has coupon history, but not with the date and postID')
-                          couponIsAdded=true
+                          couponIsAdded = true
                           usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
                           usersData[key].couponHistory[date] = {
                             [postID]:true
@@ -192,13 +192,13 @@ module.exports = function (util, messengerFunctions) {
 
                         }
                         else if (!usersData[key].couponHistory[date][postID]){
-                          couponIsAdded=true
+                          couponIsAdded = true
                           usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
                           usersData[key].couponHistory[date][postID] = true
                         }
                       }
                       else {
-                        couponIsAdded=true;
+                        couponIsAdded = true;
                           usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
                         usersData[key].couponHistory = {
                           [date]: {
@@ -219,8 +219,8 @@ module.exports = function (util, messengerFunctions) {
             					})
 
             				}
-                    else{
-                      return res.json({userKey:userKey,
+                    else {
+                      return res.json({ userKey:userKey,
                         userData:usersData
 
                       })
@@ -228,7 +228,7 @@ module.exports = function (util, messengerFunctions) {
                     }
 
     })
-    .catch(error=>{
+    .catch(error => {
       console.log(error)
       return res.status(500).json({})
     })
@@ -1110,6 +1110,50 @@ module.exports = function (util, messengerFunctions) {
 			})
 
 		}
+
+	}
+
+
+	module.sendCouponNumber = function (req, res) {
+
+		db.ref('couponPair').once('value')
+		.then(pairSnap => {
+
+			let pair = pairSnap.val()
+			let requestArray = []
+			let textArray = []
+
+			for (let i = 1; i < pair.length; i++) {
+
+				let bodyData = {
+					recipient: {
+						id: pair[i].fbid
+					},
+					message: {
+						text: `หมายเลข ${i}`
+					}
+				}
+
+				textArray.push(`ผู้ใช้งาน ${pair[i].fbid} ได้คูปองหมายเลข ${i}`)
+
+				requestArray.push({
+					method: 'POST',
+					relative_url: 'me/messages?include_headers=false',
+					body: param(bodyData)
+				})
+
+			}
+
+			res.json({
+				error: null,
+				result: textArray
+			})
+			
+
+		})
+		.catch(error => {
+			console.log(`send coupon number error : ${error}`)
+		})
 
 	}
 

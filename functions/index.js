@@ -343,6 +343,12 @@ exports.getCouponPair = functions.https.onRequest((req, res) => {
 	})
 })
 
+exports.sendCouponNumber = functions.https.onRequest((req, res) => {
+	cors(req, res, () => {
+		httpsFunctions.sendCouponNumber(req, res)
+	})
+})
+
 // exports.assignCounponNumber = functions.https.onRequest((req, res) => {
 // 	cors(req, res, () => {
 // 		httpsFunctions.assignCounponNumber(req, res)
