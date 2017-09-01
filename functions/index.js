@@ -28,7 +28,8 @@ let messengerFunctions = {
 	sendTextMessage: sendTextMessage,
 	sendCascadeMessage: sendCascadeMessage,
 	sendQuickReplies: sendQuickReplies,
-	sendBatchMessage: sendBatchMessage
+	sendBatchMessage: sendBatchMessage,
+	sendBatchMessageWithDelay: sendBatchMessageWithDelay
 }
 
 const httpsFunctions = require('./httpsTriggered.js')(util, messengerFunctions)
@@ -240,6 +241,35 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) =>
 							})
 
 						}
+						else if (event.postback && event.postback.payload == 'checkMyCouponNumber') {
+
+							let id = event.sender.id
+
+							db.ref('users').orderByChild('fbid').equalTo(id).once('value')
+							.then(userInfo => {
+
+								let userObject = userInfo.val()
+								let user = null
+								if (userObject && Object.keys(userObject).length > 0) {
+
+									user = userObject[Object.keys(userObject)[0]]
+									let couponNumbers = user.couponNumber
+
+									let couponText = 'คุณมีคูปองหมายเลข'
+									couponNumbers.map(number => {
+										couponText += ` ${number}`
+									})
+
+									sendTextMessage(id, couponText)
+
+								}
+
+							})
+							.catch(error => {
+								console.error(`error getting coupon info for user : ${error}`)
+							})
+
+						}
 						else console.log(`Webhook Unknown Event: ${JSON.stringify(event)}`)
 					}
 				})
@@ -346,6 +376,18 @@ exports.getCouponPair = functions.https.onRequest((req, res) => {
 exports.sendCouponNumber = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
 		httpsFunctions.sendCouponNumber(req, res)
+	})
+})
+
+exports.addWinner = functions.https.onRequest((req, res) => {
+	cors(req, res, () => {
+		httpsFunctions.addWinner(req, res)
+	})
+})
+
+exports.sendMessageToWhoGetSmallPrize = functions.https.onRequest((req, res) => {
+	cors(req, res, () => {
+		httpsFunctions.sendMessageToWhoGetSmallPrize(req, res)
 	})
 })
 
@@ -716,26 +758,28 @@ function receivedMessage (event) {
 	let quiz = null
 	let adminAvaiability = false
 	let admins = null
-
+/*
 	db.ref(`/winners/${senderID}`).once('value')
 	.then(winnerSnap => {
 
 		let winnerInfo = winnerSnap.val()
 
-		if (winnerInfo == null || !winnerInfo.approved) sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการปรับปรุง ผู้เล่นยังคงสามารถตรวจสอบจำนวนคูปองได้เช่นเดิมผ่านเมนูของ Messenger') // sendTextMessage(senderID, 'คุณไม่ใช่ผู้ได้รับรางวัล')
+		if (winnerInfo == null || !winnerInfo.approved) {} // sendTextMessage(senderID, 'แชทชิงโชคกำลังจะจับรางวัลหาผู้โชคดี Galaxy Note 8 คืนนี้เวลา 2 ทุ่ม ไว้เจอกันนะ') // sendTextMessage(senderID, 'คุณไม่ใช่ผู้ได้รับรางวัล')
 		else {
+
 			
+
 			if (winnerInfo.confirm) sendTextMessage(senderID, 'คุณได้ยืนยันสิทธิ์รับรางวัลแล้ว')
 			else {
 				
 				if (messageQRPayload == 'noValue') {
 					
 					let confirmAns = {
-						text: `ยินดีด้วย คุณ "${winnerInfo.firstName}" ?\r\nกรุณากดยืนยันสิทธิ์ในการรับรางวัล หาไม่ได้กดจะถือว่าคุณสละสิทธิ์`,
+						text: `ยินดีด้วยคุณ ${winnerInfo.firstName} \r\nกรุณากดยืนยันสิทธิ์ในการรับรางวัล หาไม่ได้กดจะถือว่าคุณสละสิทธิ์`,
 						quick_replies: [
 							{
 								content_type: 'text',
-								title: 'ยืนยันสิทธิ์รับรางวัล',
+								title: 'ยืนยันสิทธิ์',
 								payload: 'winnerConfirmed'
 							}
 						]
@@ -763,7 +807,7 @@ function receivedMessage (event) {
 	.catch(error => {
 		console.error(`receive message error ${error}`)
 	})
-
+*/
 	/*
 	_getAdmin()
 		.then(snapshot => {

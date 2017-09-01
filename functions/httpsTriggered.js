@@ -1121,32 +1121,89 @@ module.exports = function (util, messengerFunctions) {
 
 			let pair = pairSnap.val()
 			let requestArray = []
-			let textArray = []
+			let matchDuplciate = []
+			
+			let anotherReqArray = []
 
 			for (let i = 1; i < pair.length; i++) {
 
-				let bodyData = {
-					recipient: {
+				let imageMessage = {
+
+					recipient:{
 						id: pair[i].fbid
 					},
 					message: {
-						text: `หมายเลข ${i}`
+						attachment: {
+							type: 'image',
+							payload: {
+								url: 'https://firebasestorage.googleapis.com/v0/b/codelab-a8367.appspot.com/o/ccc-ticket.jpg?alt=media&token=6566450a-37bd-4327-9e1a-a3ffc8cfb718'
+							}
+						}
 					}
+
 				}
 
-				textArray.push(`ผู้ใช้งาน ${pair[i].fbid} ได้คูปองหมายเลข ${i}`)
+				// image message
+				if (matchDuplciate.indexOf(pair[i].fbid) == -1) {
 
-				requestArray.push({
-					method: 'POST',
-					relative_url: 'me/messages?include_headers=false',
-					body: param(bodyData)
-				})
+					requestArray.push({
+						method: 'POST',
+						relative_url: 'me/messages?include_headers=false',
+						body: param(imageMessage)
+					})
+
+				}
+
+				matchDuplciate.push(pair[i].fbid)
 
 			}
 
+			matchDuplciate = []
+			let keyMap = {}
+			let startIndex = requestArray.length
+
+			for (let i = 1; i < pair.length; i++) {
+
+				if (matchDuplciate.indexOf(pair[i].fbid) < 0 ) {
+
+					let bodyData = {
+						recipient: {
+							id: pair[i].fbid
+						},
+						message: {
+							text: `คูปองหมายเลข ${i}`
+						}
+					}
+
+					requestArray.push({
+						method: 'POST',
+						relative_url: 'me/messages?include_headers=false',
+						body: bodyData
+					})
+
+					matchDuplciate.push(pair[i].fbid)
+					keyMap[pair[i].fbid] = requestArray.length - 1
+
+				}
+				else {
+
+					let index = keyMap[pair[i].fbid]
+					requestArray[index].body.message.text += `\r\nคูปองหมายเลข ${i}`
+
+				}
+
+			}
+
+			for (let i = startIndex; i < requestArray.length; i++) {
+				console.log(requestArray[i].body.message.text)
+				requestArray[i].body = param(requestArray[i].body)
+			}
+
+			messengerFunctions.sendBatchMessageWithDelay(requestArray, 500)
+
 			res.json({
 				error: null,
-				result: textArray
+				message: 'works fine... ?'
 			})
 			
 
@@ -1154,6 +1211,78 @@ module.exports = function (util, messengerFunctions) {
 		.catch(error => {
 			console.log(`send coupon number error : ${error}`)
 		})
+
+	}
+
+	module.addWinner = function (req, res) {
+
+		let couponNumber = req.query['couponNumber']
+		if (!couponNumber) res.json({ message: 'invalid param' })
+		else {
+	
+			db.ref(`couponPair/${couponNumber}`).once('value')
+			.then(userInfo => {
+	
+				let user = userInfo.val()
+			
+				return db.ref(`winners/${user.fbid}`).set({ 
+					approved: true,
+					confirm: false,
+					firstName: user.firstName,
+					lastName: user.lastName
+				})
+	
+			})
+			.then(() => {
+	
+				res.send('success!')
+	
+			})
+			.catch(error => {
+				
+				res.send(error)
+	
+			})
+			
+		}
+
+	}
+
+	module.sendMessageToWhoGetSmallPrize = function (req, res) {
+
+		let couponNumber = req.query['couponNumber']
+		if (!couponNumber) res.json({ message: 'invalid param' })
+		else {
+
+			let uid = null
+	
+			db.ref(`couponPair/${couponNumber}`).once('value')
+			.then(userInfo => {
+	
+				let user = userInfo.val()
+				uid = user.fbid
+			
+				return db.ref(`smallPrizeWinners/${user.fbid}`).set({ 
+					approved: true,
+					confirm: false,
+					firstName: user.firstName,
+					lastName: user.lastName
+				})
+	
+			})
+			.then(() => {
+				
+				messengerFunctions.sendTextMessage(uid, 'ยินดีด้วย คุณได้รับรางวัลปลอบใจจาก แชทชิงโชค กรุณาติดต่อกลับหลังรายการจับรางวัลจบ')
+				res.send('success!')
+
+			})
+			.catch(error => {
+				
+				res.send(error)
+	
+			})
+			
+		}
 
 	}
 
