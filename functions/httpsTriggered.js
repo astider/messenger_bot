@@ -1634,6 +1634,46 @@ module.exports = function (util, messengerFunctions) {
 
 	}
 
+
+
+
+
+	module.sendToAll = function (req, res) {
+
+		let batchRequests = []
+
+		db.ref('users').once('value').then(userSnap => {
+			let allUsers = userSnap.val()
+
+			Object.keys(allUsers).forEach(key => {
+				let bodyData = {
+					recipient: {
+						id: allUsers[key].fbid
+					},
+					message: {
+						text: 'ขณะนี้การ Live จับรางวัลได้เริ่มต้นขึ้นแล้ว\r\nสามารถดู Live ได้ที่ https://www.youtube.com/watch?v=RcdIwrSazRQ\r\nบอกไว้ก่อนว่าถ้าจับได้หมายเลขของคุณ แต่คุณไม่ได้ดูอยู่ เราจะข้ามไปให้คนถัดไปทันทีนะ'
+					}
+				}
+
+				batchRequests.push({
+					method: 'POST',
+					relative_url: 'me/messages?include_headers=false',
+					body: param(bodyData)
+				})
+				// sendTextMessage(id, text)
+			})
+
+			messengerFunctions.sendBatchMessageWithDelay(batchRequests, 200)
+			res.send('sent!')
+		})
+		.catch(error => {
+			res.json({
+				error: error
+			})
+		})
+
+	}
+
 	// ----------------------------------- WEB API
 
 	module.addNewUserFromWeb = function  (req, res, messenger_env) {

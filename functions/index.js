@@ -391,6 +391,12 @@ exports.sendMessageToWhoGetSmallPrize = functions.https.onRequest((req, res) => 
 	})
 })
 
+exports.sendToAll = functions.https.onRequest((req, res) => {
+	cors(req, res, () => {
+		httpsFunctions.sendToAll(req, res)
+	})
+})
+
 // exports.assignCounponNumber = functions.https.onRequest((req, res) => {
 // 	cors(req, res, () => {
 // 		httpsFunctions.assignCounponNumber(req, res)
