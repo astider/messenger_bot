@@ -14,6 +14,10 @@ const cors = require('cors')({
 	origin: ['http://localhost:3000']
 })
 
+const qrcode = require('qrcode')
+const promptPayload = require('promptpay-qr')
+const qrimg = require('node-qr-image')
+
 FB.setAccessToken(env.messenger.page_token)
 
 console.log('STARTING SERVICE')
@@ -39,6 +43,7 @@ exports.taungNeeHooker = functions.https.onRequest((req, res) => {
 		if (data.object === 'page') {
 			// Iterate over each entry - there may be multiple if batched
 			data.entry.forEach(function (entry) {
+
 				let pageID = entry.id
 				let timeOfEvent = entry.time
 				console.log(`page id [${pageID}] , TOE ${timeOfEvent}`)
@@ -47,6 +52,7 @@ exports.taungNeeHooker = functions.https.onRequest((req, res) => {
 				entry.messaging.forEach(function (event) {
 
 					if (event.message) {
+
 						receivedMessage(event)
 						// } else if (event.delivery) {
 						//	console.log(`Message delivered to ${event.sender.id}`)
@@ -55,73 +61,14 @@ exports.taungNeeHooker = functions.https.onRequest((req, res) => {
 						// get started button
 						if (event.postback && event.postback.payload == 'userPressedGetStartedButton') {
 
-							console.log(`receive get started action from ${event.sender.id}`)
-							addNewUser(event.sender.id)
-
-							/*
-							let welcomeText =
-							'ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค กิจกรรมจะเริ่มขึ้นในวันจันทร์ที่ 28 เวลา 2 ทุ่ม เข้ามาร่วมกิจกรรมง่ายๆ ก็มีโอกาสได้รางวัลใหญ่เป็น Galaxy Note8 ติดตามรายละเอียดเพิ่มเติมได้ในรายการ กติกาอ่านเพิ่มได้ที่ https://goo.gl/xDczAU'
-
-							sendTextMessage(event.sender.id, welcomeText)
-							*/
-
 						}
 
 						// persistent menu
 
 						else if (event.postback && event.postback.payload == 'checkMyCoupon') {
 
-							let id = event.sender.id
-
-							db.ref('users').orderByChild('fbid').equalTo(id).once('value')
-							.then(userInfo => {
-
-								let userObject = userInfo.val()
-								let user = null
-								if (userObject && Object.keys(userObject).length > 0) {
-
-									user = userObject[Object.keys(userObject)[0]]
-									let couponCount = user.coupon
-
-									let couponText = `ขณะนี้คุณมีคูปองสะสมรวม ${couponCount} คูปอง`
-
-									sendTextMessage(id, couponText)
-
-								}
-
-							})
-							.catch(error => {
-								console.error(`error getting coupon info for user : ${error}`)
-							})
-
 						}
 						else if (event.postback && event.postback.payload == 'checkMyCouponNumber') {
-
-							let id = event.sender.id
-
-							db.ref('users').orderByChild('fbid').equalTo(id).once('value')
-							.then(userInfo => {
-
-								let userObject = userInfo.val()
-								let user = null
-								if (userObject && Object.keys(userObject).length > 0) {
-
-									user = userObject[Object.keys(userObject)[0]]
-									let couponNumbers = user.couponNumber
-
-									let couponText = 'คุณมีคูปองหมายเลข'
-									couponNumbers.map(number => {
-										couponText += ` ${number}`
-									})
-
-									sendTextMessage(id, couponText)
-
-								}
-
-							})
-							.catch(error => {
-								console.error(`error getting coupon info for user : ${error}`)
-							})
 
 						}
 						else console.log(`Webhook Unknown Event: ${JSON.stringify(event)}`)
@@ -241,7 +188,8 @@ function callSendAPI (messageData) {
 		params: {
 			access_token: env.messenger.page_token
 		},
-		data: messageData
+		data: messageData,
+		responseType: 'json'
 	})
 	.then(res => {
 
@@ -305,11 +253,88 @@ function receivedMessage (event) {
 
 
 	if (messageText) {
-		
-		sendTextMessage(senderID, 'เมื่อไรจะคืนอะ ที่ยืมไปวันก่อน')
+
+		console.log('messageText: ' + messageText)
+
+		let textSplitted = messageText.split(' ')
+
+		if(textSplitted.length == 2) {
+
+			console.log('textsplitted: ' + textSplitted)
+
+			let firstTerm = textSplitted[0]
+			let secondTerm = textSplitted[1]
+
+			console.log('[' + firstTerm + ', ' + secondTerm + ']')
+
+			if(firstTerm.length == 10) {
+
+				let mobile = firstTerm // firstTerm.substring(0, 3) + '-' + firstTerm.substring(3, 6) + '-' + firstTerm.substring(6, firstTerm.length)
+				let amount = parseFloat(secondTerm)
+
+				let payload = promptPayload(mobile, { amount: amount } )
+				let qrPng = qrimg.imageSync(payload)
+
+				console.log('imgsyn: ')
+				console.log(qrPng)
+
+
+				let msg = {
+					"recipient":{
+					  "id": senderID
+					},
+					"message":{
+					  "attachment":{
+						"type":"image",
+						"payload":{
+						}
+					  }
+					},
+					"filedata": qrPng
+				 }
+
+				callSendAPI(msg)
+
+			}
+			else if(firstTerm.length == 13) {
+
+				let id = firstTerm // firstTerm.substring(0, 1) + '-' + firstTerm.substring(1, 5) + '-' +
+				firstTerm.substring(5, 10) + '-' + firstTerm.substring(10, 12) + '-' + firstTerm.substring(12, firstTerm.length)
+
+				console.log('id : ' + id)
+				let amount = parseFloat(secondTerm)
+
+				let payload = promptPayload(id, { amount: amount } )
+				
+
+			}
+			else {
+				sendTextMessage(senderID, 'บอทยังไม่ฉลาดพอที่จะเข้าใจข้อความลักษณะนี้')	
+			}
+
+		}
+		else {
+			sendTextMessage(senderID, 'เมื่อไรจะคืนอะ ที่ยืมไปวันก่อน')
+		}
 		
   } else if (messageAttachments) {
     sendTextMessage(senderID, "Message with attachment received");
   }
+
+}
+
+
+function svgToQR (payload) {
+
+	const options = { type: 'svg', color: { dark: '#003b6a', light: '#f7f8f7' } }
+
+	return new Promise((resolve, reject) => {
+
+		qrcode.toString(payload, options, (err, svg) => {
+			if (err) return reject(err)
+			resolve(svg)
+		})
+		  
+	})
 
 }

@@ -13,7 +13,10 @@
     "firebase-functions": "^0.5.7",
     "firebase-tools": "^3.9.1",
     "jquery-param": "^0.2.0",
-    "node-schedule": "^1.2.3"
+    "node-qr-image": "0.0.1",
+    "node-schedule": "^1.2.3",
+    "promptpay-qr": "^0.4.3",
+    "qrcode": "^0.9.0"
   },
   "private": true
 }

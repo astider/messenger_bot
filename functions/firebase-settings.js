@@ -8,7 +8,8 @@ const firebaseConfig = {
 	credential: admin.credential.cert(serviceAccount),
 	apiKey: env.firebase.api_key,
 	authDomain: 'tuangnee.firebaseapp.com',
-	databaseURL: 'https://tuangnee.firebaseio.com/'
+	databaseURL: 'https://tuangnee.firebaseio.com/',
+	storageBucket: 'gs://tuangnee.appspot.com'
 }
 
 admin.initializeApp(firebaseConfig)
