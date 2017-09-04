@@ -3,3 +3,5 @@ npm-debug.log
 .env
 functions/credential/*
 lab/
+functions/test.js
+functions/qr.png

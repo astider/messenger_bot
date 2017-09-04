@@ -12,6 +12,7 @@
     "firebase-admin": "^4.2.1",
     "firebase-functions": "^0.5.7",
     "firebase-tools": "^3.9.1",
+    "fs-extra": "^4.0.1",
     "jquery-param": "^0.2.0",
     "node-qr-image": "0.0.1",
     "node-schedule": "^1.2.3",

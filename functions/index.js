@@ -273,25 +273,25 @@ function receivedMessage (event) {
 				let amount = parseFloat(secondTerm)
 
 				let payload = promptPayload(mobile, { amount: amount } )
-				let qrPng = qrimg.imageSync(payload)
+				let qrPng = qrimg.image(payload)
 
-				console.log('imgsyn: ')
-				console.log(qrPng)
+				// console.log('imgsyn: ')
+				// console.log(qrPng)
 
 
 				let msg = {
-					"recipient":{
-					  "id": senderID
+					recipient:{
+						id: senderID
 					},
-					"message":{
-					  "attachment":{
-						"type":"image",
-						"payload":{
+					message:{
+						attachment:{
+							type: 'image',
+							payload:{
+							}
 						}
-					  }
 					},
-					"filedata": qrPng
-				 }
+					filedata: qrPng
+				}
 
 				callSendAPI(msg)
 
