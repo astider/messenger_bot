@@ -1,16 +1,14 @@
 const admin = require('firebase-admin')
 const functions = require('firebase-functions')
-const env = functions.config().quizshow
+const env = functions.config().tuangnee
 
-let serviceAccount = require('./credential/serviceAccountKey.json')
+let serviceAccount = require('./credential/tuangnee-credential.json')
 
 const firebaseConfig = {
 	credential: admin.credential.cert(serviceAccount),
 	apiKey: env.firebase.api_key,
-	authDomain: 'codelab-a8367.firebaseapp.com',
-	databaseURL: 'https://codelab-a8367.firebaseio.com/',
-	storageBucket: 'gs://codelab-a8367.appspot.com',
-	messagingSenderId: 565799047733
+	authDomain: 'tuangnee.firebaseapp.com',
+	databaseURL: 'https://tuangnee.firebaseio.com/'
 }
 
 admin.initializeApp(firebaseConfig)

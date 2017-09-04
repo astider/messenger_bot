@@ -1,5 +1,5 @@
 const functions = require('firebase-functions')
-const messengerENV = functions.config().quizshow.messenger
+const messengerENV = functions.config().tuangnee.messenger
 const axios = require('axios')
 
 const callProfileAPI = function (userId) {
