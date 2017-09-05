@@ -8,6 +8,18 @@ const admin = firebaseInit.admin
 const env = firebaseInit.env
 const db = admin.database()
 
+const storage = require('@google-cloud/storage')
+const serviceAccount = require('./credential/tuangnee-credential.json')
+
+const gcs = storage({
+    projectId: 'tuangnee',
+    keyFilename: './credential/tuangnee-credential.json'
+  });
+
+// Reference an existing bucket.
+const bucket = gcs.bucket('tuangnee' + '.appspot.com')
+
+
 const messengerAPI = require('./API/messengerProfile.js')
 const userManagementAPI = require('./API/userManagement.js')
 const cors = require('cors')({
@@ -258,7 +270,7 @@ function receivedMessage (event) {
 
 		let textSplitted = messageText.split(' ')
 
-		if(textSplitted.length == 2) {
+		if (textSplitted.length == 2) {
 
 			console.log('textsplitted: ' + textSplitted)
 
@@ -267,36 +279,65 @@ function receivedMessage (event) {
 
 			console.log('[' + firstTerm + ', ' + secondTerm + ']')
 
-			if(firstTerm.length == 10) {
+			if (firstTerm.length == 10) { 
 
 				let mobile = firstTerm // firstTerm.substring(0, 3) + '-' + firstTerm.substring(3, 6) + '-' + firstTerm.substring(6, firstTerm.length)
 				let amount = parseFloat(secondTerm)
 
 				let payload = promptPayload(mobile, { amount: amount } )
-				let qrPng = qrimg.image(payload)
+				let qrPng = qrimg.imageSync(payload)
 
-				// console.log('imgsyn: ')
-				// console.log(qrPng)
-
-
-				let msg = {
-					recipient:{
-						id: senderID
-					},
-					message:{
-						attachment:{
-							type: 'image',
-							payload:{
-							}
-						}
-					},
-					filedata: qrPng
+				let filename = ((new Date()).getTime()).toString() + '.png'
+				let file = bucket.file(filename)
+				
+				let meta = {
+					contentType: 'image/png'
 				}
 
-				callSendAPI(msg)
+				file.save(qrPng)
+				.then(() => {
+					return file.setMetadata(meta)
+				})
+				.then(data => {
+					return file.makePublic()
+				})
+				.then(data => {
+					let encodedURL = `https://firebasestorage.googleapis.com/v0/b/tuangnee.appspot.com/o/${encodeURIComponent(filename)}`
+					return axios.get(encodedURL)
+
+				})
+				.then(response => {
+
+					let token = response.data.downloadTokens
+					let imgURL = `https://firebasestorage.googleapis.com/v0/b/tuangnee.appspot.com/o/${encodeURIComponent(filename)}?alt=media&token=${token}`
+					
+					console.log(`${filename} was uploaded!`)
+					console.log(`using URL: ${imgURL}`)
+
+					let msg = {
+						recipient:{
+							id: senderID
+						},
+						message:{
+							attachment:{
+								type: 'image',
+								payload:{
+									url: imgURL
+								}
+							}
+						}
+					}
+	
+					callSendAPI(msg)
+
+				})
+				.catch(err => {
+					console.log(`error uploading file: ${err}`)
+				})
+				
 
 			}
-			else if(firstTerm.length == 13) {
+			else if (firstTerm.length == 13) {
 
 				let id = firstTerm // firstTerm.substring(0, 1) + '-' + firstTerm.substring(1, 5) + '-' +
 				firstTerm.substring(5, 10) + '-' + firstTerm.substring(10, 12) + '-' + firstTerm.substring(12, firstTerm.length)
@@ -318,7 +359,7 @@ function receivedMessage (event) {
 		}
 		
   } else if (messageAttachments) {
-    sendTextMessage(senderID, "Message with attachment received");
+    sendTextMessage(senderID, 'Message with attachment received');
   }
 
 }
