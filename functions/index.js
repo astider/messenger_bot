@@ -346,7 +346,54 @@ function receivedMessage (event) {
 				let amount = parseFloat(secondTerm)
 
 				let payload = promptPayload(id, { amount: amount } )
+				let qrPng = qrimg.imageSync(payload)
+
+				let filename = ((new Date()).getTime()).toString() + '.png'
+				let file = bucket.file(filename)
 				
+				let meta = {
+					contentType: 'image/png'
+				}
+
+				file.save(qrPng)
+				.then(() => {
+					return file.setMetadata(meta)
+				})
+				.then(data => {
+					return file.makePublic()
+				})
+				.then(data => {
+					let encodedURL = `https://firebasestorage.googleapis.com/v0/b/tuangnee.appspot.com/o/${encodeURIComponent(filename)}`
+					return axios.get(encodedURL)
+
+				})
+				.then(response => {
+
+					let token = response.data.downloadTokens
+					let imgURL = `https://firebasestorage.googleapis.com/v0/b/tuangnee.appspot.com/o/${encodeURIComponent(filename)}?alt=media&token=${token}`
+					
+					console.log(`${filename} was uploaded!`)
+					console.log(`using URL: ${imgURL}`)
+
+					let msg = {
+						recipient:{
+							id: senderID
+						},
+						message:{
+							attachment:{
+								type: 'image',
+								payload:{
+									url: imgURL
+								}
+							}
+						}
+					}
+	
+					callSendAPI(msg)
+				})
+				.catch(err => {
+					console.log(`error uploading file: ${err}`)
+				})
 
 			}
 			else {
