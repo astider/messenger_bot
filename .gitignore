@@ -4,3 +4,4 @@ npm-debug.log
 functions/credential/facebookKey.json
 functions/credential/serviceAccountKey.json
 lab/
+functions/credential.zip

@@ -764,6 +764,8 @@ function receivedMessage (event) {
 	let quiz = null
 	let adminAvaiability = false
 	let admins = null
+
+	sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans ;)')
 /*
 	db.ref(`/winners/${senderID}`).once('value')
 	.then(winnerSnap => {
@@ -865,7 +867,9 @@ function receivedMessage (event) {
 				// idea is : if stringAnswer is true => use messageText else check payload
 				// current quiz need to be answered with text
 
-				if (quiz[status.currentQuiz].stringAnswer) {
+				let quizType = quiz[status.currentQuiz].type
+
+				if (quizType == "STRING") {
 
 					console.log('hello from inside string answer')
 
@@ -901,7 +905,18 @@ function receivedMessage (event) {
 						db.ref(`participants/${senderID}`).set(playerInfo)
 					}
 
-				} else if (quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
+				}
+				else if (quizType == "VOTE") {
+					
+					sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
+
+					playerInfo.answerPack[status.currentQuiz].ans = messageQRPayload
+					playerInfo.answerPack[status.currentQuiz].at = 10000
+
+					db.ref(`participants/${senderID}`).set(playerInfo)
+
+				}
+				else if (quizType == "CHOICES" && quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
 					// current quiz use choices
 					console.log('hello from inside CHOICE answer')
 
@@ -999,14 +1014,6 @@ function receivedMessage (event) {
 
 					sendQuickReplies(senderID, quizMessage)
 				} else {
-					// sendTextMessage(senderID, 'โอเค~ รออีกแป๊บนะ กิจกรรมใกล้จะเริ่มแล้ว')
-					// 			let texts = [
-					// 				'ยินดีต้อนรับเข้าสู่เกม "แชทชิงโชค" โปรดรอคำถามจาก facebook Live',
-					// 				`กติกาการแข่งขัน ผู้ที่สะสมคะแนนได้สูงสุดใน 3 อันดับแรกของแต่ละวัน จะได้รับของรางวัลจากทางรายการ
-					// แต้มจะไม่สามารถสะสมข้ามสัปดาห์ได้ และการตัดสินของกรรมการจะถือเป็นที่สิ้นสุด
-
-					// ทีมงานและครอบครัวไม่สามารถร่วมเล่นเกมและรับของรางวัลได้`
-					// 			]
 
 					let texts = [
 						'แชทชิงโชค วันนี้ใครจะได้รางวัลประจำสัปดาห์ 3 รางวัลไป และเดือนนี้ลุ้นรางวัลใหญ่ Galaxy Note 8\r\n',
@@ -1213,25 +1220,32 @@ function receivedMessage (event) {
 // this approach has problem with rapidly fire quiz
 // so, don't do it
 exports.answerGap = functions.database.ref('canAnswer').onWrite(event => {
+
 	let canAnswer = event.data.val()
 	console.log(`canAnswer was changed to : ${canAnswer} `)
 
 	if (canAnswer) {
-		db
-			.ref('answerWindow')
-			.once('value')
-			.then(awSnap => {
-				let gap = awSnap.val()
-				console.log(`cuz canAnswer is [${canAnswer}] -> set [${gap}] seconds timer `)
+		db.ref('answerWindow').once('value')
+		.then(awSnap => {
+			let gap = awSnap.val()
+			console.log(`cuz canAnswer is [${canAnswer}] -> set [${gap}] seconds timer `)
 
-				setTimeout(() => {
-					db.ref('canAnswer').set(false)
-					console.log('_______________________')
-					console.log("NOW YOU CAN'T ANSWER ME")
-				}, gap * 1000)
-			})
-			.catch(error => {
-				console.log(`get answer gap error in answerGap trigerr: ${error} `)
-			})
+			setTimeout(() => {
+				return db.ref('canAnswer').set(false)
+			}, gap * 1000)
+
+		})
+		.then(() => {
+			
+			console.log('_______________________')
+			console.log("NOW YOU CAN'T ANSWER ME")
+
+		})
+		.catch(error => {
+			console.log(`get answer gap error in answerGap trigerr: ${error} `)
+		})
+	
 	}
+
+
 })
