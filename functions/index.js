@@ -53,6 +53,9 @@ function _getFireQuizAt () {
 function _getAdmin () {
 	return db.ref('admin').once('value')
 }
+function _getAllUsers(){
+	return db.ref('users').once('value')
+}
 
 function _getStatus () {
 
@@ -555,6 +558,66 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 	})
 })
 
+
+
+
+
+
+
+exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
+	cors(req, res, () => {
+		if(!req.body){
+
+			return res.status(400).json({error:"no data"})
+		}
+		if(!req.body.message){
+			return res.status(400).json({error:"no data"})
+		}
+		let users = null;
+		let message = req.body.message
+		let status = null
+		let participants = null
+		let quiz = null
+		let fireQuizAt = null
+		// yup, query ALL users.
+		_getAllUsers()
+			.then(usersSnapshot => {
+				users = usersSnapshot.val()
+				// users are array of user object in firebase
+
+				
+				
+						// we send only basic message.
+
+						let sendMessageBatch = []
+
+						Object.keys(users).forEach(firebaseKey => {
+							let messageBodyData = {
+								recipient: {
+									id: firebaseKey.fbid
+								},
+								message: {
+									text: message
+								}
+							}
+					
+
+							sendMessageBatch.push({
+								method: 'POST',
+								relative_url: 'me/messages?include_headers=false',
+								body: param(messageBodyData)
+							})
+						})
+					sendBatchMessageWithDelay2(sendMessageBatch,100)
+
+				
+			})
+			.catch(error => {
+				console.log(`there's an error in broadcastMessageTest: ${error}`)
+				res.end()
+			})
+	})
+})
 // ------------------- Messenger Function
 
 function sendBatchMessage (reqPack) {
@@ -586,30 +649,89 @@ function sendBatchMessageWithDelay (reqPack, delay) {
 	let batchLimit = 50
 
 	for (let i = 0; i < reqPack.length; i += batchLimit) {
-
-		setTimeout( function () {
-
-			FB.batch(reqPack.slice(i, i + batchLimit), (error, res) => {
-				if (error) {
-					console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
-				} else {
-					console.log(`batch [${i}] / no error : `)
-					let time = new Date()
-					let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
-					let epochTime = time.getTime()
-
-					res.forEach(response => {
-						db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
-						console.log(response['body'])
-					})
-				}
-			})
-
-		}, delay )
+			
+				setTimeout( function () {
+					
+								FB.batch(reqPack.slice(i, i + batchLimit), (error, res) => {
+									if (error) {
+										console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
+									} else {
+										console.log(`batch [${i}] / no error : `)
+										let time = new Date()
+										let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
+										let epochTime = time.getTime()
+					
+										res.forEach(response => {
+											db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
+											console.log(response['body'])
+										})
+									}
+								})
+					
+				}, delay )
+	
+	
 
 	}
 
 }
+
+function sendBatchMessageWithDelay2 (reqPack, delay) {
+		//
+		// FB API call by page is tied to page rating...
+		// 
+		// REQUEST FORMAT (reqPack must be array of data like this)
+		/*
+	
+			let bodyData = {
+				recipient: {
+					id: user.fbid
+				},
+				message: {
+					text: `สวัสดี ${user.firstName} ทดสอบอีกที`
+				}
+			}
+	
+			requests.push({
+				method: 'POST',
+				relative_url: 'me/messages?include_headers=false',
+				body: param(bodyData)
+			})
+		*/
+	
+		// batch allow 50 commands per request, read this : https://developers.facebook.com/docs/graph-api/making-multiple-requests/
+		let batchLimit = 50
+		let maxIncre = Math.ceil(reqPack.length/batchLimit)
+	
+		for (let i = 0; i < maxIncre; i ++) {
+				(function (i){
+					setTimeout( function () {
+						
+									FB.batch(reqPack.slice(i, i + batchLimit), (error, res) => {
+										if (error) {
+											console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
+										} else {
+											console.log(`batch [${i}] / no error : `)
+											let time = new Date()
+											let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
+											let epochTime = time.getTime()
+						
+											res.forEach(response => {
+												db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
+												console.log(response['body'])
+											})
+										}
+									})
+						
+					}, delay * (i+1) )
+				})(i);
+		
+	
+		}
+	
+	}
+
+
 
 
 function sendQuickReplies (recipientId, quickReplies) {

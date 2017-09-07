@@ -172,6 +172,7 @@ module.exports = function (util, messengerFunctions) {
       if (!userNotFold){
         return res.status(404).json({ error:'ไม่พบเจอในระบบ' })
       }
+          let coupon=0;
           let usersData = userNotFold.val()
           let couponIsAdded = false;
       						let userKey;
@@ -179,6 +180,7 @@ module.exports = function (util, messengerFunctions) {
                   var date = '2017-08-28'
                     Object.keys(usersData).map(key => {
                       userKey = key;
+                      coupon=usersData[key].coupon;
                       if (usersData[key].couponHistory) {
 
                         if (!usersData[key].couponHistory[date]){
@@ -186,6 +188,7 @@ module.exports = function (util, messengerFunctions) {
                           console.log('user has coupon history, but not with the date and postID')
                           couponIsAdded = true
                           usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
+                          coupon=usersData[key].coupon;
                           usersData[key].couponHistory[date] = {
                             [postID]:true
                           }
@@ -193,13 +196,16 @@ module.exports = function (util, messengerFunctions) {
                         }
                         else if (!usersData[key].couponHistory[date][postID]){
                           couponIsAdded = true
+
                           usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
+                          coupon=usersData[key].coupon;
                           usersData[key].couponHistory[date][postID] = true
                         }
                       }
                       else {
                         couponIsAdded = true;
                           usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
+                          coupon=usersData[key].coupon;
                         usersData[key].couponHistory = {
                           [date]: {
                             [postID]:true
@@ -214,7 +220,8 @@ module.exports = function (util, messengerFunctions) {
             					return db.ref(`users/${userKey}`).set(toBeSet).then(() => {
             						res.json({
             							error: null,
-                          couponIsAdded:couponIsAdded
+                          couponIsAdded:couponIsAdded,
+                          couponNum:coupon
             						})
             					})
 
@@ -1122,7 +1129,7 @@ module.exports = function (util, messengerFunctions) {
 			let pair = pairSnap.val()
 			let requestArray = []
 			let matchDuplciate = []
-			
+
 			let anotherReqArray = []
 
 			for (let i = 1; i < pair.length; i++) {
@@ -1205,7 +1212,7 @@ module.exports = function (util, messengerFunctions) {
 				error: null,
 				message: 'works fine... ?'
 			})
-			
+
 
 		})
 		.catch(error => {
@@ -1219,31 +1226,31 @@ module.exports = function (util, messengerFunctions) {
 		let couponNumber = req.query['couponNumber']
 		if (!couponNumber) res.json({ message: 'invalid param' })
 		else {
-	
+
 			db.ref(`couponPair/${couponNumber}`).once('value')
 			.then(userInfo => {
-	
+
 				let user = userInfo.val()
-			
-				return db.ref(`winners/${user.fbid}`).set({ 
+
+				return db.ref(`winners/${user.fbid}`).set({
 					approved: true,
 					confirm: false,
 					firstName: user.firstName,
 					lastName: user.lastName
 				})
-	
+
 			})
 			.then(() => {
-	
+
 				res.send('success!')
-	
+
 			})
 			.catch(error => {
-				
+
 				res.send(error)
-	
+
 			})
-			
+
 		}
 
 	}
@@ -1255,33 +1262,33 @@ module.exports = function (util, messengerFunctions) {
 		else {
 
 			let uid = null
-	
+
 			db.ref(`couponPair/${couponNumber}`).once('value')
 			.then(userInfo => {
-	
+
 				let user = userInfo.val()
 				uid = user.fbid
-			
-				return db.ref(`smallPrizeWinners/${user.fbid}`).set({ 
+
+				return db.ref(`smallPrizeWinners/${user.fbid}`).set({
 					approved: true,
 					confirm: false,
 					firstName: user.firstName,
 					lastName: user.lastName
 				})
-	
+
 			})
 			.then(() => {
-				
+
 				messengerFunctions.sendTextMessage(uid, 'ยินดีด้วย คุณได้รับรางวัลปลอบใจจาก แชทชิงโชค กรุณาติดต่อกลับหลังรายการจับรางวัลจบ')
 				res.send('success!')
 
 			})
 			.catch(error => {
-				
+
 				res.send(error)
-	
+
 			})
-			
+
 		}
 
 	}
