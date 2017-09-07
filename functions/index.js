@@ -53,7 +53,7 @@ function _getFireQuizAt () {
 function _getAdmin () {
 	return db.ref('admin').once('value')
 }
-function _getAllUsers(){
+function _getAllUsers (){
 	return db.ref('users').once('value')
 }
 
@@ -566,12 +566,12 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 
 exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		if(!req.body){
+		if (!req.body){
 
-			return res.status(400).json({error:"no data"})
+			return res.status(400).json({ error:'no data' })
 		}
-		if(!req.body.message){
-			return res.status(400).json({error:"no data"})
+		if (!req.body.message){
+			return res.status(400).json({ error:'no data' })
 		}
 		let users = null;
 		let message = req.body.message
@@ -701,7 +701,7 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 	
 		// batch allow 50 commands per request, read this : https://developers.facebook.com/docs/graph-api/making-multiple-requests/
 		let batchLimit = 50
-		let maxIncre = Math.ceil(reqPack.length/batchLimit)
+		let maxIncre = Math.ceil(reqPack.length / batchLimit)
 	
 		for (let i = 0; i < maxIncre; i ++) {
 				(function (i){
@@ -723,7 +723,7 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 										}
 									})
 						
-					}, delay * (i+1) )
+					}, delay * (i + 1) )
 				})(i);
 		
 	
@@ -1028,7 +1028,7 @@ function receivedMessage (event) {
 					}
 
 				}
-				else if (quizType == "VOTE") {
+				else if (quizType == "VOTE" && quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
 					
 					sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
 
