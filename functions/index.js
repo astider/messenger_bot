@@ -609,6 +609,7 @@ exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 							})
 						})
 					sendBatchMessageWithDelay2(sendMessageBatch,100)
+					return res.json({error:null})
 
 				
 			})
@@ -707,7 +708,7 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 				(function (i){
 					setTimeout( function () {
 						
-									FB.batch(reqPack.slice(i, i + batchLimit), (error, res) => {
+									FB.batch(reqPack.slice((i*50), (i*50) + batchLimit), (error, res) => {
 										if (error) {
 											console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
 										} else {
