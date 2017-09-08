@@ -59,10 +59,10 @@ function _getAllUsers() {
 function _getTesters() {
 	return db.ref('tester').once('value')
 }
-function _getBatchMessageHistory(){
+function _getBatchMessageHistory() {
 	return db.ref('batchMessageArray/messages').once('value')
 }
-function _setBatchMessageHistory(messageArray,firebaseKey){
+function _setBatchMessageHistory(messageArray, firebaseKey) {
 	db.ref(`batchMessageArray/${firebaseKey}`).set(messageArray)
 }
 
@@ -567,7 +567,7 @@ exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 		}
 		let users = null
 		let message = req.body.message
-		let messageHistory=[];
+		let messageHistory = []
 		let status = null
 		let participants = null
 		let quiz = null
@@ -577,64 +577,37 @@ exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 			.then(usersSnapshot => {
 				users = usersSnapshot.val()
 				return _getBatchMessageHistory()
-			}).then(broadcastMessageHistory=>{
-								// users are array of user object in firebase
-				if(broadcastMessageHistory){
-			
+			})
+			.then(broadcastMessageHistory => {
+				// users are array of user object in firebase
+				if (broadcastMessageHistory) {
 					messageHistory = broadcastMessageHistory.val()
 				}
 				// we send only basic message.
-				if(messageHistory.indexOf(req.body.message)){
-					messageHistory.push(req.body.message);
+				if (messageHistory.indexOf(req.body.message)) {
+					messageHistory.push(req.body.message)
 				}
-				_setBatchMessageHistory(messageHistory,"messages")
+				_setBatchMessageHistory(messageHistory, 'messages')
 				let sendMessageBatch = []
-				
-<<<<<<< HEAD
-								Object.keys(users).forEach(firebaseKey => {
-									let messageBodyData = {
-										recipient: {
-											id: firebaseKey.fbid
-										},
-										message: {
-											text: message
-										}
-									}
-=======
-						// we send only basic message.
 
-						let sendMessageBatch = []
+				Object.keys(users).forEach(firebaseKey => {
+					let messageBodyData = {
+						recipient: {
+							id: firebaseKey.fbid
+						},
+						message: {
+							text: message
+						}
+					}
 
-						Object.keys(users).forEach(firebaseKey => {
-							let messageBodyData = {
-								recipient: {
-									id: firebaseKey
-								},
-								message: {
-									text: message
-								}
-							}
-					
-
-							sendMessageBatch.push({
-								method: 'POST',
-								relative_url: 'me/messages?include_headers=false',
-								body: param(messageBodyData)
-							})
-						})
-					sendBatchMessageWithDelay2(sendMessageBatch,100)
-					return res.json({ error:null })
-
->>>>>>> 8ce92f1f3d9e4c6a15bfc24cb7f96bdc0fbe08b4
-				
-									sendMessageBatch.push({
-										method: 'POST',
-										relative_url: 'me/messages?include_headers=false',
-										body: param(messageBodyData)
-									})
-								})
-								sendBatchMessageWithDelay2(sendMessageBatch, 100)
-								return res.json({ error: null })
+					sendMessageBatch.push({
+						method: 'POST',
+						relative_url: 'me/messages?include_headers=false',
+						body: param(messageBodyData)
+					})
+				})
+				sendBatchMessageWithDelay2(sendMessageBatch, 100)
+				return res.json({ error: null })
 			})
 			.catch(error => {
 				console.log(`there's an error in broadcastMessageTest: ${error}`)
@@ -652,7 +625,7 @@ exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
 		}
 		let users = null
 		let message = req.body.message
-		let messageHistory=[];
+		let messageHistory = []
 		let status = null
 		let participants = null
 		let quiz = null
@@ -662,64 +635,37 @@ exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
 			.then(usersSnapshot => {
 				users = usersSnapshot.val()
 				return _getBatchMessageHistory()
-			}).then(broadcastMessageHistory=>{
-								// users are array of user object in firebase
-				if(broadcastMessageHistory){
-			
+			})
+			.then(broadcastMessageHistory => {
+				// users are array of user object in firebase
+				if (broadcastMessageHistory) {
 					messageHistory = broadcastMessageHistory.val()
 				}
 				// we send only basic message.
-				if(messageHistory.indexOf(req.body.message)){
-					messageHistory.push(req.body.message);
+				if (messageHistory.indexOf(req.body.message)) {
+					messageHistory.push(req.body.message)
 				}
-				_setBatchMessageHistory(messageHistory,"messages")
+				_setBatchMessageHistory(messageHistory, 'messages')
 				let sendMessageBatch = []
-				
-<<<<<<< HEAD
-								Object.keys(users).forEach(firebaseKey => {
-									let messageBodyData = {
-										recipient: {
-											id: firebaseKey
-										},
-										message: {
-											text: message
-										}
-									}
-=======
-						// we send only basic message.
 
-						let sendMessageBatch = []
+				Object.keys(users).forEach(firebaseKey => {
+					let messageBodyData = {
+						recipient: {
+							id: firebaseKey
+						},
+						message: {
+							text: message
+						}
+					}
 
-						Object.keys(users).forEach(firebaseKey => {
-							let messageBodyData = {
-								recipient: {
-									id: firebaseKey.fbid
-								},
-								message: {
-									text: message
-								}
-							}
-					
-
-							sendMessageBatch.push({
-								method: 'POST',
-								relative_url: 'me/messages?include_headers=false',
-								body: param(messageBodyData)
-							})
-						})
-					sendBatchMessageWithDelay2(sendMessageBatch,100)
-					return res.json({ error:null })
-
->>>>>>> 8ce92f1f3d9e4c6a15bfc24cb7f96bdc0fbe08b4
-				
-									sendMessageBatch.push({
-										method: 'POST',
-										relative_url: 'me/messages?include_headers=false',
-										body: param(messageBodyData)
-									})
-								})
-								sendBatchMessageWithDelay2(sendMessageBatch, 100)
-								return res.json({ error: null })
+					sendMessageBatch.push({
+						method: 'POST',
+						relative_url: 'me/messages?include_headers=false',
+						body: param(messageBodyData)
+					})
+				})
+				sendBatchMessageWithDelay2(sendMessageBatch, 100)
+				return res.json({ error: null })
 			})
 			.catch(error => {
 				console.log(`there's an error in broadcastMessageTest: ${error}`)
@@ -803,45 +749,6 @@ function sendBatchMessageWithDelay2(reqPack, delay) {
 				body: param(bodyData)
 			})
 		*/
-<<<<<<< HEAD
-=======
-	
-		// batch allow 50 commands per request, read this : https://developers.facebook.com/docs/graph-api/making-multiple-requests/
-		let batchLimit = 50
-		let maxIncre = Math.ceil(reqPack.length / batchLimit)
-	
-		for (let i = 0; i < maxIncre; i ++) {
-				(function (i){
-					
-					setTimeout( function () {
-						console.log(`sending batch ${i + 1}/${maxIncre}`)
-						console.log(`slicing is ${i * 50}/${(i * 50) + batchLimit} from all of ${reqPack.length}`)
-									FB.batch(reqPack.slice((i * 50), (i * 50) + batchLimit), (error, res) => {
-										if (error) {
-											// console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
-											console.log(`\n batch [${i}] error`)
-										} else {
-											console.log(`batch [${i}] / no error : `)
-											let time = new Date()
-											let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
-											let epochTime = time.getTime()
-						
-											res.forEach(response => {
-												db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
-												console.log(response['body'])
-											})
-										}
-									})
-						
-					}, delay * (i + 1) )
-				})(i);
-		
-	
-		}
-	
-	}
-
->>>>>>> 8ce92f1f3d9e4c6a15bfc24cb7f96bdc0fbe08b4
 
 	// batch allow 50 commands per request, read this : https://developers.facebook.com/docs/graph-api/making-multiple-requests/
 	let batchLimit = 50
@@ -1503,38 +1410,4 @@ exports.answerGap = functions.database.ref('canAnswer').onWrite(event => {
 				console.log(`get answer gap error in answerGap trigerr: ${error} `)
 			})
 	}
-})
-
-
-
-exports.voting = functions.database.ref('currentQuiz').onWrite(event => {
-
-		let currentQuiz = event.data.val()
-
-		db.ref(`quiz/${currentQuiz}`).once('value')
-		.then(qSnap => {
-
-			let quizInfo = qSnap.val()
-			if (quizInfo.type == 'VOTE') {
-
-				db.ref('voting').set(true)
-				.then(() => {
-					console.log(`running ${quizInfo.type} question, set 'voting' to TRUE`)
-				})
-
-			}
-			else {
-
-				db.ref('voting').set(false)
-				.then(() => {
-					console.log(`running ${quizInfo.type} question, set 'voting' to FALSE`)
-				})
-
-			}
-
-		})
-		.catch(error => {
-			console.error(`found error is voting onWrite: ${error}`)
-		})
-
 })
