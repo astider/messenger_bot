@@ -706,13 +706,14 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 	
 		for (let i = 0; i < maxIncre; i ++) {
 				(function (i){
-					console.log(`sending batch ${i+1}/${maxIncre}`)
-					console.log(`slicing is ${i*50}/${(i*50)+batchLimit}`)
+					
 					setTimeout( function () {
-						
+						console.log(`sending batch ${i+1}/${maxIncre}`)
+						console.log(`slicing is ${i*50}/${(i*50)+batchLimit} from all of ${reqPack.length}`)
 									FB.batch(reqPack.slice((i*50), (i*50) + batchLimit), (error, res) => {
 										if (error) {
-											console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
+											// console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
+											console.log(`\n batch [${i}] error`)
 										} else {
 											console.log(`batch [${i}] / no error : `)
 											let time = new Date()
