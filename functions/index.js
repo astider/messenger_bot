@@ -56,6 +56,9 @@ function _getAdmin () {
 function _getAllUsers (){
 	return db.ref('users').once('value')
 }
+function _getTesters (){
+	return db.ref('testers').once('value')
+}
 
 function _getStatus () {
 
@@ -561,7 +564,61 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 
 
 
+exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
+	cors(req, res, () => {
+		if (!req.body){
 
+			return res.status(400).json({ error:'no data' })
+		}
+		if (!req.body.message){
+			return res.status(400).json({ error:'no data' })
+		}
+		let users = null;
+		let message = req.body.message
+		let status = null
+		let participants = null
+		let quiz = null
+		let fireQuizAt = null
+		// yup, query ALL users.
+		_getTesters()
+			.then(usersSnapshot => {
+				users = usersSnapshot.val()
+				// users are array of user object in firebase
+
+				
+				
+						// we send only basic message.
+
+						let sendMessageBatch = []
+
+						Object.keys(users).forEach(firebaseKey => {
+							let messageBodyData = {
+								recipient: {
+									id: firebaseKey
+								},
+								message: {
+									text: message
+								}
+							}
+					
+
+							sendMessageBatch.push({
+								method: 'POST',
+								relative_url: 'me/messages?include_headers=false',
+								body: param(messageBodyData)
+							})
+						})
+					sendBatchMessageWithDelay2(sendMessageBatch,100)
+					return res.json({ error:null })
+
+				
+			})
+			.catch(error => {
+				console.log(`there's an error in broadcastMessageTest: ${error}`)
+				res.end()
+			})
+	})
+})
 
 
 exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
@@ -706,13 +763,14 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 	
 		for (let i = 0; i < maxIncre; i ++) {
 				(function (i){
-					console.log(`sending batch ${i + 1}/${maxIncre}`)
-					console.log(`slicing is ${i * 50}/${(i * 50) + batchLimit}`)
+					
 					setTimeout( function () {
-						
+						console.log(`sending batch ${i + 1}/${maxIncre}`)
+						console.log(`slicing is ${i * 50}/${(i * 50) + batchLimit} from all of ${reqPack.length}`)
 									FB.batch(reqPack.slice((i * 50), (i * 50) + batchLimit), (error, res) => {
 										if (error) {
-											console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
+											// console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
+											console.log(`\n batch [${i}] error`)
 										} else {
 											console.log(`batch [${i}] / no error : `)
 											let time = new Date()
