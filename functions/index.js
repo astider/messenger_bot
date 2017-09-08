@@ -609,7 +609,7 @@ exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 							})
 						})
 					sendBatchMessageWithDelay2(sendMessageBatch,100)
-					return res.json({error:null})
+					return res.json({ error:null })
 
 				
 			})
@@ -706,11 +706,11 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 	
 		for (let i = 0; i < maxIncre; i ++) {
 				(function (i){
-					console.log(`sending batch ${i+1}/${maxIncre}`)
-					console.log(`slicing is ${i*50}/${(i*50)+batchLimit}`)
+					console.log(`sending batch ${i + 1}/${maxIncre}`)
+					console.log(`slicing is ${i * 50}/${(i * 50) + batchLimit}`)
 					setTimeout( function () {
 						
-									FB.batch(reqPack.slice((i*50), (i*50) + batchLimit), (error, res) => {
+									FB.batch(reqPack.slice((i * 50), (i * 50) + batchLimit), (error, res) => {
 										if (error) {
 											console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
 										} else {
@@ -1372,5 +1372,39 @@ exports.answerGap = functions.database.ref('canAnswer').onWrite(event => {
 	
 	}
 
+
+})
+
+
+
+exports.voting = functions.database.ref('currentQuiz').onWrite(event => {
+
+		let currentQuiz = event.data.val()
+
+		db.ref(`quiz/${currentQuiz}`).once('value')
+		.then(qSnap => {
+
+			let quizInfo = qSnap.val()
+			if (quizInfo.type == 'VOTE') {
+
+				db.ref('voting').set(true)
+				.then(() => {
+					console.log(`running ${quizInfo.type} question, set 'voting' to TRUE`)
+				})
+
+			}
+			else {
+
+				db.ref('voting').set(false)
+				.then(() => {
+					console.log(`running ${quizInfo.type} question, set 'voting' to FALSE`)
+				})
+
+			}
+
+		})
+		.catch(error => {
+			console.error(`found error is voting onWrite: ${error}`)
+		})
 
 })
