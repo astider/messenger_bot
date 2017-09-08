@@ -706,6 +706,8 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 	
 		for (let i = 0; i < maxIncre; i ++) {
 				(function (i){
+					console.log(`sending batch ${i+1}/${maxIncre}`)
+					console.log(`slicing is ${i*50}/${(i*50)+batchLimit}`)
 					setTimeout( function () {
 						
 									FB.batch(reqPack.slice((i*50), (i*50) + batchLimit), (error, res) => {
