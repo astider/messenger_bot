@@ -57,7 +57,7 @@ function _getAllUsers (){
 	return db.ref('users').once('value')
 }
 function _getTesters (){
-	return db.ref('testers').once('value')
+	return db.ref('tester').once('value')
 }
 
 function _getStatus () {
