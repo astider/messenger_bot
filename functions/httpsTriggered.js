@@ -172,7 +172,7 @@ module.exports = function (util, messengerFunctions) {
       if (!userNotFold){
         return res.status(404).json({ error:'ไม่พบเจอในระบบ' })
       }
-          let coupon=0;
+          let coupon = 0;
           let usersData = userNotFold.val()
           let couponIsAdded = false;
       						let userKey;
@@ -180,7 +180,7 @@ module.exports = function (util, messengerFunctions) {
                   var date = '2017-08-28'
                     Object.keys(usersData).map(key => {
                       userKey = key;
-                      coupon=usersData[key].coupon;
+                      coupon = usersData[key].coupon;
                       if (usersData[key].couponHistory) {
 
                         if (!usersData[key].couponHistory[date]){
@@ -188,7 +188,7 @@ module.exports = function (util, messengerFunctions) {
                           console.log('user has coupon history, but not with the date and postID')
                           couponIsAdded = true
                           usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-                          coupon=usersData[key].coupon;
+                          coupon = usersData[key].coupon;
                           usersData[key].couponHistory[date] = {
                             [postID]:true
                           }
@@ -198,14 +198,14 @@ module.exports = function (util, messengerFunctions) {
                           couponIsAdded = true
 
                           usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-                          coupon=usersData[key].coupon;
+                          coupon = usersData[key].coupon;
                           usersData[key].couponHistory[date][postID] = true
                         }
                       }
                       else {
                         couponIsAdded = true;
                           usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-                          coupon=usersData[key].coupon;
+                          coupon = usersData[key].coupon;
                         usersData[key].couponHistory = {
                           [date]: {
                             [postID]:true
@@ -553,6 +553,77 @@ module.exports = function (util, messengerFunctions) {
 		res.json({
 			error: null
 		})
+
+	}
+
+	module.selectVoteAnswer = function (req, res) {
+
+		let selectedChoice = req.body.choice
+		let selectedAnswer = null
+		let currentQuiz = -1
+
+		if (req.method == 'GET') res.status(403).json({ error: 'Forbidden Request' })
+		else if (!selectedChoice) res.json({ error: 'no choice was selected' })
+		else if (isNaN(selectedChoice)) res.json({ error: 'selected choice data type is not a number' })
+		else {
+			
+			util.getStatus()
+			.then(status => {
+
+				currentQuiz = status.currentQuiz
+				
+				if (status.canAnswer) res.json({ error: 'cannot perform this function', message: 'time is not up yet, please wait' })
+				else if (!status.voting) res.json({ error: 'cannot perform this function', message: 'voting value is FALSE' })
+				else return db.ref(`quiz/${currentQuiz}`)
+
+			})
+			.then(qSnap => {
+
+				let quizInfo = qSnap.val()
+
+				if (quizInfo.type != 'VOTE') res.json({ error: 'cannot perform this function', message: 'This function is available only for VOTE type' })
+				else if (selectedChoice < 0 || selectedChoice > quizInfo.choices.length) res.json({ error: 'cannot perform this function', message: 'choice out of bound' })
+				else {
+
+					selectedAnswer = quizInfo.choices[selectedChoice]
+					quizInfo.a = selectedAnswer
+					return db.ref(`quiz/${qSnap.key}`).set(quizInfo)
+
+				}
+
+			})
+			.then(() => {
+
+				console.log('selected choice saved!')
+				return db.ref('participants').once('value')
+
+			})
+			.then(partSnap => {
+				
+				let participants = partSnap.val()
+				let updates = []
+
+				Object.keys(participants).map(key => {
+
+					let playerAnswerInfo = participants[key].answerPack[currentQuiz]
+					
+					if (playerAnswerInfo.ans == selectedAnswer){
+
+						playerAnswerInfo.correct = true
+						updates[`participants/${key}/answerPack/${currentQuiz}`] = playerAnswerInfo
+
+					}
+
+				})
+
+				db.ref().update(updates)
+
+			})
+			.catch(error => {
+				console.error(`selectVoteAnswer error: ${error}`)
+			})
+
+		}
 
 	}
 

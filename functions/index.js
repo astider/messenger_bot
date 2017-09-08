@@ -67,6 +67,7 @@ function _getStatus () {
 		let playing = false
 		let canAnswer = false
 		let currentQuiz = -1
+		let voting = false
 
 		db.ref('canEnter').once('value').then(ce => {
 			canEnter = ce.val()
@@ -78,6 +79,10 @@ function _getStatus () {
 		})
 		.then(pl => {
 			playing = pl.val()
+			return db.ref('voting').once('value')
+		})
+		.then(vt => {
+			voting = vt.val()
 			return db.ref('currentQuiz').once('value')
 		})
 		.then(cq => {
@@ -86,7 +91,8 @@ function _getStatus () {
 				canEnter: canEnter,
 				canAnswer: canAnswer,
 				playing: playing,
-				currentQuiz: currentQuiz
+				currentQuiz: currentQuiz,
+				voting: voting
 			}
 
 			return resolve(status)
@@ -338,6 +344,12 @@ exports.sendRequest = functions.https.onRequest((req, res) => {
 })
 
 exports.addQuiz = functions.https.onRequest((req, res) => {
+	cors(req, res, () => {
+		httpsFunctions.addQuiz(req, res)
+	})
+})
+
+exports.selectVoteAnswer = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
 		httpsFunctions.addQuiz(req, res)
 	})
