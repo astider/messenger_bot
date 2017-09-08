@@ -38,30 +38,35 @@ console.log('STARTING SERVICE')
 
 // ----------------------- Cloud Functions ------------------------
 
-function _getParticipants () {
+function _getParticipants() {
 	return db.ref('participants').once('value')
 }
 
-function _getQuiz () {
+function _getQuiz() {
 	return db.ref('quiz').once('value')
 }
 
-function _getFireQuizAt () {
+function _getFireQuizAt() {
 	return db.ref('fireQuizAt').once('value')
 }
 
-function _getAdmin () {
+function _getAdmin() {
 	return db.ref('admin').once('value')
 }
-function _getAllUsers (){
+function _getAllUsers() {
 	return db.ref('users').once('value')
 }
-function _getTesters (){
-	return db.ref('testers').once('value')
+function _getTesters() {
+	return db.ref('tester').once('value')
+}
+function _getBatchMessageHistory() {
+	return db.ref('batchMessageArray/messages').once('value')
+}
+function _setBatchMessageHistory(messageArray, firebaseKey) {
+	db.ref(`batchMessageArray/${firebaseKey}`).set(messageArray)
 }
 
-function _getStatus () {
-
+function _getStatus() {
 	return new Promise((resolve, reject) => {
 		let canEnter = false
 		let playing = false
@@ -69,6 +74,7 @@ function _getStatus () {
 		let currentQuiz = -1
 		let voting = false
 
+<<<<<<< HEAD
 		db.ref('canEnter').once('value').then(ce => {
 			canEnter = ce.val()
 			return db.ref('canAnswer').once('value')
@@ -94,14 +100,38 @@ function _getStatus () {
 				currentQuiz: currentQuiz,
 				voting: voting
 			}
+=======
+		db
+			.ref('canEnter')
+			.once('value')
+			.then(ce => {
+				canEnter = ce.val()
+				return db.ref('canAnswer').once('value')
+			})
+			.then(ca => {
+				canAnswer = ca.val()
+				return db.ref('playing').once('value')
+			})
+			.then(pl => {
+				playing = pl.val()
+				return db.ref('currentQuiz').once('value')
+			})
+			.then(cq => {
+				currentQuiz = cq.val()
+				let status = {
+					canEnter: canEnter,
+					canAnswer: canAnswer,
+					playing: playing,
+					currentQuiz: currentQuiz
+				}
+>>>>>>> 3d576e5bc0c143f3a4b3f8829f1285902fb77855
 
-			return resolve(status)
-		})
-		.catch(error => {
-			return reject(error)
-		})
+				return resolve(status)
+			})
+			.catch(error => {
+				return reject(error)
+			})
 	})
-
 }
 
 /*
@@ -131,8 +161,7 @@ exports.addCoupon = functions.https.onRequest((req, res) => {
 
 // ------------------------------
 
-exports.testFrontFunctionFacebook = functions.https.onRequest(function (req, res) {
-
+exports.testFrontFunctionFacebook = functions.https.onRequest(function(req, res) {
 	cors(req, res, () => {
 		if (req.method != 'POST') {
 			return res.status(403).json({})
@@ -152,10 +181,8 @@ exports.testFrontFunctionFacebook = functions.https.onRequest(function (req, res
 		// 		httpsFunctions.sendCouponOfSharedPost(req,res);
 		// })
 	})
-
-
 })
-exports.viewIfUserSharePost = functions.https.onRequest(function (req, res) {
+exports.viewIfUserSharePost = functions.https.onRequest(function(req, res) {
 	if (req.method != 'GET') {
 		return res.status(403).json({})
 	}
@@ -166,11 +193,10 @@ exports.viewIfUserSharePost = functions.https.onRequest(function (req, res) {
 	req.postID = functions.config().chatchingchokeapp.target_post
 	req.accessToken = `${functions.config().chatchingchokeapp.app_id}|${functions.config().chatchingchokeapp.app_secret}`
 	cors(req, res, () => {
-			httpsFunctions.testCheckUserSharedPost(req,res);
+		httpsFunctions.testCheckUserSharedPost(req, res)
 	})
-
 })
-exports.testViewSharedPosts = functions.https.onRequest(function (req, res) {
+exports.testViewSharedPosts = functions.https.onRequest(function(req, res) {
 	if (req.method != 'GET') {
 		return res.status(403).json({})
 	}
@@ -180,11 +206,9 @@ exports.testViewSharedPosts = functions.https.onRequest(function (req, res) {
 	req.query.pageID = functions.config().chatchingchokeapp.page_id
 	req.accessToken = `${functions.config().chatchingchokeapp.app_id}|${functions.config().chatchingchokeapp.app_secret}`
 	cors(req, res, () => {
-			httpsFunctions.sendCouponOfSharedPost(req,res);
+		httpsFunctions.sendCouponOfSharedPost(req, res)
 	})
-
 })
-
 
 exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) => {
 	if (req.method == 'GET') {
@@ -202,20 +226,19 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) =>
 		// Make sure this is a page subscription
 		if (data.object === 'page') {
 			// Iterate over each entry - there may be multiple if batched
-			data.entry.forEach(function (entry) {
+			data.entry.forEach(function(entry) {
 				let pageID = entry.id
 				let timeOfEvent = entry.time
 				console.log(`page id [${pageID}] , TOE ${timeOfEvent}`)
 
 				// Iterate over each messaging event
-				entry.messaging.forEach(function (event) {
+				entry.messaging.forEach(function(event) {
 					if (event.message) {
 						receivedMessage(event)
 						// } else if (event.delivery) {
 						//	console.log(`Message delivered to ${event.sender.id}`)
 					} else {
 						if (event.postback && event.postback.payload == 'userPressedGetStartedButton') {
-
 							console.log(`receive get started action from ${event.sender.id}`)
 							addNewUser(event.sender.id)
 
@@ -225,64 +248,56 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) =>
 
 							sendTextMessage(event.sender.id, welcomeText)
 							*/
-
-						}
-						else if (event.postback && event.postback.payload == 'checkMyCoupon') {
-
+						} else if (event.postback && event.postback.payload == 'checkMyCoupon') {
 							let id = event.sender.id
 
-							db.ref('users').orderByChild('fbid').equalTo(id).once('value')
-							.then(userInfo => {
+							db
+								.ref('users')
+								.orderByChild('fbid')
+								.equalTo(id)
+								.once('value')
+								.then(userInfo => {
+									let userObject = userInfo.val()
+									let user = null
+									if (userObject && Object.keys(userObject).length > 0) {
+										user = userObject[Object.keys(userObject)[0]]
+										let couponCount = user.coupon
 
-								let userObject = userInfo.val()
-								let user = null
-								if (userObject && Object.keys(userObject).length > 0) {
+										let couponText = `ขณะนี้คุณมีคูปองสะสมรวม ${couponCount} คูปอง`
 
-									user = userObject[Object.keys(userObject)[0]]
-									let couponCount = user.coupon
-
-									let couponText = `ขณะนี้คุณมีคูปองสะสมรวม ${couponCount} คูปอง`
-
-									sendTextMessage(id, couponText)
-
-								}
-
-							})
-							.catch(error => {
-								console.error(`error getting coupon info for user : ${error}`)
-							})
-
-						}
-						else if (event.postback && event.postback.payload == 'checkMyCouponNumber') {
-
+										sendTextMessage(id, couponText)
+									}
+								})
+								.catch(error => {
+									console.error(`error getting coupon info for user : ${error}`)
+								})
+						} else if (event.postback && event.postback.payload == 'checkMyCouponNumber') {
 							let id = event.sender.id
 
-							db.ref('users').orderByChild('fbid').equalTo(id).once('value')
-							.then(userInfo => {
+							db
+								.ref('users')
+								.orderByChild('fbid')
+								.equalTo(id)
+								.once('value')
+								.then(userInfo => {
+									let userObject = userInfo.val()
+									let user = null
+									if (userObject && Object.keys(userObject).length > 0) {
+										user = userObject[Object.keys(userObject)[0]]
+										let couponNumbers = user.couponNumber
 
-								let userObject = userInfo.val()
-								let user = null
-								if (userObject && Object.keys(userObject).length > 0) {
+										let couponText = 'คุณมีคูปองหมายเลข'
+										couponNumbers.map(number => {
+											couponText += ` ${number}`
+										})
 
-									user = userObject[Object.keys(userObject)[0]]
-									let couponNumbers = user.couponNumber
-
-									let couponText = 'คุณมีคูปองหมายเลข'
-									couponNumbers.map(number => {
-										couponText += ` ${number}`
-									})
-
-									sendTextMessage(id, couponText)
-
-								}
-
-							})
-							.catch(error => {
-								console.error(`error getting coupon info for user : ${error}`)
-							})
-
-						}
-						else console.log(`Webhook Unknown Event: ${JSON.stringify(event)}`)
+										sendTextMessage(id, couponText)
+									}
+								})
+								.catch(error => {
+									console.error(`error getting coupon info for user : ${error}`)
+								})
+						} else console.log(`Webhook Unknown Event: ${JSON.stringify(event)}`)
 					}
 				})
 			})
@@ -425,20 +440,22 @@ exports.findMe = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
 		// 1432315113461939 nontapat
 		// 1124390080993810 robert
-		db.ref('users').orderByChild('fbid').equalTo('1124390080993810').once('value')
-		.then(obj => {
-			res.json(obj.val())
-		})
-		.catch(error => {
-			console.log(`error: ${error}`)
-			res.json({
-				error: error
+		db
+			.ref('users')
+			.orderByChild('fbid')
+			.equalTo('1124390080993810')
+			.once('value')
+			.then(obj => {
+				res.json(obj.val())
 			})
-		})
-
+			.catch(error => {
+				console.log(`error: ${error}`)
+				res.json({
+					error: error
+				})
+			})
 	})
 })
-
 
 exports.sendQuiz = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
@@ -551,17 +568,20 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 									})
 								})
 						} else {
-							db.ref('canAnswer').set(true).then(() => {
-								console.log('sync SENDING / not set new FQA')
-								sendBatchMessage(sendQuizBatch)
+							db
+								.ref('canAnswer')
+								.set(true)
+								.then(() => {
+									console.log('sync SENDING / not set new FQA')
+									sendBatchMessage(sendQuizBatch)
 
-								res.json({
-									error: null,
-									qno: status.currentQuiz,
-									q: quiz[status.currentQuiz].q,
-									choices: quiz[status.currentQuiz].choices
+									res.json({
+										error: null,
+										qno: status.currentQuiz,
+										q: quiz[status.currentQuiz].q,
+										choices: quiz[status.currentQuiz].choices
+									})
 								})
-							})
 						}
 					}
 				}
@@ -572,78 +592,17 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 			})
 	})
 })
-
-
-
-
-exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
-	cors(req, res, () => {
-		if (!req.body){
-
-			return res.status(400).json({ error:'no data' })
-		}
-		if (!req.body.message){
-			return res.status(400).json({ error:'no data' })
-		}
-		let users = null;
-		let message = req.body.message
-		let status = null
-		let participants = null
-		let quiz = null
-		let fireQuizAt = null
-		// yup, query ALL users.
-		_getTesters()
-			.then(usersSnapshot => {
-				users = usersSnapshot.val()
-				// users are array of user object in firebase
-
-				
-				
-						// we send only basic message.
-
-						let sendMessageBatch = []
-
-						Object.keys(users).forEach(firebaseKey => {
-							let messageBodyData = {
-								recipient: {
-									id: firebaseKey
-								},
-								message: {
-									text: message
-								}
-							}
-					
-
-							sendMessageBatch.push({
-								method: 'POST',
-								relative_url: 'me/messages?include_headers=false',
-								body: param(messageBodyData)
-							})
-						})
-					sendBatchMessageWithDelay2(sendMessageBatch,100)
-					return res.json({ error:null })
-
-				
-			})
-			.catch(error => {
-				console.log(`there's an error in broadcastMessageTest: ${error}`)
-				res.end()
-			})
-	})
-})
-
-
 exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		if (!req.body){
-
-			return res.status(400).json({ error:'no data' })
+		if (!req.body) {
+			return res.status(400).json({ error: 'no data' })
 		}
-		if (!req.body.message){
-			return res.status(400).json({ error:'no data' })
+		if (!req.body.message) {
+			return res.status(400).json({ error: 'no data' })
 		}
-		let users = null;
+		let users = null
 		let message = req.body.message
+		let messageHistory = []
 		let status = null
 		let participants = null
 		let quiz = null
@@ -652,35 +611,38 @@ exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 		_getAllUsers()
 			.then(usersSnapshot => {
 				users = usersSnapshot.val()
+				return _getBatchMessageHistory()
+			})
+			.then(broadcastMessageHistory => {
 				// users are array of user object in firebase
+				if (broadcastMessageHistory) {
+					messageHistory = broadcastMessageHistory.val()
+				}
+				// we send only basic message.
+				if (messageHistory.indexOf(req.body.message)) {
+					messageHistory.push(req.body.message)
+				}
+				_setBatchMessageHistory(messageHistory, 'messages')
+				let sendMessageBatch = []
 
-				
-				
-						// we send only basic message.
+				Object.keys(users).forEach(firebaseKey => {
+					let messageBodyData = {
+						recipient: {
+							id: firebaseKey.fbid
+						},
+						message: {
+							text: message
+						}
+					}
 
-						let sendMessageBatch = []
-
-						Object.keys(users).forEach(firebaseKey => {
-							let messageBodyData = {
-								recipient: {
-									id: firebaseKey.fbid
-								},
-								message: {
-									text: message
-								}
-							}
-					
-
-							sendMessageBatch.push({
-								method: 'POST',
-								relative_url: 'me/messages?include_headers=false',
-								body: param(messageBodyData)
-							})
-						})
-					sendBatchMessageWithDelay2(sendMessageBatch,100)
-					return res.json({ error:null })
-
-				
+					sendMessageBatch.push({
+						method: 'POST',
+						relative_url: 'me/messages?include_headers=false',
+						body: param(messageBodyData)
+					})
+				})
+				sendBatchMessageWithDelay2(sendMessageBatch, 100)
+				return res.json({ error: null })
 			})
 			.catch(error => {
 				console.log(`there's an error in broadcastMessageTest: ${error}`)
@@ -688,14 +650,72 @@ exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 			})
 	})
 })
+exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
+	cors(req, res, () => {
+		if (!req.body) {
+			return res.status(400).json({ error: 'no data' })
+		}
+		if (!req.body.message) {
+			return res.status(400).json({ error: 'no data' })
+		}
+		let users = null
+		let message = req.body.message
+		let messageHistory = []
+		let status = null
+		let participants = null
+		let quiz = null
+		let fireQuizAt = null
+		// yup, query ALL users.
+		_getTesters()
+			.then(usersSnapshot => {
+				users = usersSnapshot.val()
+				return _getBatchMessageHistory()
+			})
+			.then(broadcastMessageHistory => {
+				// users are array of user object in firebase
+				if (broadcastMessageHistory) {
+					messageHistory = broadcastMessageHistory.val()
+				}
+				// we send only basic message.
+				if (messageHistory.indexOf(req.body.message)) {
+					messageHistory.push(req.body.message)
+				}
+				_setBatchMessageHistory(messageHistory, 'messages')
+				let sendMessageBatch = []
+
+				Object.keys(users).forEach(firebaseKey => {
+					let messageBodyData = {
+						recipient: {
+							id: firebaseKey
+						},
+						message: {
+							text: message
+						}
+					}
+
+					sendMessageBatch.push({
+						method: 'POST',
+						relative_url: 'me/messages?include_headers=false',
+						body: param(messageBodyData)
+					})
+				})
+				sendBatchMessageWithDelay2(sendMessageBatch, 100)
+				return res.json({ error: null })
+			})
+			.catch(error => {
+				console.log(`there's an error in broadcastMessageTest: ${error}`)
+				res.end()
+			})
+	})
+})
+
 // ------------------- Messenger Function
 
-function sendBatchMessage (reqPack) {
+function sendBatchMessage(reqPack) {
 	sendBatchMessageWithDelay(reqPack, 0)
 }
 
-function sendBatchMessageWithDelay (reqPack, delay) {
-
+function sendBatchMessageWithDelay(reqPack, delay) {
 	// REQUEST FORMAT (reqPack must be array of data like this)
 	/*
 
@@ -719,39 +739,35 @@ function sendBatchMessageWithDelay (reqPack, delay) {
 	let batchLimit = 50
 
 	for (let i = 0; i < reqPack.length; i += batchLimit) {
-			
-				setTimeout( function () {
-					
-								FB.batch(reqPack.slice(i, i + batchLimit), (error, res) => {
-									if (error) {
-										console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
-									} else {
-										console.log(`batch [${i}] / no error : `)
-										let time = new Date()
-										let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
-										let epochTime = time.getTime()
-					
-										res.forEach(response => {
-											db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
-											console.log(response['body'])
-										})
-									}
-								})
-					
-				}, delay )
-	
-	
+		setTimeout(function() {
+			FB.batch(reqPack.slice(i, i + batchLimit), (error, res) => {
+				if (error) {
+					console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
+				} else {
+					console.log(`batch [${i}] / no error : `)
+					let time = new Date()
+					let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
+					let epochTime = time.getTime()
 
+					res.forEach(response => {
+						db
+							.ref(`batchLogs/${date}/${epochTime}`)
+							.push()
+							.set(response['body'])
+						console.log(response['body'])
+					})
+				}
+			})
+		}, delay)
 	}
-
 }
 
-function sendBatchMessageWithDelay2 (reqPack, delay) {
-		//
-		// FB API call by page is tied to page rating...
-		// 
-		// REQUEST FORMAT (reqPack must be array of data like this)
-		/*
+function sendBatchMessageWithDelay2(reqPack, delay) {
+	//
+	// FB API call by page is tied to page rating...
+	//
+	// REQUEST FORMAT (reqPack must be array of data like this)
+	/*
 	
 			let bodyData = {
 				recipient: {
@@ -768,46 +784,41 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 				body: param(bodyData)
 			})
 		*/
-	
-		// batch allow 50 commands per request, read this : https://developers.facebook.com/docs/graph-api/making-multiple-requests/
-		let batchLimit = 50
-		let maxIncre = Math.ceil(reqPack.length / batchLimit)
-	
-		for (let i = 0; i < maxIncre; i ++) {
-				(function (i){
-					
-					setTimeout( function () {
-						console.log(`sending batch ${i + 1}/${maxIncre}`)
-						console.log(`slicing is ${i * 50}/${(i * 50) + batchLimit} from all of ${reqPack.length}`)
-									FB.batch(reqPack.slice((i * 50), (i * 50) + batchLimit), (error, res) => {
-										if (error) {
-											// console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
-											console.log(`\n batch [${i}] error`)
-										} else {
-											console.log(`batch [${i}] / no error : `)
-											let time = new Date()
-											let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
-											let epochTime = time.getTime()
-						
-											res.forEach(response => {
-												db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
-												console.log(response['body'])
-											})
-										}
-									})
-						
-					}, delay * (i + 1) )
-				})(i);
-		
-	
-		}
-	
+
+	// batch allow 50 commands per request, read this : https://developers.facebook.com/docs/graph-api/making-multiple-requests/
+	let batchLimit = 50
+	let maxIncre = Math.ceil(reqPack.length / batchLimit)
+
+	for (let i = 0; i < maxIncre; i++) {
+		;(function(i) {
+			setTimeout(function() {
+				console.log(`sending batch ${i + 1}/${maxIncre}`)
+				console.log(`slicing is ${i * 50}/${i * 50 + batchLimit} from all of ${reqPack.length}`)
+				FB.batch(reqPack.slice(i * 50, i * 50 + batchLimit), (error, res) => {
+					if (error) {
+						// console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
+						console.log(`\n batch [${i}] error`)
+					} else {
+						console.log(`batch [${i}] / no error : `)
+						let time = new Date()
+						let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
+						let epochTime = time.getTime()
+
+						res.forEach(response => {
+							db
+								.ref(`batchLogs/${date}/${epochTime}`)
+								.push()
+								.set(response['body'])
+							console.log(response['body'])
+						})
+					}
+				})
+			}, delay * (i + 1))
+		})(i)
 	}
+}
 
-
-
-
-function sendQuickReplies (recipientId, quickReplies) {
+function sendQuickReplies(recipientId, quickReplies) {
 	let messageData = {
 		recipient: {
 			id: recipientId
@@ -817,7 +828,7 @@ function sendQuickReplies (recipientId, quickReplies) {
 	callSendAPI(messageData)
 }
 
-function sendTextMessage (recipientId, messageText) {
+function sendTextMessage(recipientId, messageText) {
 	let messageData = {
 		recipient: {
 			id: recipientId
@@ -831,7 +842,7 @@ function sendTextMessage (recipientId, messageText) {
 	callSendAPI(messageData)
 }
 
-function callSendAPI (messageData) {
+function callSendAPI(messageData) {
 	// console.log(`message data : ${JSON.stringify(messageData)}`)
 	axios({
 		method: 'POST',
@@ -862,7 +873,7 @@ function callSendAPI (messageData) {
 		})
 }
 
-function sendCascadeMessage (id, textArray) {
+function sendCascadeMessage(id, textArray) {
 	textArray
 		.reduce((promiseOrder, message) => {
 			return promiseOrder.then(() => {
@@ -881,7 +892,7 @@ function sendCascadeMessage (id, textArray) {
 		)
 }
 
-function addNewUser (newUserId) {
+function addNewUser(newUserId) {
 	console.log('enter addNewUser')
 	let userProfile = null
 
@@ -889,55 +900,51 @@ function addNewUser (newUserId) {
 	messengerAPI.sendTypingOn(newUserId)
 	console.log('added user /// sending message back')
 
-	messengerAPI.callProfileAPI(newUserId)
-	.then(profile => {
-		userProfile = profile
-		return _getStatus()
-	})
-	.then(status => {
+	messengerAPI
+		.callProfileAPI(newUserId)
+		.then(profile => {
+			userProfile = profile
+			return _getStatus()
+		})
+		.then(status => {
+			if (status.playing || status.canEnter) {
+				let inviteMessage = {
+					text: 'แชทชิงโชค กำลังจะเริ่มในไม่ช้า ต้องการเข้าร่วมเล่นด้วยหรือไม่?',
+					quick_replies: [
+						{
+							content_type: 'text',
+							title: 'เข้าร่วม',
+							payload: 'เข้าร่วม'
+						},
+						{
+							content_type: 'text',
+							title: 'ไม่เข้าร่วม',
+							payload: 'ไม่เข้าร่วม'
+						}
+					]
+				}
 
-		if (status.playing || status.canEnter) {
-			let inviteMessage = {
-				text: 'แชทชิงโชค กำลังจะเริ่มในไม่ช้า ต้องการเข้าร่วมเล่นด้วยหรือไม่?',
-				quick_replies: [
-					{
-						content_type: 'text',
-						title: 'เข้าร่วม',
-						payload: 'เข้าร่วม'
-					},
-					{
-						content_type: 'text',
-						title: 'ไม่เข้าร่วม',
-						payload: 'ไม่เข้าร่วม'
-					}
+				setTimeout(() => {
+					sendQuickReplies(newUserId, inviteMessage)
+				}, 1000)
+			} else {
+				// welcome message
+				let texts = [
+					'ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค : แชทตอบคำถามสุดฮา เจอกันทุกวันจันทร์เวลา 2 ทุ่ม',
+					`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,
+					// 'กิจกรรมตอบคำถามลุ้นรับ Galaxy Note 8 กำลังจะเริ่มขึ้นแล้ว เตรียมเข้ามาร่วมเล่นกันได้ตอน 2 ทุ่มนะ อ่านรายละเอียดเพิ่มเติมได้ที่ https://goo.gl/xDczAU'
+					'ตอนนี้ยังไม่ถึงเวลากิจกรรม ไว้เราจะติดต่อกลับไปอีกครั้งนะ'
 				]
+
+				sendCascadeMessage(newUserId, texts)
 			}
-
-			setTimeout(() => {
-				sendQuickReplies(newUserId, inviteMessage)
-			}, 1000)
-
-		} else {
-
-			// welcome message
-			let texts = [
-				'ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค : แชทตอบคำถามสุดฮา เจอกันทุกวันจันทร์เวลา 2 ทุ่ม',
-				`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,
-				// 'กิจกรรมตอบคำถามลุ้นรับ Galaxy Note 8 กำลังจะเริ่มขึ้นแล้ว เตรียมเข้ามาร่วมเล่นกันได้ตอน 2 ทุ่มนะ อ่านรายละเอียดเพิ่มเติมได้ที่ https://goo.gl/xDczAU'
-				'ตอนนี้ยังไม่ถึงเวลากิจกรรม ไว้เราจะติดต่อกลับไปอีกครั้งนะ'
-			]
-
-			sendCascadeMessage(newUserId, texts)
-		}
-
-	})
-	.catch(error => {
-		console.log(`addnewuser error : ${error}`)
-	})
-
+		})
+		.catch(error => {
+			console.log(`addnewuser error : ${error}`)
+		})
 }
 
-function receivedMessage (event) {
+function receivedMessage(event) {
 	let senderID = event.sender.id
 	let recipientID = event.recipient.id
 	let timeOfMessage = event.timestamp
@@ -961,7 +968,7 @@ function receivedMessage (event) {
 	let admins = null
 
 	sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans ;)')
-/*
+	/*
 	db.ref(`/winners/${senderID}`).once('value')
 	.then(winnerSnap => {
 
@@ -1415,66 +1422,27 @@ function receivedMessage (event) {
 // this approach has problem with rapidly fire quiz
 // so, don't do it
 exports.answerGap = functions.database.ref('canAnswer').onWrite(event => {
-
 	let canAnswer = event.data.val()
 	console.log(`canAnswer was changed to : ${canAnswer} `)
 
 	if (canAnswer) {
-		db.ref('answerWindow').once('value')
-		.then(awSnap => {
-			let gap = awSnap.val()
-			console.log(`cuz canAnswer is [${canAnswer}] -> set [${gap}] seconds timer `)
+		db
+			.ref('answerWindow')
+			.once('value')
+			.then(awSnap => {
+				let gap = awSnap.val()
+				console.log(`cuz canAnswer is [${canAnswer}] -> set [${gap}] seconds timer `)
 
-			setTimeout(() => {
-				return db.ref('canAnswer').set(false)
-			}, gap * 1000)
-
-		})
-		.then(() => {
-			
-			console.log('_______________________')
-			console.log("NOW YOU CAN'T ANSWER ME")
-
-		})
-		.catch(error => {
-			console.log(`get answer gap error in answerGap trigerr: ${error} `)
-		})
-	
+				setTimeout(() => {
+					return db.ref('canAnswer').set(false)
+				}, gap * 1000)
+			})
+			.then(() => {
+				console.log('_______________________')
+				console.log("NOW YOU CAN'T ANSWER ME")
+			})
+			.catch(error => {
+				console.log(`get answer gap error in answerGap trigerr: ${error} `)
+			})
 	}
-
-
-})
-
-
-
-exports.voting = functions.database.ref('currentQuiz').onWrite(event => {
-
-		let currentQuiz = event.data.val()
-
-		db.ref(`quiz/${currentQuiz}`).once('value')
-		.then(qSnap => {
-
-			let quizInfo = qSnap.val()
-			if (quizInfo.type == 'VOTE') {
-
-				db.ref('voting').set(true)
-				.then(() => {
-					console.log(`running ${quizInfo.type} question, set 'voting' to TRUE`)
-				})
-
-			}
-			else {
-
-				db.ref('voting').set(false)
-				.then(() => {
-					console.log(`running ${quizInfo.type} question, set 'voting' to FALSE`)
-				})
-
-			}
-
-		})
-		.catch(error => {
-			console.error(`found error is voting onWrite: ${error}`)
-		})
-
 })
