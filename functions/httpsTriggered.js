@@ -242,7 +242,7 @@ module.exports = function (util, messengerFunctions) {
     })
 	}
 	
-	module.addMessageTemplates = function(req,res){
+	module.addTemplateMessage = function(req,res){
 		let type = req.body.messageType
 		let name = req.body.name
 		let message;
