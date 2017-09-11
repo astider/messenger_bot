@@ -6,7 +6,7 @@ const axios = require('axios')
 const messengerTemplates = require('./FBMessageTemplate/templates.js')
 const db = firebaseInit.admin.database()
 
-const basicMessage = messengerTemplates.textMessage("ข้อความ")
+const basicMessage = messengerTemplates.textMessage('ข้อความ')
 
 
 function axiousRequestForFBSharedPost (startURL){
@@ -173,7 +173,7 @@ module.exports = function (util, messengerFunctions) {
       if (!userNotFold){
         return res.status(404).json({ error:'ไม่พบเจอในระบบ' })
       }
-          let coupon=0;
+          let coupon = 0;
           let usersData = userNotFold.val()
           let couponIsAdded = false;
       						let userKey;
@@ -181,7 +181,7 @@ module.exports = function (util, messengerFunctions) {
                   var date = '2017-08-28'
                     Object.keys(usersData).map(key => {
                       userKey = key;
-                      coupon=usersData[key].coupon;
+                      coupon = usersData[key].coupon;
                       if (usersData[key].couponHistory) {
 
                         if (!usersData[key].couponHistory[date]){
@@ -189,7 +189,7 @@ module.exports = function (util, messengerFunctions) {
                           console.log('user has coupon history, but not with the date and postID')
                           couponIsAdded = true
                           usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-                          coupon=usersData[key].coupon;
+                          coupon = usersData[key].coupon;
                           usersData[key].couponHistory[date] = {
                             [postID]:true
                           }
@@ -199,14 +199,14 @@ module.exports = function (util, messengerFunctions) {
                           couponIsAdded = true
 
                           usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-                          coupon=usersData[key].coupon;
+                          coupon = usersData[key].coupon;
                           usersData[key].couponHistory[date][postID] = true
                         }
                       }
                       else {
                         couponIsAdded = true;
                           usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-                          coupon=usersData[key].coupon;
+                          coupon = usersData[key].coupon;
                         usersData[key].couponHistory = {
                           [date]: {
                             [postID]:true
@@ -242,23 +242,27 @@ module.exports = function (util, messengerFunctions) {
     })
 	}
 	
+<<<<<<< HEAD
 	module.addTemplateMessage = function(req,res){
+=======
+	module.addMessageTemplates = function (req,res){
+>>>>>>> 10545897bf899b9f9b9d8f0cafc87dad6cf37b6e
 		let type = req.body.messageType
 		let name = req.body.name
 		let message;
-		if(type=="text"){
-			if(!req.body.message){
+		if (type == 'text'){
+			if (!req.body.message){
 				return res.status(500).json({})
 			}
 			message = messengerTemplates.textMessage(req.body.message)
 		}
-		else if (type=="image"){
-			if(!req.body.URL){
+		else if (type == 'image'){
+			if (!req.body.URL){
 				return res.status(500).json({})
 			}
 			message = messengerTemplates.imageMessage(URL)
 		}
-		else if (type=="quick_reply"){
+		else if (type == 'quick_reply'){
 			// force type of quick reply to "text" only
 			// var obj = {
 			// 	content_type: 'text',
@@ -274,19 +278,19 @@ module.exports = function (util, messengerFunctions) {
 				]
 			
 			*/
-			let quickRepliesArray=[];
-			if(!req.body.headerText){
+			let quickRepliesArray = [];
+			if (!req.body.headerText){
 				return res.status(500).json({})
 			}
-			if(!Array.isArray(req.body.quickReplies)){
+			if (!Array.isArray(req.body.quickReplies)){
 			   return res.status(500).json({})
 			}
-			if(req.body.quickReplies.length>11 ||req.body.quickReplies.length<=0 ){
+			if (req.body.quickReplies.length > 11 || req.body.quickReplies.length <= 0 ){
 				return res.status(500).json({})
 			}
-			for(let m = 0; m<req.body.quickReplies.length;m++){
-				let curReply=req.body.quickReplies[m]
-				if(!curReply.title || !curReply.payload){
+			for (let m = 0; m < req.body.quickReplies.length;m++){
+				let curReply = req.body.quickReplies[m]
+				if (!curReply.title || !curReply.payload){
 					return res.status(500).json({})
 				}
 				quickRepliesArray.push(messengerTemplates.quickReplyObject(curReply.title,curReply.payload,curReply.imgURL))
@@ -627,6 +631,77 @@ module.exports = function (util, messengerFunctions) {
 
 	}
 
+	module.selectVoteAnswer = function (req, res) {
+
+		let selectedChoice = req.body.choice
+		let selectedAnswer = null
+		let currentQuiz = -1
+
+		if (req.method == 'GET') res.status(403).json({ error: 'Forbidden Request' })
+		else if (!selectedChoice) res.json({ error: 'no choice was selected' })
+		else if (isNaN(selectedChoice)) res.json({ error: 'selected choice data type is not a number' })
+		else {
+			
+			util.getStatus()
+			.then(status => {
+
+				currentQuiz = status.currentQuiz
+				
+				if (status.canAnswer) res.json({ error: 'cannot perform this function', message: 'time is not up yet, please wait' })
+				else if (!status.voting) res.json({ error: 'cannot perform this function', message: 'voting value is FALSE' })
+				else return db.ref(`quiz/${currentQuiz}`)
+
+			})
+			.then(qSnap => {
+
+				let quizInfo = qSnap.val()
+
+				if (quizInfo.type != 'VOTE') res.json({ error: 'cannot perform this function', message: 'This function is available only for VOTE type' })
+				else if (selectedChoice < 0 || selectedChoice > quizInfo.choices.length) res.json({ error: 'cannot perform this function', message: 'choice out of bound' })
+				else {
+
+					selectedAnswer = quizInfo.choices[selectedChoice]
+					quizInfo.a = selectedAnswer
+					return db.ref(`quiz/${qSnap.key}`).set(quizInfo)
+
+				}
+
+			})
+			.then(() => {
+
+				console.log('selected choice saved!')
+				return db.ref('participants').once('value')
+
+			})
+			.then(partSnap => {
+				
+				let participants = partSnap.val()
+				let updates = []
+
+				Object.keys(participants).map(key => {
+
+					let playerAnswerInfo = participants[key].answerPack[currentQuiz]
+					
+					if (playerAnswerInfo.ans == selectedAnswer){
+
+						playerAnswerInfo.correct = true
+						updates[`participants/${key}/answerPack/${currentQuiz}`] = playerAnswerInfo
+
+					}
+
+				})
+
+				db.ref().update(updates)
+
+			})
+			.catch(error => {
+				console.error(`selectVoteAnswer error: ${error}`)
+			})
+
+		}
+
+	}
+	
 	module.sendResult = function (req, res) {
 
 		db.ref('canAnswer').set(false)
