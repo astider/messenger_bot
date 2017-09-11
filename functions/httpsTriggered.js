@@ -608,7 +608,9 @@ module.exports = function (util, messengerFunctions) {
 					if (playerAnswerInfo.ans == selectedAnswer) {
 						playerAnswerInfo.correct = true
 						participants[key].point = participants[key].point + 1
+
 						updates[`/${key}/answerPack/${currentQuiz}`] = playerAnswerInfo
+						updates[`/${key}/point`] = participants[key].point
 					}
 				})
 
