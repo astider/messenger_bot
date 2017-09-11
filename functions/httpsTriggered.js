@@ -250,8 +250,8 @@ module.exports = function (util, messengerFunctions) {
 				if (!curReply.title || !curReply.payload) {
 					return res.status(500).json({})
 				}
-				if(!curReply.imgURL)quickRepliesArray.push(messengerTemplates.quickReplyObject(curReply.title, curReply.payload))
-					else{
+				if (!curReply.imgURL)quickRepliesArray.push(messengerTemplates.quickReplyObject(curReply.title, curReply.payload))
+					else {
 						quickRepliesArray.push(messengerTemplates.quickReplyObject(curReply.title, curReply.payload, curReply.imgURL))
 					}
 			}
