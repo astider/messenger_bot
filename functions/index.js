@@ -1085,7 +1085,7 @@ function receivedMessage (event) {
 					sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
 
 					playerInfo.answerPack[status.currentQuiz].ans = messageQRPayload
-					playerInfo.answerPack[status.currentQuiz].at = 10000
+					playerInfo.answerPack[status.currentQuiz].at = (new Date()).getTime()
 
 					db.ref(`participants/${senderID}`).set(playerInfo)
 

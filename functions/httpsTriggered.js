@@ -1853,12 +1853,13 @@ module.exports = function (util, messengerFunctions) {
       .then(quizSnap => {
 
 				let quiz = quizSnap.val()
+				let quizType = quiz.type
 				let isCorrect = false
 
-				if (!quiz.stringAnswer && !quiz.choices) throw { code: 2, message: 'what the f with this quiz, it has no choices and not support string answer' }
+				if (!quiz.type == 'STRING' && !quiz.type == 'CHOICES' && !quiz.type == 'VOTE') throw { code: 2, message: 'what the f with this quiz, it has no choices and not support string answer' }
 					// if (quiz.choices.indexOf(answer) == -1 ) throw { code: 2, message: 'answer not in choices scope ?!' }
 					// else if (answer == quiz.a) isCorrect = true
-				else if (quiz.choices && !quiz.stringAnswer) {
+				else if (quiz.type == 'CHOICES') {
 
 					if ( Array.isArray(quiz.a) ) {
 
@@ -1873,7 +1874,7 @@ module.exports = function (util, messengerFunctions) {
 					}
 
 				}
-				else if (quiz.stringAnswer && quiz.a.indexOf(normalizedAnswer) > -1) isCorrect = true
+				else if (quiz.type == 'STRING' && quiz.a.indexOf(normalizedAnswer) > -1) isCorrect = true
 
         if (isCorrect) {
           participantInfo.answerPack[status.currentQuiz].correct = true
