@@ -210,15 +210,15 @@ module.exports = function (util, messengerFunctions) {
 		let name = req.body.name
 		let message
 		if (type == 'text') {
-			if (!req.body.message) {
+			if (!req.body.payload) {
 				return res.status(500).json({})
 			}
-			message = messengerTemplates.textMessage(req.body.message)
+			message = messengerTemplates.textMessage(req.body.payload)
 		} else if (type == 'image') {
-			if (!req.body.URL) {
+			if (!req.body.payload) {
 				return res.status(500).json({})
 			}
-			message = messengerTemplates.imageMessage(req.body.URL)
+			message = messengerTemplates.imageMessage(req.body.payload)
 		} else if (type == 'quick_reply') {
 			// force type of quick reply to "text" only
 			// var obj = {
