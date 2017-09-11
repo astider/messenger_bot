@@ -954,7 +954,7 @@ function receivedMessage (event) {
 	let adminAvaiability = false
 	let admins = null
 
-	sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans ;)')
+	// sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans ;)')
 	/*
 	db.ref(`/winners/${senderID}`).once('value')
 	.then(winnerSnap => {
@@ -1005,7 +1005,7 @@ function receivedMessage (event) {
 		console.error(`receive message error ${error}`)
 	})
 */
-	/*
+	
 	_getAdmin()
 		.then(snapshot => {
 			admins = snapshot.val()
@@ -1058,7 +1058,7 @@ function receivedMessage (event) {
 
 				let quizType = quiz[status.currentQuiz].type
 
-				if (quizType == "STRING") {
+				if (quizType == 'STRING') {
 
 					console.log('hello from inside string answer')
 
@@ -1095,7 +1095,7 @@ function receivedMessage (event) {
 					}
 
 				}
-				else if (quizType == "VOTE" && quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
+				else if (quizType == 'VOTE' && quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
 					
 					sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
 
@@ -1105,7 +1105,7 @@ function receivedMessage (event) {
 					db.ref(`participants/${senderID}`).set(playerInfo)
 
 				}
-				else if (quizType == "CHOICES" && quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
+				else if (quizType == 'CHOICES' && quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
 					// current quiz use choices
 					console.log('hello from inside CHOICE answer')
 
@@ -1401,7 +1401,7 @@ function receivedMessage (event) {
 			console.error(`there's an error in receiving message: ${error}`)
 		})
 
-	*/
+	
 }
 
 // ------------------------ TIMER  -------------------------
