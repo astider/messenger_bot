@@ -662,9 +662,7 @@ exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
 						recipient: {
 							id: firebaseKey
 						},
-						message: {
-							text: message
-						}
+						message: message
 					}
 
 					sendMessageBatch.push({
