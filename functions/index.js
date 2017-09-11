@@ -582,6 +582,9 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 	})
 })
 exports.getAllTemplateMessages = functions.https.onRequest((req, res) => {
+	if(req.method!="GET"){
+		return res.status(404).json({})
+	}
 	cors(req, res, () => {
 		db.ref("messageTemplates").once('value').then(snapshot=>{
 			let allMessages
@@ -600,6 +603,9 @@ exports.getAllTemplateMessages = functions.https.onRequest((req, res) => {
 	})
 });
 exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
+	if(req.method!="POST"){
+		return res.status(404).json({})
+	}
 	cors(req, res, () => {
 		if (!req.body) {
 			return res.status(400).json({ error: 'no data' })
@@ -658,6 +664,9 @@ exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 	})
 })
 exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
+	if(req.method!="POST"){
+		return res.status(404).json({})
+	}
 	cors(req, res, () => {
 		if (!req.body) {
 			return res.status(400).json({ error: 'no data' })
