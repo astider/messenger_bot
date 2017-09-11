@@ -253,8 +253,7 @@ module.exports = function(util, messengerFunctions) {
 				quickRepliesArray.push(messengerTemplates.quickReplyObject(curReply.title, curReply.payload, curReply.imgURL))
 			}
 			message = messengerTemplates.quickReplyMessage(req.body.headerText, quickRepliesArray)
-		}
-		else{
+		} else {
 			return res.status(500).json()
 		}
 		// purpose is a custom type such as "welcome"
@@ -271,7 +270,7 @@ module.exports = function(util, messengerFunctions) {
 			message: message
 		}
 		db.ref(`messageTemplates/${name}`).set(messageObject)
-		return res.json({error:null})
+		return res.json({ error: null })
 	}
 	// --------- START HERE
 	module.getOverallStatus = function(req, res) {
