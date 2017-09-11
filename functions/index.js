@@ -38,35 +38,35 @@ console.log('STARTING SERVICE')
 
 // ----------------------- Cloud Functions ------------------------
 
-function _getParticipants () {
+function _getParticipants() {
 	return db.ref('participants').once('value')
 }
 
-function _getQuiz () {
+function _getQuiz() {
 	return db.ref('quiz').once('value')
 }
 
-function _getFireQuizAt () {
+function _getFireQuizAt() {
 	return db.ref('fireQuizAt').once('value')
 }
 
-function _getAdmin () {
+function _getAdmin() {
 	return db.ref('admin').once('value')
 }
-function _getAllUsers () {
+function _getAllUsers() {
 	return db.ref('users').once('value')
 }
-function _getTesters () {
+function _getTesters() {
 	return db.ref('tester').once('value')
 }
-function _getBatchMessageHistory () {
+function _getBatchMessageHistory() {
 	return db.ref('batchMessageArray/messages').once('value')
 }
-function _setBatchMessageHistory (messageArray, firebaseKey) {
+function _setBatchMessageHistory(messageArray, firebaseKey) {
 	db.ref(`batchMessageArray/${firebaseKey}`).set(messageArray)
 }
 
-function _getStatus () {
+function _getStatus() {
 	return new Promise((resolve, reject) => {
 		let canEnter = false
 		let playing = false
@@ -74,31 +74,34 @@ function _getStatus () {
 		let currentQuiz = -1
 		let voting = false
 
-		db.ref('canEnter').once('value').then(ce => {
-			canEnter = ce.val()
-			return db.ref('canAnswer').once('value')
-		})
-		.then(ca => {
-			canAnswer = ca.val()
-			return db.ref('playing').once('value')
-		})
-		.then(pl => {
-			playing = pl.val()
-			return db.ref('voting').once('value')
-		})
-		.then(vt => {
-			voting = vt.val()
-			return db.ref('currentQuiz').once('value')
-		})
-		.then(cq => {
-			currentQuiz = cq.val()
-			let status = {
-				canEnter: canEnter,
-				canAnswer: canAnswer,
-				playing: playing,
-				currentQuiz: currentQuiz,
-				voting: voting
-			}
+		db
+			.ref('canEnter')
+			.once('value')
+			.then(ce => {
+				canEnter = ce.val()
+				return db.ref('canAnswer').once('value')
+			})
+			.then(ca => {
+				canAnswer = ca.val()
+				return db.ref('playing').once('value')
+			})
+			.then(pl => {
+				playing = pl.val()
+				return db.ref('voting').once('value')
+			})
+			.then(vt => {
+				voting = vt.val()
+				return db.ref('currentQuiz').once('value')
+			})
+			.then(cq => {
+				currentQuiz = cq.val()
+				let status = {
+					canEnter: canEnter,
+					canAnswer: canAnswer,
+					playing: playing,
+					currentQuiz: currentQuiz,
+					voting: voting
+				}
 
 				return resolve(status)
 			})
@@ -135,25 +138,19 @@ exports.addCoupon = functions.https.onRequest((req, res) => {
 
 // ------------------------------
 
-exports.addTemplateMessage = functions.https.onRequest(function(req,res){
-	cors(req,res,()=>{
-		if(req.method!=`POST`){
+exports.addTemplateMessage = functions.https.onRequest(function(req, res) {
+	cors(req, res, () => {
+		if (req.method != `POST`) {
 			return res.status(403).json({})
 		}
 
-
-		if (req.query.adminApproval != 'isTrue8768'){
+		if (req.query.adminApproval != 'isTrue8768') {
 			return res.status(403).json({})
-			}
-			httpsFunctions.addTemplateMessage(req,res)
-
-
 		}
-
-
-	);
-});
-exports.testFrontFunctionFacebook = functions.https.onRequest(function (req, res) {
+		httpsFunctions.addTemplateMessage(req, res)
+	})
+})
+exports.testFrontFunctionFacebook = functions.https.onRequest(function(req, res) {
 	cors(req, res, () => {
 		if (req.method != 'POST') {
 			return res.status(403).json({})
@@ -174,7 +171,7 @@ exports.testFrontFunctionFacebook = functions.https.onRequest(function (req, res
 		// })
 	})
 })
-exports.viewIfUserSharePost = functions.https.onRequest(function (req, res) {
+exports.viewIfUserSharePost = functions.https.onRequest(function(req, res) {
 	if (req.method != 'GET') {
 		return res.status(403).json({})
 	}
@@ -188,7 +185,7 @@ exports.viewIfUserSharePost = functions.https.onRequest(function (req, res) {
 		httpsFunctions.testCheckUserSharedPost(req, res)
 	})
 })
-exports.testViewSharedPosts = functions.https.onRequest(function (req, res) {
+exports.testViewSharedPosts = functions.https.onRequest(function(req, res) {
 	if (req.method != 'GET') {
 		return res.status(403).json({})
 	}
@@ -218,13 +215,13 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) =>
 		// Make sure this is a page subscription
 		if (data.object === 'page') {
 			// Iterate over each entry - there may be multiple if batched
-			data.entry.forEach(function (entry) {
+			data.entry.forEach(function(entry) {
 				let pageID = entry.id
 				let timeOfEvent = entry.time
 				console.log(`page id [${pageID}] , TOE ${timeOfEvent}`)
 
 				// Iterate over each messaging event
-				entry.messaging.forEach(function (event) {
+				entry.messaging.forEach(function(event) {
 					if (event.message) {
 						receivedMessage(event)
 						// } else if (event.delivery) {
@@ -701,11 +698,11 @@ exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
 
 // ------------------- Messenger Function
 
-function sendBatchMessage (reqPack) {
+function sendBatchMessage(reqPack) {
 	sendBatchMessageWithDelay(reqPack, 0)
 }
 
-function sendBatchMessageWithDelay (reqPack, delay) {
+function sendBatchMessageWithDelay(reqPack, delay) {
 	// REQUEST FORMAT (reqPack must be array of data like this)
 	/*
 
@@ -729,7 +726,7 @@ function sendBatchMessageWithDelay (reqPack, delay) {
 	let batchLimit = 50
 
 	for (let i = 0; i < reqPack.length; i += batchLimit) {
-		setTimeout(function () {
+		setTimeout(function() {
 			FB.batch(reqPack.slice(i, i + batchLimit), (error, res) => {
 				if (error) {
 					console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
@@ -752,7 +749,7 @@ function sendBatchMessageWithDelay (reqPack, delay) {
 	}
 }
 
-function sendBatchMessageWithDelay2 (reqPack, delay) {
+function sendBatchMessageWithDelay2(reqPack, delay) {
 	//
 	// FB API call by page is tied to page rating...
 	//
@@ -780,8 +777,8 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 	let maxIncre = Math.ceil(reqPack.length / batchLimit)
 
 	for (let i = 0; i < maxIncre; i++) {
-		(function (i) {
-			setTimeout(function () {
+		;(function(i) {
+			setTimeout(function() {
 				console.log(`sending batch ${i + 1}/${maxIncre}`)
 				console.log(`slicing is ${i * 50}/${i * 50 + batchLimit} from all of ${reqPack.length}`)
 				FB.batch(reqPack.slice(i * 50, i * 50 + batchLimit), (error, res) => {
@@ -808,7 +805,7 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 	}
 }
 
-function sendQuickReplies (recipientId, quickReplies) {
+function sendQuickReplies(recipientId, quickReplies) {
 	let messageData = {
 		recipient: {
 			id: recipientId
@@ -818,7 +815,7 @@ function sendQuickReplies (recipientId, quickReplies) {
 	callSendAPI(messageData)
 }
 
-function sendTextMessage (recipientId, messageText) {
+function sendTextMessage(recipientId, messageText) {
 	let messageData = {
 		recipient: {
 			id: recipientId
@@ -832,7 +829,7 @@ function sendTextMessage (recipientId, messageText) {
 	callSendAPI(messageData)
 }
 
-function callSendAPI (messageData) {
+function callSendAPI(messageData) {
 	// console.log(`message data : ${JSON.stringify(messageData)}`)
 	axios({
 		method: 'POST',
@@ -863,7 +860,7 @@ function callSendAPI (messageData) {
 		})
 }
 
-function sendCascadeMessage (id, textArray) {
+function sendCascadeMessage(id, textArray) {
 	textArray
 		.reduce((promiseOrder, message) => {
 			return promiseOrder.then(() => {
@@ -882,7 +879,7 @@ function sendCascadeMessage (id, textArray) {
 		)
 }
 
-function addNewUser (newUserId) {
+function addNewUser(newUserId) {
 	console.log('enter addNewUser')
 	let userProfile = null
 
@@ -934,7 +931,7 @@ function addNewUser (newUserId) {
 		})
 }
 
-function receivedMessage (event) {
+function receivedMessage(event) {
 	let senderID = event.sender.id
 	let recipientID = event.recipient.id
 	let timeOfMessage = event.timestamp
@@ -1008,7 +1005,7 @@ function receivedMessage (event) {
 		console.error(`receive message error ${error}`)
 	})
 */
-	
+
 	_getAdmin()
 		.then(snapshot => {
 			admins = snapshot.val()
@@ -1030,7 +1027,11 @@ function receivedMessage (event) {
 		})
 		.then(playerSnapshot => {
 			playerInfo = playerSnapshot.val()
-			return db.ref('users').orderByChild('fbid').equalTo(senderID).once('value') // db.ref('users').once('value')
+			return db
+				.ref('users')
+				.orderByChild('fbid')
+				.equalTo(senderID)
+				.once('value') // db.ref('users').once('value')
 		})
 		.then(fetchedUser => {
 			let userObject = fetchedUser.val()
@@ -1045,7 +1046,7 @@ function receivedMessage (event) {
 			// 		profilePic: users[key].profilePic
 			// 	}
 			// }
-			
+
 			console.log('________________________________')
 			console.log(`_______ ${JSON.stringify(status)} ______`)
 			console.log('________________________________')
@@ -1062,7 +1063,6 @@ function receivedMessage (event) {
 				let quizType = quiz[status.currentQuiz].type
 
 				if (quizType == 'STRING') {
-
 					console.log('hello from inside string answer')
 
 					if (!status.canAnswer) sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
@@ -1082,7 +1082,6 @@ function receivedMessage (event) {
 						}
 
 						sendQuickReplies(senderID, confirmAns)
-
 					} else {
 						sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
 
@@ -1096,19 +1095,14 @@ function receivedMessage (event) {
 
 						db.ref(`participants/${senderID}`).set(playerInfo)
 					}
-
-				}
-				else if (quizType == 'VOTE' && quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
-					
+				} else if (quizType == 'VOTE' && quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
 					sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
 
 					playerInfo.answerPack[status.currentQuiz].ans = messageQRPayload
-					playerInfo.answerPack[status.currentQuiz].at = (new Date()).getTime()
+					playerInfo.answerPack[status.currentQuiz].at = new Date().getTime()
 
 					db.ref(`participants/${senderID}`).set(playerInfo)
-
-				}
-				else if (quizType == 'CHOICES' && quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
+				} else if (quizType == 'CHOICES' && quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
 					// current quiz use choices
 					console.log('hello from inside CHOICE answer')
 
@@ -1121,30 +1115,22 @@ function receivedMessage (event) {
 						playerInfo.answerPack[status.currentQuiz].at = new Date().getTime()
 
 						if (Array.isArray(quiz[status.currentQuiz].a)) {
-
 							if (quiz[status.currentQuiz].a.indexOf(messageQRPayload) >= 0) {
 								playerInfo.answerPack[status.currentQuiz].correct = true
 								playerInfo.point++
 							}
-
-						}
-						else {
-
+						} else {
 							if (messageQRPayload == quiz[status.currentQuiz].a) {
 								playerInfo.answerPack[status.currentQuiz].correct = true
 								playerInfo.point++
 							}
-
 						}
-
 
 						db.ref(`participants/${senderID}`).set(playerInfo)
 					}
-
 				} else if (playerInfo.answerPack[status.currentQuiz].ans) sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
 				else if (!status.canAnswer) sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
 				else {
-
 					sendTextMessage(senderID, 'พิมพ์ตอบจะไม่ได้คะแนนนะ กดตอบเอา')
 
 					let quickReplyChoices = []
@@ -1165,9 +1151,7 @@ function receivedMessage (event) {
 					setTimeout(() => {
 						sendQuickReplies(senderID, quizMessage)
 					}, 1000)
-
 				}
-
 			} else if (messageQRPayload == 'เข้าร่วม' && !playerInfo && status.canEnter) {
 				// ------- USER ENTER
 				// console.log(`in the khaoruam // id : ${senderID}`)
@@ -1206,26 +1190,17 @@ function receivedMessage (event) {
 
 					sendQuickReplies(senderID, quizMessage)
 				} else {
-
-					let texts = [
-						'แชทชิงโชค วันนี้ใครจะได้รางวัลประจำสัปดาห์ 3 รางวัลไป และเดือนนี้ลุ้นรางวัลใหญ่ Galaxy Note 8\r\n',
-						'กติกาเพิ่มเติมอ่านได้ที่ https://droidsans.com/chatchingchoke-august-note8/\r\n',
-						'สามารถรับชม Live ได้ผ่านทาง https://youtu.be/yRHTbynL__4 \r\n\r\n',
-						`ขณะนี้คุณมีคูปองอยู่ ${user.coupon} คูปอง เราขอให้คุณโชคดีกับแชทชิงโชค :)`
-					]
+					let texts = ['แชทชิงโชค วันนี้ใครจะได้รางวัลประจำสัปดาห์ 3 รางวัลไป และเดือนนี้ลุ้นรางวัลใหญ่ Galaxy Note 8\r\n', 'กติกาเพิ่มเติมอ่านได้ที่ https://droidsans.com/chatchingchoke-august-note8/\r\n', 'สามารถรับชม Live ได้ผ่านทาง https://youtu.be/yRHTbynL__4 \r\n\r\n', `ขณะนี้คุณมีคูปองอยู่ ${user.coupon} คูปอง เราขอให้คุณโชคดีกับแชทชิงโชค :)`]
 
 					sendCascadeMessage(senderID, texts)
 				}
-				
-      // }
-      // else {
-      //   console.log(`Already has this user in participants`)
-			// }
-			
+
+				// }
+				// else {
+				//   console.log(`Already has this user in participants`)
+				// }
 			} else if (messageQRPayload == 'ไม่เข้าร่วม' && !playerInfo) {
-
 				sendTextMessage(senderID, 'ถ้าเปลี่ยนใจก็ทักมาได้นะ')
-
 			} else if (messageText) {
 				// ------- USER MESSAGE NORMALLY
 				// console.log('IN get message')
@@ -1250,43 +1225,16 @@ function receivedMessage (event) {
 								console.log(`running command [${command}]`)
 								let batchRequests = []
 
-								db.ref('users').once('value').then(userSnap => {
-									let allUsers = userSnap.val()
+								db
+									.ref('users')
+									.once('value')
+									.then(userSnap => {
+										let allUsers = userSnap.val()
 
-									Object.keys(allUsers).forEach(key => {
-										let bodyData = {
-											recipient: {
-												id: allUsers[key].fbid
-											},
-											message: {
-												text: text
-											}
-										}
-
-										batchRequests.push({
-											method: 'POST',
-											relative_url: 'me/messages?include_headers=false',
-											body: param(bodyData)
-										})
-										// sendTextMessage(id, text)
-									})
-
-									sendBatchMessage(batchRequests)
-									// tell admin that message was sent
-									sendTextMessage(senderID, '## Message sent to ALL USERS')
-								})
-							} else if (command == 'ANN_PART') {
-								console.log(`running command [${command}]`)
-								let batchRequests = []
-
-								db.ref('participants').once('value').then(partSnap => {
-									let participants = partSnap.val()
-
-									if (participants) {
-										Object.keys(participants).forEach(id => {
+										Object.keys(allUsers).forEach(key => {
 											let bodyData = {
 												recipient: {
-													id: id
+													id: allUsers[key].fbid
 												},
 												message: {
 													text: text
@@ -1298,65 +1246,88 @@ function receivedMessage (event) {
 												relative_url: 'me/messages?include_headers=false',
 												body: param(bodyData)
 											})
-
 											// sendTextMessage(id, text)
 										})
 
 										sendBatchMessage(batchRequests)
 										// tell admin that message was sent
-										sendTextMessage(senderID, '## Message sent to ALL PARTICIPANTS')
-									} else {
-										sendTextMessage(senderID, '## ERROR!! PARTICIPANTS not found.')
-									}
-								})
-							}
-							else if (command == 'MY_COUPON') {
+										sendTextMessage(senderID, '## Message sent to ALL USERS')
+									})
+							} else if (command == 'ANN_PART') {
+								console.log(`running command [${command}]`)
+								let batchRequests = []
 
-								db.ref('users').orderByChild('fbid').equalTo(senderID).once('value')
-								.then(userInfoSnap => {
+								db
+									.ref('participants')
+									.once('value')
+									.then(partSnap => {
+										let participants = partSnap.val()
 
-									let userInfo = userInfoSnap.val()
-									let key = (Object.keys(userInfo))[0]
-									userInfo = userInfo[key]
+										if (participants) {
+											Object.keys(participants).forEach(id => {
+												let bodyData = {
+													recipient: {
+														id: id
+													},
+													message: {
+														text: text
+													}
+												}
 
-									if (userInfo.coupon) {
+												batchRequests.push({
+													method: 'POST',
+													relative_url: 'me/messages?include_headers=false',
+													body: param(bodyData)
+												})
 
-										let messages = []
-										messages.push(`คุณมีคูปอง ${userInfo.coupon} ใบ มีหมายเลขดังนี้`)
+												// sendTextMessage(id, text)
+											})
 
-										userInfo.couponNumber.map(num => {
-											messages.push(num)
-										})
+											sendBatchMessage(batchRequests)
+											// tell admin that message was sent
+											sendTextMessage(senderID, '## Message sent to ALL PARTICIPANTS')
+										} else {
+											sendTextMessage(senderID, '## ERROR!! PARTICIPANTS not found.')
+										}
+									})
+							} else if (command == 'MY_COUPON') {
+								db
+									.ref('users')
+									.orderByChild('fbid')
+									.equalTo(senderID)
+									.once('value')
+									.then(userInfoSnap => {
+										let userInfo = userInfoSnap.val()
+										let key = Object.keys(userInfo)[0]
+										userInfo = userInfo[key]
 
-										sendCascadeMessage(senderID, messages)
+										if (userInfo.coupon) {
+											let messages = []
+											messages.push(`คุณมีคูปอง ${userInfo.coupon} ใบ มีหมายเลขดังนี้`)
 
-									}
-									else {
-										sendTextMessage(senderID, '## You don\'t have any coupon.')
-									}
+											userInfo.couponNumber.map(num => {
+												messages.push(num)
+											})
 
-								})
-
-							}
-							else {
+											sendCascadeMessage(senderID, messages)
+										} else {
+											sendTextMessage(senderID, "## You don't have any coupon.")
+										}
+									})
+							} else {
 								sendTextMessage(senderID, '## ERROR!! COMMAND NOT FOUND')
 							}
 						}
 					}
-				} else if (!user || (user && !playerInfo) ) {
-
+				} else if (!user || (user && !playerInfo)) {
 					console.log('user id not found in DB {OR} not in participants -> adding new user')
-					setTimeout( addNewUser(senderID), 1500)
-
+					setTimeout(addNewUser(senderID), 1500)
 				} else if (!status.playing && !status.canEnter) {
-
 					console.log('this user is in our sigth, but game is end or not started yet, tell the user!')
 					sendTextMessage(senderID, 'ขณะนี้หมดช่วงเวลาเล่นเกมแล้ว รอติดตามการจับฉลากหาผู้โชคดีว่าใครจะได้ Galaxy Note 8 ไปครองในวันศุกร์นี้เวลา 20.00 น.')
-
 				} else {
 					// else if(!participants)
 					if (status.playing) {
-
 						if (!status.canAnswer) {
 							sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
 						} else if (playerInfo && playerInfo.answerPack[status.currentQuiz].ans) {
@@ -1383,18 +1354,15 @@ function receivedMessage (event) {
 								sendQuickReplies(senderID, quizMessage)
 							}, 1000)
 						}
-
 					} else if (status.canEnter) sendTextMessage(senderID, 'รอสักครู่นะ กิจกรรมยังไม่เริ่ม')
-
 				}
-
 			} else if (messageAttachments) {
 				console.log(JSON.stringify(message))
 				console.log('Message with attachment received')
 
 				if (!user || !playerInfo) {
 					console.log('[ATTACHMENT] user id not found in DB {OR} not in participants -> adding new user')
-					setTimeout( addNewUser(senderID), 1500)
+					setTimeout(addNewUser(senderID), 1500)
 				}
 			}
 
@@ -1403,8 +1371,6 @@ function receivedMessage (event) {
 		.catch(error => {
 			console.error(`there's an error in receiving message: ${error}`)
 		})
-
-	
 }
 
 // ------------------------ TIMER  -------------------------

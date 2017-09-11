@@ -39,7 +39,7 @@ function templates() {}
   */
 
 templates.prototype.textMessage = function(text) {
-	console.log('at function')
+
 	var obj = {
 		message: {
 			text: text

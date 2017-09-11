@@ -254,6 +254,9 @@ module.exports = function(util, messengerFunctions) {
 			}
 			message = messengerTemplates.quickReplyMessage(req.body.headerText, quickRepliesArray)
 		}
+		else{
+			return res.status(500).json()
+		}
 		// purpose is a custom type such as "welcome"
 		// messageType is  a messenger message type "text","image","quick replies"
 		// this function add message template to database
@@ -268,6 +271,7 @@ module.exports = function(util, messengerFunctions) {
 			message: message
 		}
 		db.ref(`messageTemplates/${name}`).set(messageObject)
+		return res.json({error:null})
 	}
 	// --------- START HERE
 	module.getOverallStatus = function(req, res) {
