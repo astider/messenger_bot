@@ -218,7 +218,7 @@ module.exports = function (util, messengerFunctions) {
 			if (!req.body.URL) {
 				return res.status(500).json({})
 			}
-			message = messengerTemplates.imageMessage(URL)
+			message = messengerTemplates.imageMessage(req.body.URL)
 		} else if (type == 'quick_reply') {
 			// force type of quick reply to "text" only
 			// var obj = {
@@ -253,6 +253,8 @@ module.exports = function (util, messengerFunctions) {
 				quickRepliesArray.push(messengerTemplates.quickReplyObject(curReply.title, curReply.payload, curReply.imgURL))
 			}
 			message = messengerTemplates.quickReplyMessage(req.body.headerText, quickRepliesArray)
+		} else {
+			return res.status(500).json()
 		}
 		// purpose is a custom type such as "welcome"
 		// messageType is  a messenger message type "text","image","quick replies"
@@ -268,6 +270,7 @@ module.exports = function (util, messengerFunctions) {
 			message: message
 		}
 		db.ref(`messageTemplates/${name}`).set(messageObject)
+		return res.json({ error: null })
 	}
 	// --------- START HERE
 	module.getOverallStatus = function (req, res) {
