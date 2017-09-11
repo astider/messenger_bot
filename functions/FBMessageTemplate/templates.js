@@ -61,7 +61,7 @@ templates.prototype.imageMessage = function(imgURL) {
 	}
 	return obj
 }
-templates.prototype.quickReplyObject = function(title, textPayload, imgURL = null) {
+templates.prototype.quickReplyObject = function(title, textPayload, imgURL = undefined) {
 	var obj = {
 		content_type: 'text',
 		title: title,
@@ -71,6 +71,9 @@ templates.prototype.quickReplyObject = function(title, textPayload, imgURL = nul
 	return obj
 }
 templates.prototype.quickReplyMessage = function(headerText, arrayOfQuickReplies) {
+  if(arrayOfQuickReplies.length>11 || arrayOfQuickReplies.length<=0){
+    return null;
+  }
 	var obj = {
 		message: {
 			text: headerText,
