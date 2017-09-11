@@ -218,7 +218,7 @@ module.exports = function(util, messengerFunctions) {
 			if (!req.body.URL) {
 				return res.status(500).json({})
 			}
-			message = messengerTemplates.imageMessage(URL)
+			message = messengerTemplates.imageMessage(req.body.URL)
 		} else if (type == 'quick_reply') {
 			// force type of quick reply to "text" only
 			// var obj = {
