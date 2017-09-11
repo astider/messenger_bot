@@ -610,11 +610,11 @@ module.exports = function (util, messengerFunctions) {
 
 					if (playerAnswerInfo.ans == selectedAnswer) {
 						playerAnswerInfo.correct = true
-						updates[`participants/${key}/answerPack/${currentQuiz}`] = playerAnswerInfo
+						updates[`/${key}/answerPack/${currentQuiz}`] = playerAnswerInfo
 					}
 				})
 
-				db.ref().update(updates)
+				db.ref('participants').update(updates)
 			})
 			.catch(error => {
 				console.error(`selectVoteAnswer error: ${error}`)
