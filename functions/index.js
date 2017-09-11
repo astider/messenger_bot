@@ -581,7 +581,31 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 			})
 	})
 })
+exports.getAllTemplateMessages = functions.https.onRequest((req, res) => {
+	if(req.method!="GET"){
+		return res.status(404).json({})
+	}
+	cors(req, res, () => {
+		db.ref("messageTemplates").once('value').then(snapshot=>{
+			let allMessages
+			if(!snapshot){
+				return res.json({messages:{}})
+			}
+			allMessages = snapshot.val()
+			return res.json({messages:allMessages})
+
+
+		})
+		.catch(err=>{
+			return res.status(500).json({error:err})
+		})
+
+	})
+});
 exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
+	if(req.method!="POST"){
+		return res.status(404).json({})
+	}
 	cors(req, res, () => {
 		if (!req.body) {
 			return res.status(400).json({ error: 'no data' })
@@ -607,7 +631,7 @@ exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 				if (broadcastMessageHistory) {
 					messageHistory = broadcastMessageHistory.val()
 				}
-				// we send only basic message.
+				// now message in req.body is "message object" of messenger
 				if (messageHistory.indexOf(req.body.message)) {
 					messageHistory.push(req.body.message)
 				}
@@ -640,6 +664,9 @@ exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 	})
 })
 exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
+	if(req.method!="POST"){
+		return res.status(404).json({})
+	}
 	cors(req, res, () => {
 		if (!req.body) {
 			return res.status(400).json({ error: 'no data' })
@@ -665,7 +692,7 @@ exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
 				if (broadcastMessageHistory) {
 					messageHistory = broadcastMessageHistory.val()
 				}
-				// we send only basic message.
+				// now message in req.body is "message object" of messenger
 				if (messageHistory.indexOf(req.body.message)) {
 					messageHistory.push(req.body.message)
 				}
