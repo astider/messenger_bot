@@ -3,9 +3,10 @@ const messengerAPI = require('./API/messengerProfile.js')
 const userManagementAPI = require('./API/userManagement.js')
 const param = require('jquery-param')
 const axios = require('axios')
-
+const messengerTemplates = require('./FBMessageTemplate/templates.js')
 const db = firebaseInit.admin.database()
 
+const basicMessage = messengerTemplates.textMessage('ข้อความ')
 
 
 function axiousRequestForFBSharedPost (startURL){
@@ -239,7 +240,77 @@ module.exports = function (util, messengerFunctions) {
       console.log(error)
       return res.status(500).json({})
     })
-  }
+	}
+	
+	module.addMessageTemplates = function (req,res){
+		let type = req.body.messageType
+		let name = req.body.name
+		let message;
+		if (type == 'text'){
+			if (!req.body.message){
+				return res.status(500).json({})
+			}
+			message = messengerTemplates.textMessage(req.body.message)
+		}
+		else if (type == 'image'){
+			if (!req.body.URL){
+				return res.status(500).json({})
+			}
+			message = messengerTemplates.imageMessage(URL)
+		}
+		else if (type == 'quick_reply'){
+			// force type of quick reply to "text" only
+			// var obj = {
+			// 	content_type: 'text',
+			// 	title: title,
+			// 	image_url: imgURL,
+			// 	payload: textPayload
+			// }
+			// this request needs an array of objects, up to length of 11
+			/*
+				[
+					{title
+					image_url}
+				]
+			
+			*/
+			let quickRepliesArray = [];
+			if (!req.body.headerText){
+				return res.status(500).json({})
+			}
+			if (!Array.isArray(req.body.quickReplies)){
+			   return res.status(500).json({})
+			}
+			if (req.body.quickReplies.length > 11 || req.body.quickReplies.length <= 0 ){
+				return res.status(500).json({})
+			}
+			for (let m = 0; m < req.body.quickReplies.length;m++){
+				let curReply = req.body.quickReplies[m]
+				if (!curReply.title || !curReply.payload){
+					return res.status(500).json({})
+				}
+				quickRepliesArray.push(messengerTemplates.quickReplyObject(curReply.title,curReply.payload,curReply.imgURL))
+
+			}
+			message = messengerTemplates.quickReplyMessage(req.body.headerText,quickRepliesArray)
+		}
+		// purpose is a custom type such as "welcome"
+		// messageType is  a messenger message type "text","image","quick replies"
+		// this function add message template to database
+		/*
+			The structure will be
+			messageTemplates
+				|-'welcome'-|
+										|-type:""
+		*/
+		let messageObject = {
+			type:req.body.messageType,
+			message:message
+
+		}
+		db.ref(`messageTemplates/${name}`).set(messageObject)
+
+	}
   // --------- START HERE
   module.getOverallStatus = function (req, res) {
 
@@ -626,7 +697,7 @@ module.exports = function (util, messengerFunctions) {
 		}
 
 	}
-
+	
 	module.sendResult = function (req, res) {
 
 		db.ref('canAnswer').set(false)
