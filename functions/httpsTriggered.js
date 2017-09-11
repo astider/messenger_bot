@@ -605,7 +605,7 @@ module.exports = function (util, messengerFunctions) {
 				Object.keys(participants).map(key => {
 					let playerAnswerInfo = participants[key].answerPack[currentQuiz]
 
-					if (playerAnswerInfo.ans == selectedAnswer) {
+					if (playerAnswerInfo.ans == selectedAnswer && !playerAnswerInfo.correct) {
 						playerAnswerInfo.correct = true
 						participants[key].point = participants[key].point + 1
 
