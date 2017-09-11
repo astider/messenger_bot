@@ -65,9 +65,12 @@ templates.prototype.quickReplyObject = function(title, textPayload, imgURL = und
 	var obj = {
 		content_type: 'text',
 		title: title,
-		image_url: imgURL,
+	
 		payload: textPayload
-	}
+  }
+  if(imgURL){
+    obj['image_url']= imgURL;
+  }
 	return obj
 }
 templates.prototype.quickReplyMessage = function(headerText, arrayOfQuickReplies) {
