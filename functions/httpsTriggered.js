@@ -603,7 +603,7 @@ module.exports = function (util, messengerFunctions) {
 			})
 			.then(partSnap => {
 				let participants = partSnap.val()
-				let updates = []
+				let updates = {}
 
 				Object.keys(participants).map(key => {
 					let playerAnswerInfo = participants[key].answerPack[currentQuiz]
