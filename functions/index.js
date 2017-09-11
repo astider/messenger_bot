@@ -134,12 +134,12 @@ exports.addCoupon = functions.https.onRequest((req, res) => {
 */
 
 // ------------------------------
-exports.addTemplateMessage = functions.https.onRequest(function(req,res){
-	cors(req,res,()=>{
+exports.addTemplateMessage = functions.https.onRequest(function (req,res){
+	cors(req,res,() => {
 
 
 
-		if(req.query.adminApproval!="isTrue8768"){
+		if (req.query.adminApproval != 'isTrue8768'){
 			return res.status(403).json({})
 			}
 			httpsFunctions.addTemplateMessage(req,res)
@@ -355,7 +355,7 @@ exports.addQuiz = functions.https.onRequest((req, res) => {
 
 exports.selectVoteAnswer = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.addQuiz(req, res)
+		httpsFunctions.selectVoteAnswer(req, res)
 	})
 })
 
