@@ -135,9 +135,9 @@ exports.addCoupon = functions.https.onRequest((req, res) => {
 
 // ------------------------------
 
-exports.addTemplateMessage = functions.https.onRequest(function(req,res){
-	cors(req,res,()=>{
-		if(req.method!=`POST`){
+exports.addTemplateMessage = functions.https.onRequest(function (req,res){
+	cors(req,res,() => {
+		if (req.method != 'POST'){
 			return res.status(403).json({})
 		}
 
@@ -1436,3 +1436,36 @@ exports.answerGap = functions.database.ref('canAnswer').onWrite(event => {
 			})
 	}
 })
+
+exports.voting = functions.database.ref('currentQuiz').onWrite(event => {
+	
+	let currentQuiz = event.data.val()
+	
+	db.ref(`quiz/${currentQuiz}`).once('value')
+	.then(qSnap => {
+	
+		let quizInfo = qSnap.val()
+		if (quizInfo.type == 'VOTE') {
+	
+			db.ref('voting').set(true)
+			.then(() => {
+				console.log(`running ${quizInfo.type} question, set 'voting' to TRUE`)
+			})
+	
+		}
+		else {
+	
+			db.ref('voting').set(false)
+			.then(() => {
+				console.log(`running ${quizInfo.type} question, set 'voting' to FALSE`)
+			})
+	
+		}
+	
+	})
+	.catch(error => {
+		console.error(`found error is voting onWrite: ${error}`)
+	})
+	
+})
+	
