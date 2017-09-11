@@ -134,17 +134,12 @@ exports.addCoupon = functions.https.onRequest((req, res) => {
 */
 
 // ------------------------------
-<<<<<<< HEAD
+
 exports.addTemplateMessage = functions.https.onRequest(function(req,res){
 	cors(req,res,()=>{
 		if(req.method!=`POST`){
 			return res.status(403).json({})
 		}
-=======
-exports.addTemplateMessage = functions.https.onRequest(function (req,res){
-	cors(req,res,() => {
-
->>>>>>> 10545897bf899b9f9b9d8f0cafc87dad6cf37b6e
 
 
 		if (req.query.adminApproval != 'isTrue8768'){
