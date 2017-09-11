@@ -584,7 +584,7 @@ module.exports = function (util, messengerFunctions) {
 
 				if (status.canAnswer) res.json({ error: 'cannot perform this function', message: 'time is not up yet, please wait' })
 				else if (!status.voting) res.json({ error: 'cannot perform this function', message: 'voting value is FALSE' })
-				else return db.ref(`quiz/${currentQuiz}`)
+				else return db.ref(`quiz/${currentQuiz}`).once('value')
 			})
 			.then(qSnap => {
 				let quizInfo = qSnap.val()
