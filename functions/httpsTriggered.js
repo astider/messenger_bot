@@ -8,7 +8,7 @@ const db = firebaseInit.admin.database()
 
 const basicMessage = messengerTemplates.textMessage('ข้อความ')
 
-function axiousRequestForFBSharedPost(startURL) {
+function axiousRequestForFBSharedPost (startURL) {
 	var completeData = []
 
 	const getFBShared = URL =>
@@ -34,7 +34,7 @@ function axiousRequestForFBSharedPost(startURL) {
 	return getFBShared(startURL)
 }
 
-function axiousRequestFBUserFeedOnlyDS(startURL, targetPageID, targetPostID) {
+function axiousRequestFBUserFeedOnlyDS (startURL, targetPageID, targetPostID) {
 	console.log(`param is ${startURL}`)
 	console.log(`other param is ${targetPageID} ${targetPostID}`)
 	var completeData = []
@@ -77,11 +77,11 @@ function axiousRequestFBUserFeedOnlyDS(startURL, targetPageID, targetPostID) {
 			})
 	return getFBShared(startURL)
 }
-function checkUserPostsForShare(userID, pageID, postID, accessToken) {
+function checkUserPostsForShare (userID, pageID, postID, accessToken) {
 	// page scope ID of page "DS" is used as the main ID`
 	//
 	// We have to use access_token in query
-	return new Promise(function(resolve, reject) {
+	return new Promise(function (resolve, reject) {
 		axiousRequestFBUserFeedOnlyDS(`https://graph.facebook.com/v2.10/${userID}/feed?fields=link,story,message,id,parent_id&access_token=${accessToken}`, pageID, postID)
 			.then(res => {
 				// an array with a single element or none.
@@ -100,11 +100,11 @@ function checkUserPostsForShare(userID, pageID, postID, accessToken) {
 	})
 }
 
-function getSharedPostsByApp(pageID, postID, accessToken) {
+function getSharedPostsByApp (pageID, postID, accessToken) {
 	// page scope ID of page "DS" is used as the main ID`
 	//
 	// We have to use access_token in query
-	return new Promise(function(resolve, reject) {
+	return new Promise(function (resolve, reject) {
 		axiousRequestForFBSharedPost(`https://graph.facebook.com/v2.10/${pageID}_${postID}/sharedposts?access_token=${accessToken}`)
 			.then(res => {
 				var ids = []
@@ -125,9 +125,9 @@ function getSharedPostsByApp(pageID, postID, accessToken) {
 	})
 }
 
-module.exports = function(util, messengerFunctions) {
+module.exports = function (util, messengerFunctions) {
 	let module = {}
-	module.testCheckUserSharedPost = function(req, res) {
+	module.testCheckUserSharedPost = function (req, res) {
 		checkUserPostsForShare(req.query.userID, req.pageID, req.postID, req.accessToken)
 			.then(found => {
 				if (!found) {
@@ -205,7 +205,7 @@ module.exports = function(util, messengerFunctions) {
 			})
 	}
 
-	module.addTemplateMessage = function(req, res) {
+	module.addTemplateMessage = function (req, res) {
 		let type = req.body.messageType
 		let name = req.body.name
 		let message
@@ -270,7 +270,7 @@ module.exports = function(util, messengerFunctions) {
 		db.ref(`messageTemplates/${name}`).set(messageObject)
 	}
 	// --------- START HERE
-	module.getOverallStatus = function(req, res) {
+	module.getOverallStatus = function (req, res) {
 		let cq = -1
 		let fqa = null
 		let q = null
@@ -324,7 +324,7 @@ module.exports = function(util, messengerFunctions) {
 			})
 	}
 
-	module.getParticipants = function(req, res) {
+	module.getParticipants = function (req, res) {
 		util
 			.getParticipants()
 			.then(snapshot => {
@@ -338,7 +338,7 @@ module.exports = function(util, messengerFunctions) {
 			})
 	}
 
-	module.showRandomCorrectUsers = function(req, res) {
+	module.showRandomCorrectUsers = function (req, res) {
 		let quiz = null
 		let participants = null
 		let currentQuiz = -1
@@ -449,58 +449,57 @@ module.exports = function(util, messengerFunctions) {
 			})
 	}
 
-	module.getTopUsers = function(req, res) {
+	module.getTopUsers = function (req, res) {
 		let fq = null
 		let participants = null
 
-		util
-			.getFireQuizAt()
-			.then(snapshot => {
-				fq = snapshot.val()
-				return util.getParticipants()
-			})
-			.then(snapshot => {
-				if (!fq) res.json({ error: 'no quiz sent OR no sent time collected' })
-				else {
-					participants = snapshot.val()
-					let candidate = Object.keys(participants).map(key => {
-						let timeUsedBeforeAnswer = participants[key].answerPack.reduce((collector, ansDetail, idx) => {
-							console.log('firequiz time : ' + fq[idx])
-							return ansDetail.ans ? collector + (ansDetail.at - fq[idx]) : collector
-						}, 0)
+		util.getFireQuizAt()
+		.then(snapshot => {
+			fq = snapshot.val()
+			return util.getParticipants()
+		})
+		.then(snapshot => {
+			if (!fq) res.json({ error: 'no quiz sent OR no sent time collected' })
+			else {
+				participants = snapshot.val()
+				let candidate = Object.keys(participants).map(key => {
+					let timeUsedBeforeAnswer = participants[key].answerPack.reduce((collector, ansDetail, idx) => {
+						console.log('firequiz time : ' + fq[idx])
+						return ansDetail.ans ? collector + (ansDetail.at - fq[idx]) : collector
+					}, 0)
 
-						return {
-							id: key,
-							firstName: participants[key].firstName,
-							lastName: participants[key].lastName,
-							profilePic: participants[key].profilePic,
-							point: participants[key].point,
-							totalTimeUsed: timeUsedBeforeAnswer
-						}
-					})
-
-					let topUsers = candidate.sort((a, b) => {
-						if (b.point - a.point == 0) return a.totalTimeUsed - b.totalTimeUsed
-						else return b.point - a.point
-					})
-
-					if (topUsers.length > 15) {
-						topUsers = topUsers.splice(0, 15)
+					return {
+						id: key,
+						firstName: participants[key].firstName,
+						lastName: participants[key].lastName,
+						profilePic: participants[key].profilePic,
+						point: participants[key].point,
+						totalTimeUsed: timeUsedBeforeAnswer
 					}
+				})
 
-					res.json({
-						error: null,
-						topUsers: topUsers
-					})
+				let topUsers = candidate.sort((a, b) => {
+					if (b.point - a.point == 0) return a.totalTimeUsed - b.totalTimeUsed
+					else return b.point - a.point
+				})
+
+				if (topUsers.length > 15) {
+					topUsers = topUsers.splice(0, 15)
 				}
-			})
-			.catch(error => {
-				console.log(`there's an error in getTopUsers: ${error}`)
-				res.end()
-			})
+
+				res.json({
+					error: null,
+					topUsers: topUsers
+				})
+			}
+		})
+		.catch(error => {
+			console.log(`there's an error in getTopUsers: ${error}`)
+			res.end()
+		})
 	}
 
-	module.sendRequest = function(req, res) {
+	module.sendRequest = function (req, res) {
 		db.ref('canEnter').set(true)
 
 		userManagementAPI
@@ -552,7 +551,7 @@ module.exports = function(util, messengerFunctions) {
 			})
 	}
 
-	module.addQuiz = function(req, res) {
+	module.addQuiz = function (req, res) {
 		if (req.method == 'POST') {
 			db.ref('quiz').set(req.body.quiz)
 		}
@@ -562,7 +561,7 @@ module.exports = function(util, messengerFunctions) {
 		})
 	}
 
-	module.selectVoteAnswer = function(req, res) {
+	module.selectVoteAnswer = function (req, res) {
 		let selectedChoice = req.body.choice
 		let selectedAnswer = null
 		let currentQuiz = -1
@@ -571,52 +570,53 @@ module.exports = function(util, messengerFunctions) {
 		else if (!selectedChoice) res.json({ error: 'no choice was selected' })
 		else if (isNaN(selectedChoice)) res.json({ error: 'selected choice data type is not a number' })
 		else {
-			util
-				.getStatus()
-				.then(status => {
-					currentQuiz = status.currentQuiz
+			util.getStatus()
+			.then(status => {
+				currentQuiz = status.currentQuiz
+					
+				console.log(JSON.stringify(status))
 
-					if (status.canAnswer) res.json({ error: 'cannot perform this function', message: 'time is not up yet, please wait' })
-					else if (!status.voting) res.json({ error: 'cannot perform this function', message: 'voting value is FALSE' })
-					else return db.ref(`quiz/${currentQuiz}`)
-				})
-				.then(qSnap => {
-					let quizInfo = qSnap.val()
+				if (status.canAnswer) res.json({ error: 'cannot perform this function', message: 'time is not up yet, please wait' })
+				else if (!status.voting) res.json({ error: 'cannot perform this function', message: 'voting value is FALSE' })
+				else return db.ref(`quiz/${currentQuiz}`)
+			})
+			.then(qSnap => {
+				let quizInfo = qSnap.val()
 
-					if (quizInfo.type != 'VOTE') res.json({ error: 'cannot perform this function', message: 'This function is available only for VOTE type' })
-					else if (selectedChoice < 0 || selectedChoice > quizInfo.choices.length) res.json({ error: 'cannot perform this function', message: 'choice out of bound' })
-					else {
-						selectedAnswer = quizInfo.choices[selectedChoice]
-						quizInfo.a = selectedAnswer
-						return db.ref(`quiz/${qSnap.key}`).set(quizInfo)
+				if (quizInfo.type != 'VOTE') res.json({ error: 'cannot perform this function', message: 'This function is available only for VOTE type' })
+				else if (selectedChoice < 0 || selectedChoice > quizInfo.choices.length) res.json({ error: 'cannot perform this function', message: 'choice out of bound' })
+				else {
+					selectedAnswer = quizInfo.choices[selectedChoice]
+					quizInfo.a = selectedAnswer
+					return db.ref(`quiz/${qSnap.key}`).set(quizInfo)
+				}
+			})
+			.then(() => {
+				console.log('selected choice saved!')
+				return db.ref('participants').once('value')
+			})
+			.then(partSnap => {
+				let participants = partSnap.val()
+				let updates = []
+
+				Object.keys(participants).map(key => {
+					let playerAnswerInfo = participants[key].answerPack[currentQuiz]
+
+					if (playerAnswerInfo.ans == selectedAnswer) {
+						playerAnswerInfo.correct = true
+						updates[`participants/${key}/answerPack/${currentQuiz}`] = playerAnswerInfo
 					}
 				})
-				.then(() => {
-					console.log('selected choice saved!')
-					return db.ref('participants').once('value')
-				})
-				.then(partSnap => {
-					let participants = partSnap.val()
-					let updates = []
 
-					Object.keys(participants).map(key => {
-						let playerAnswerInfo = participants[key].answerPack[currentQuiz]
-
-						if (playerAnswerInfo.ans == selectedAnswer) {
-							playerAnswerInfo.correct = true
-							updates[`participants/${key}/answerPack/${currentQuiz}`] = playerAnswerInfo
-						}
-					})
-
-					db.ref().update(updates)
-				})
-				.catch(error => {
-					console.error(`selectVoteAnswer error: ${error}`)
-				})
+				db.ref().update(updates)
+			})
+			.catch(error => {
+				console.error(`selectVoteAnswer error: ${error}`)
+			})
 		}
 	}
 
-	module.sendResult = function(req, res) {
+	module.sendResult = function (req, res) {
 		db.ref('canAnswer').set(false)
 		db.ref('canEnter').set(false)
 		db.ref('playing').set(false)
@@ -658,7 +658,7 @@ module.exports = function(util, messengerFunctions) {
 			})
 	}
 
-	module.restart = function(req, res) {
+	module.restart = function (req, res) {
 		db.ref('currentQuiz').set(-1)
 		db.ref('canEnter').set(false)
 		db.ref('canAnswer').set(false)
@@ -708,7 +708,7 @@ module.exports = function(util, messengerFunctions) {
   }
 	*/
 
-	module.readLog = function(req, res) {
+	module.readLog = function (req, res) {
 		let date = req.query['date']
 
 		if (!date) res.json({ error: 'please specify date param' })
@@ -760,7 +760,7 @@ module.exports = function(util, messengerFunctions) {
 	}
 
 	// this function create coupon for users that shares our post
-	module.sendCouponOfSharedPost = function(req, res) {
+	module.sendCouponOfSharedPost = function (req, res) {
 		// get ids of users that share target post
 		getSharedPostsByApp(req.query.pageID, req.query.postID, req.accessToken)
 			.then(data => {
@@ -883,7 +883,7 @@ module.exports = function(util, messengerFunctions) {
 			})
 	}
 
-	module.requestCouponOfSharedPosts = function(req, res) {
+	module.requestCouponOfSharedPosts = function (req, res) {
 		// get ids of users that share target post
 		getSharedPostsByApp(req.query.pageID, req.query.postID, req.accessToken)
 			.then(data => {
@@ -1006,7 +1006,7 @@ module.exports = function(util, messengerFunctions) {
 			})
 	}
 
-	module.assignCounponNumber = function(req, res) {
+	module.assignCounponNumber = function (req, res) {
 		db
 			.ref('/users')
 			.once('value')
@@ -1073,7 +1073,7 @@ module.exports = function(util, messengerFunctions) {
 			})
 	}
 
-	module.getCouponPair = function(req, res) {
+	module.getCouponPair = function (req, res) {
 		if (!req.query['couponNumber'] || isNaN(req.query['couponNumber'])) res.json({ error: 'Invalid param', message: 'please specify couponNumber' })
 		else {
 			let couponNumber = parseInt(req.query['couponNumber'])
@@ -1101,7 +1101,7 @@ module.exports = function(util, messengerFunctions) {
 		}
 	}
 
-	module.sendCouponNumber = function(req, res) {
+	module.sendCouponNumber = function (req, res) {
 		db
 			.ref('couponPair')
 			.once('value')
@@ -1185,7 +1185,7 @@ module.exports = function(util, messengerFunctions) {
 			})
 	}
 
-	module.addWinner = function(req, res) {
+	module.addWinner = function (req, res) {
 		let couponNumber = req.query['couponNumber']
 		if (!couponNumber) res.json({ message: 'invalid param' })
 		else {
@@ -1211,7 +1211,7 @@ module.exports = function(util, messengerFunctions) {
 		}
 	}
 
-	module.sendMessageToWhoGetSmallPrize = function(req, res) {
+	module.sendMessageToWhoGetSmallPrize = function (req, res) {
 		let couponNumber = req.query['couponNumber']
 		if (!couponNumber) res.json({ message: 'invalid param' })
 		else {
@@ -1241,7 +1241,7 @@ module.exports = function(util, messengerFunctions) {
 		}
 	}
 
-	module.sendCoupon = function(req, res) {
+	module.sendCoupon = function (req, res) {
 		if (req.query['approveCommand'] != 'IAgreeToGiveTheseCouponToPlayersWhoMetRequirement') res.json({ error: "you don't have permission" })
 		else if (!req.query['dateOfEvent']) res.json({ error: 'invalid parameters' })
 		else {
@@ -1454,7 +1454,7 @@ module.exports = function(util, messengerFunctions) {
 		}
 	}
 
-	module.updateCouponBalanceToUsers = function(req, res) {
+	module.updateCouponBalanceToUsers = function (req, res) {
 		let date = req.query['dateOfEvent']
 		if (!date) res.json({ error: 'invalid parameters' })
 		else {
@@ -1536,7 +1536,7 @@ module.exports = function(util, messengerFunctions) {
 		}
 	}
 
-	module.sendToAll = function(req, res) {
+	module.sendToAll = function (req, res) {
 		let batchRequests = []
 
 		db
@@ -1575,7 +1575,7 @@ module.exports = function(util, messengerFunctions) {
 
 	// ----------------------------------- WEB API
 
-	module.addNewUserFromWeb = function(req, res, messenger_env) {
+	module.addNewUserFromWeb = function (req, res, messenger_env) {
 		let uid = req.body.userID // || req.query['xuid']
 		let firebaseAuth = req.body.firebaseKey
 
@@ -1627,7 +1627,7 @@ module.exports = function(util, messengerFunctions) {
 		}
 	}
 
-	module.answerFromWeb = function(req, res) {
+	module.answerFromWeb = function (req, res) {
 		let PSID = req.body.PSID
 		let answer = req.body.answer
 		let normalizedAnswer = answer.trim().toLowerCase() // for string answer
