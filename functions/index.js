@@ -134,7 +134,22 @@ exports.addCoupon = functions.https.onRequest((req, res) => {
 */
 
 // ------------------------------
+exports.addTemplateMessage = functions.https.onRequest(function(req,res){
+	cors(req,res,()=>{
 
+
+
+		if(req.query.adminApproval!="isTrue8768"){
+			return res.status(403).json({})
+			}
+			httpsFunctions.addTemplateMessage(req,res)
+
+
+		}
+
+
+	);
+});
 exports.testFrontFunctionFacebook = functions.https.onRequest(function (req, res) {
 	cors(req, res, () => {
 		if (req.method != 'POST') {

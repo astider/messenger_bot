@@ -6,7 +6,11 @@ const axios = require('axios')
 const messengerTemplates = require('./FBMessageTemplate/templates.js')
 const db = firebaseInit.admin.database()
 
+<<<<<<< HEAD
 const basicMessage = messengerTemplates.textMessage('ข้อความ')
+=======
+const basicMessage = messengerTemplates.textMessage("ข้อความ")
+>>>>>>> 99cd67f786618c8599053e60a37d02a88202c54e
 
 
 function axiousRequestForFBSharedPost (startURL){
@@ -173,7 +177,7 @@ module.exports = function (util, messengerFunctions) {
       if (!userNotFold){
         return res.status(404).json({ error:'ไม่พบเจอในระบบ' })
       }
-          let coupon = 0;
+          let coupon=0;
           let usersData = userNotFold.val()
           let couponIsAdded = false;
       						let userKey;
@@ -181,7 +185,7 @@ module.exports = function (util, messengerFunctions) {
                   var date = '2017-08-28'
                     Object.keys(usersData).map(key => {
                       userKey = key;
-                      coupon = usersData[key].coupon;
+                      coupon=usersData[key].coupon;
                       if (usersData[key].couponHistory) {
 
                         if (!usersData[key].couponHistory[date]){
@@ -189,7 +193,7 @@ module.exports = function (util, messengerFunctions) {
                           console.log('user has coupon history, but not with the date and postID')
                           couponIsAdded = true
                           usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-                          coupon = usersData[key].coupon;
+                          coupon=usersData[key].coupon;
                           usersData[key].couponHistory[date] = {
                             [postID]:true
                           }
@@ -199,14 +203,14 @@ module.exports = function (util, messengerFunctions) {
                           couponIsAdded = true
 
                           usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-                          coupon = usersData[key].coupon;
+                          coupon=usersData[key].coupon;
                           usersData[key].couponHistory[date][postID] = true
                         }
                       }
                       else {
                         couponIsAdded = true;
                           usersData[key].coupon = (usersData[key].coupon == null) ? 1 : usersData[key].coupon + 1
-                          coupon = usersData[key].coupon;
+                          coupon=usersData[key].coupon;
                         usersData[key].couponHistory = {
                           [date]: {
                             [postID]:true
@@ -242,23 +246,23 @@ module.exports = function (util, messengerFunctions) {
     })
 	}
 	
-	module.addMessageTemplates = function (req,res){
+	module.addMessageTemplates = function(req,res){
 		let type = req.body.messageType
 		let name = req.body.name
 		let message;
-		if (type == 'text'){
-			if (!req.body.message){
+		if(type=="text"){
+			if(!req.body.message){
 				return res.status(500).json({})
 			}
 			message = messengerTemplates.textMessage(req.body.message)
 		}
-		else if (type == 'image'){
-			if (!req.body.URL){
+		else if (type=="image"){
+			if(!req.body.URL){
 				return res.status(500).json({})
 			}
 			message = messengerTemplates.imageMessage(URL)
 		}
-		else if (type == 'quick_reply'){
+		else if (type=="quick_reply"){
 			// force type of quick reply to "text" only
 			// var obj = {
 			// 	content_type: 'text',
@@ -274,19 +278,19 @@ module.exports = function (util, messengerFunctions) {
 				]
 			
 			*/
-			let quickRepliesArray = [];
-			if (!req.body.headerText){
+			let quickRepliesArray=[];
+			if(!req.body.headerText){
 				return res.status(500).json({})
 			}
-			if (!Array.isArray(req.body.quickReplies)){
+			if(!Array.isArray(req.body.quickReplies)){
 			   return res.status(500).json({})
 			}
-			if (req.body.quickReplies.length > 11 || req.body.quickReplies.length <= 0 ){
+			if(req.body.quickReplies.length>11 ||req.body.quickReplies.length<=0 ){
 				return res.status(500).json({})
 			}
-			for (let m = 0; m < req.body.quickReplies.length;m++){
-				let curReply = req.body.quickReplies[m]
-				if (!curReply.title || !curReply.payload){
+			for(let m = 0; m<req.body.quickReplies.length;m++){
+				let curReply=req.body.quickReplies[m]
+				if(!curReply.title || !curReply.payload){
 					return res.status(500).json({})
 				}
 				quickRepliesArray.push(messengerTemplates.quickReplyObject(curReply.title,curReply.payload,curReply.imgURL))
