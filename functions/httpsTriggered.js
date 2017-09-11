@@ -617,13 +617,19 @@ module.exports = function (util, messengerFunctions) {
 				db.ref('participants').update(updates)
 				.then(() => {
 					console.log('update completed')
-					res.end()
+					res.json({
+						error: null,
+						message: 'updated!'
+					})
 				})
 
 			})
 			.catch(error => {
 				console.error(`selectVoteAnswer error: ${error}`)
-				res.end()
+				res.json({
+					error: error,
+					message: 'error found'
+				})
 			})
 		}
 	}
