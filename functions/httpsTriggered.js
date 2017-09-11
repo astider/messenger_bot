@@ -3,7 +3,7 @@ const messengerAPI = require('./API/messengerProfile.js')
 const userManagementAPI = require('./API/userManagement.js')
 const param = require('jquery-param')
 const axios = require('axios')
-
+const messengerTemplates = require('./FBMessageTemplate/templates.js')
 const db = firebaseInit.admin.database()
 
 
@@ -239,7 +239,17 @@ module.exports = function (util, messengerFunctions) {
       console.log(error)
       return res.status(500).json({})
     })
-  }
+	}
+	
+	module.addMessageTemplates = function(req,res){
+		// this function add message template to database
+		/*
+			The structure
+		*/
+		
+
+
+	}
   // --------- START HERE
   module.getOverallStatus = function (req, res) {
 
