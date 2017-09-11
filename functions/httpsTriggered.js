@@ -268,11 +268,8 @@ module.exports = function (util, messengerFunctions) {
 				|-'welcome'-|
 										|-type:""
 		*/
-		let messageObject = {
-			type: req.body.messageType,
-			message: message
-		}
-		db.ref(`messageTemplates/${name}`).set(messageObject)
+		
+		db.ref(`messageTemplates/${name}`).set(message)
 		return res.json({ error: null })
 	}
 	// --------- START HERE
