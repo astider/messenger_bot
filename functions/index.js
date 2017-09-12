@@ -38,38 +38,42 @@ console.log('STARTING SERVICE')
 
 // ----------------------- Cloud Functions ------------------------
 
-function _getParticipants () {
+function _getParticipants() {
 	return db.ref('participants').once('value')
 }
 
-function _getQuiz () {
+function _getQuiz() {
 	return db.ref('quiz').once('value')
 }
 
-function _getFireQuizAt () {
+function _getFireQuizAt() {
 	return db.ref('fireQuizAt').once('value')
 }
 
-function _getAdmin () {
+function _getAdmin() {
 	return db.ref('admin').once('value')
 }
-function _getAllUsers () {
+
+function _getAllUsers() {
 	return db.ref('users').once('value')
 }
-function _getTesters () {
+
+function _getTesters() {
 	return db.ref('tester').once('value')
 }
-function _getBatchMessageHistory () {
+
+function _getBatchMessageHistory() {
 	return db.ref('batchMessageArray/messages').once('value')
 }
-function _setBatchMessageHistory (messageArray, firebaseKey) {
+
+function _setBatchMessageHistory(messageArray, firebaseKey) {
 	db.ref(`batchMessageArray/${firebaseKey}`).set(messageArray)
 }
-function _getTemplateMessageByName(name){
+function _getTemplateMessageByName(name) {
 	db.ref(`messageTemplates/${name}`)
 }
 
-function _getStatus () {
+function _getStatus() {
 	return new Promise((resolve, reject) => {
 		let canEnter = false
 		let playing = false
@@ -114,34 +118,9 @@ function _getStatus () {
 	})
 }
 
-/*
-exports.addCoupon = functions.https.onRequest((req, res) => {
-
-	db.ref('users').once('value')
-	.then(us => {
-		let users = us.val()
-
-		for (let key in users) {
-			users[key].coupon = 0
-		}
-
-		return db.ref('users').set(users)
-
-	})
-	.then(() => {
-		res.send('success')
-	})
-	.catch(error => {
-		console.log(`error testChecker: ${error}`)
-		res.send('failed')
-	})
-
-})
-*/
-
 // ------------------------------
 
-exports.addTemplateMessage = functions.https.onRequest(function (req, res) {
+exports.addTemplateMessage = functions.https.onRequest(function(req, res) {
 	cors(req, res, () => {
 		if (req.method != 'POST') {
 			return res.status(403).json({})
@@ -153,7 +132,8 @@ exports.addTemplateMessage = functions.https.onRequest(function (req, res) {
 		httpsFunctions.addTemplateMessage(req, res)
 	})
 })
-exports.testFrontFunctionFacebook = functions.https.onRequest(function (req, res) {
+
+exports.testFrontFunctionFacebook = functions.https.onRequest(function(req, res) {
 	cors(req, res, () => {
 		if (req.method != 'POST') {
 			return res.status(403).json({})
@@ -174,7 +154,8 @@ exports.testFrontFunctionFacebook = functions.https.onRequest(function (req, res
 		// })
 	})
 })
-exports.viewIfUserSharePost = functions.https.onRequest(function (req, res) {
+
+exports.viewIfUserSharePost = functions.https.onRequest(function(req, res) {
 	if (req.method != 'GET') {
 		return res.status(403).json({})
 	}
@@ -188,7 +169,8 @@ exports.viewIfUserSharePost = functions.https.onRequest(function (req, res) {
 		httpsFunctions.testCheckUserSharedPost(req, res)
 	})
 })
-exports.testViewSharedPosts = functions.https.onRequest(function (req, res) {
+
+exports.testViewSharedPosts = functions.https.onRequest(function(req, res) {
 	if (req.method != 'GET') {
 		return res.status(403).json({})
 	}
@@ -218,13 +200,13 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) =>
 		// Make sure this is a page subscription
 		if (data.object === 'page') {
 			// Iterate over each entry - there may be multiple if batched
-			data.entry.forEach(function (entry) {
+			data.entry.forEach(function(entry) {
 				let pageID = entry.id
 				let timeOfEvent = entry.time
 				console.log(`page id [${pageID}] , TOE ${timeOfEvent}`)
 
 				// Iterate over each messaging event
-				entry.messaging.forEach(function (event) {
+				entry.messaging.forEach(function(event) {
 					if (event.message) {
 						receivedMessage(event)
 						// } else if (event.delivery) {
@@ -477,7 +459,7 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 				if (!quiz)
 					res.json({
 						error: 'quiz not ready, try again later',
-						quiz: quizSnapshot.val()
+						quiz: quiz
 					})
 				else if (!participants) res.json({ error: 'no participants, try again later' })
 				else {
@@ -584,38 +566,39 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 			})
 	})
 })
-exports.getAllTemplateMessages = functions.https.onRequest((req, res) => {
 
-		return res.status(404).json({})
+exports.getAllTemplateMessages = functions.https.onRequest((req, res) => {
+	return res.status(404).json({})
 
 	cors(req, res, () => {
-		db.ref("messageTemplates").once('value').then(snapshot=>{
-			let allMessages
-			if(!snapshot){
-				return res.json({messages:{}})
-			}
-			allMessages = snapshot.val()
-			let flattened = {}
-			Object.keys(allMessages).forEach(message=>{
-				flattened[message]={}
-				// console.log(message)
-				Object.keys(allMessages[message]['message']).forEach(attr=>{
-					// console.log(message+" "+attr)
-					flattened[message][attr]=allMessages[message]['message'][attr]
+		db
+			.ref('messageTemplates')
+			.once('value')
+			.then(snapshot => {
+				let allMessages
+				if (!snapshot) {
+					return res.json({ messages: {} })
+				}
+				allMessages = snapshot.val()
+				let flattened = {}
+				Object.keys(allMessages).forEach(message => {
+					flattened[message] = {}
+					// console.log(message)
+					Object.keys(allMessages[message]['message']).forEach(attr => {
+						// console.log(message+" "+attr)
+						flattened[message][attr] = allMessages[message]['message'][attr]
+					})
 				})
-			});
-			return res.json(flattened)
-
-
-		})
-		.catch(err=>{
-			return res.status(500).json({error:err})
-		})
-
+				return res.json(flattened)
+			})
+			.catch(err => {
+				return res.status(500).json({ error: err })
+			})
 	})
-});
+})
+
 exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
-	if(req.method!="POST"){
+	if (req.method != 'POST') {
 		return res.status(404).json({})
 	}
 	cors(req, res, () => {
@@ -675,8 +658,9 @@ exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 			})
 	})
 })
+
 exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
-	if(req.method!="POST"){
+	if (req.method != 'POST') {
 		return res.status(404).json({})
 	}
 	cors(req, res, () => {
@@ -737,11 +721,11 @@ exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
 
 // ------------------- Messenger Function
 
-function sendBatchMessage (reqPack) {
+function sendBatchMessage(reqPack) {
 	sendBatchMessageWithDelay(reqPack, 0)
 }
 
-function sendBatchMessageWithDelay (reqPack, delay) {
+function sendBatchMessageWithDelay(reqPack, delay) {
 	// REQUEST FORMAT (reqPack must be array of data like this)
 	/*
 
@@ -765,7 +749,7 @@ function sendBatchMessageWithDelay (reqPack, delay) {
 	let batchLimit = 50
 
 	for (let i = 0; i < reqPack.length; i += batchLimit) {
-		setTimeout(function () {
+		setTimeout(function() {
 			FB.batch(reqPack.slice(i, i + batchLimit), (error, res) => {
 				if (error) {
 					console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
@@ -788,7 +772,7 @@ function sendBatchMessageWithDelay (reqPack, delay) {
 	}
 }
 
-function sendBatchMessageWithDelay2 (reqPack, delay) {
+function sendBatchMessageWithDelay2(reqPack, delay) {
 	//
 	// FB API call by page is tied to page rating...
 	//
@@ -816,8 +800,8 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 	let maxIncre = Math.ceil(reqPack.length / batchLimit)
 
 	for (let i = 0; i < maxIncre; i++) {
-		(function (i) {
-			setTimeout(function () {
+		;(function(i) {
+			setTimeout(function() {
 				console.log(`sending batch ${i + 1}/${maxIncre}`)
 				console.log(`slicing is ${i * 50}/${i * 50 + batchLimit} from all of ${reqPack.length}`)
 				FB.batch(reqPack.slice(i * 50, i * 50 + batchLimit), (error, res) => {
@@ -844,7 +828,7 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 	}
 }
 
-function sendQuickReplies (recipientId, quickReplies) {
+function sendQuickReplies(recipientId, quickReplies) {
 	let messageData = {
 		recipient: {
 			id: recipientId
@@ -854,7 +838,7 @@ function sendQuickReplies (recipientId, quickReplies) {
 	callSendAPI(messageData)
 }
 
-function sendTextMessage (recipientId, messageText) {
+function sendTextMessage(recipientId, messageText) {
 	let messageData = {
 		recipient: {
 			id: recipientId
@@ -868,7 +852,7 @@ function sendTextMessage (recipientId, messageText) {
 	callSendAPI(messageData)
 }
 
-function callSendAPI (messageData) {
+function callSendAPI(messageData) {
 	// console.log(`message data : ${JSON.stringify(messageData)}`)
 	axios({
 		method: 'POST',
@@ -899,7 +883,7 @@ function callSendAPI (messageData) {
 		})
 }
 
-function sendCascadeMessage (id, textArray) {
+function sendCascadeMessage(id, textArray) {
 	textArray
 		.reduce((promiseOrder, message) => {
 			return promiseOrder.then(() => {
@@ -918,7 +902,7 @@ function sendCascadeMessage (id, textArray) {
 		)
 }
 
-function addNewUser (newUserId) {
+function addNewUser(newUserId) {
 	console.log('enter addNewUser')
 	let userProfile = null
 
@@ -970,7 +954,7 @@ function addNewUser (newUserId) {
 		})
 }
 
-function receivedMessage (event) {
+function receivedMessage(event) {
 	let senderID = event.sender.id
 	let recipientID = event.recipient.id
 	let timeOfMessage = event.timestamp
@@ -994,57 +978,21 @@ function receivedMessage (event) {
 	let admins = null
 
 	// sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans ;)')
+	let theTimeIs = new Date().getTime()
+
+	if (theTimeIs <= 1505278800000) {
+		/*
+		db.ref('userIds').once('value')
+		.then(uidSnap => {
+
+			let uidWithKey = uidSnap.val()
+			let uids = Object.keys(uidWithKey).map(key => { return uidWithKey[key] })
+
+		})
+		*/
+	} else sendTextMessage(senderID, 'หมดเวลาลงทะเบียนร่วมเล่น แชทชิงโชค ซีซัน 2 ล่วงหน้าแล้ว')
+
 	/*
-	db.ref(`/winners/${senderID}`).once('value')
-	.then(winnerSnap => {
-
-		let winnerInfo = winnerSnap.val()
-
-		if (winnerInfo == null || !winnerInfo.approved) {} // sendTextMessage(senderID, 'แชทชิงโชคกำลังจะจับรางวัลหาผู้โชคดี Galaxy Note 8 คืนนี้เวลา 2 ทุ่ม ไว้เจอกันนะ') // sendTextMessage(senderID, 'คุณไม่ใช่ผู้ได้รับรางวัล')
-		else {
-
-			
-
-			if (winnerInfo.confirm) sendTextMessage(senderID, 'คุณได้ยืนยันสิทธิ์รับรางวัลแล้ว')
-			else {
-				
-				if (messageQRPayload == 'noValue') {
-					
-					let confirmAns = {
-						text: `ยินดีด้วยคุณ ${winnerInfo.firstName} \r\nกรุณากดยืนยันสิทธิ์ในการรับรางวัล หาไม่ได้กดจะถือว่าคุณสละสิทธิ์`,
-						quick_replies: [
-							{
-								content_type: 'text',
-								title: 'ยืนยันสิทธิ์',
-								payload: 'winnerConfirmed'
-							}
-						]
-					}
-
-					sendQuickReplies(senderID, confirmAns)
-
-				}
-				else if (messageQRPayload == 'winnerConfirmed') {
-
-					winnerInfo.confirm = true
-					db.ref(`/winners/${senderID}`).set(winnerInfo)
-					.then(() => {
-						console.log(`user ${senderID} confirmed the right to get prize`)
-						sendTextMessage(senderID, 'ทางทีมงานได้รับการยืนยันเรียบร้อย รอการติดต่อกลับไปนะ :D')
-					})
-
-				}
-
-			}
-
-		}
-		
-	})
-	.catch(error => {
-		console.error(`receive message error ${error}`)
-	})
-*/
-
 	_getAdmin()
 		.then(snapshot => {
 			admins = snapshot.val()
@@ -1410,6 +1358,8 @@ function receivedMessage (event) {
 		.catch(error => {
 			console.error(`there's an error in receiving message: ${error}`)
 		})
+
+		*/
 }
 
 // ------------------------ TIMER  -------------------------
