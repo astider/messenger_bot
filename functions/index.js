@@ -65,6 +65,9 @@ function _getBatchMessageHistory () {
 function _setBatchMessageHistory (messageArray, firebaseKey) {
 	db.ref(`batchMessageArray/${firebaseKey}`).set(messageArray)
 }
+function _getTemplateMessageByName(name){
+	db.ref(`messageTemplates/${name}`)
+}
 
 function _getStatus () {
 	return new Promise((resolve, reject) => {
@@ -582,9 +585,9 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 	})
 })
 exports.getAllTemplateMessages = functions.https.onRequest((req, res) => {
-	if(req.method!="GET"){
+
 		return res.status(404).json({})
-	}
+
 	cors(req, res, () => {
 		db.ref("messageTemplates").once('value').then(snapshot=>{
 			let allMessages
