@@ -269,7 +269,7 @@ module.exports = function (util, messengerFunctions) {
 										|-type:""
 		*/
 		
-		db.ref(`messageTemplates/${name}`).set(message)
+		db.ref(`messageTemplates/${name}`).set(message['message'])
 		return res.json({ error: null })
 	}
 	// --------- START HERE
