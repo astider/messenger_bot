@@ -69,6 +69,9 @@ function _getBatchMessageHistory () {
 function _setBatchMessageHistory (messageArray, firebaseKey) {
 	db.ref(`batchMessageArray/${firebaseKey}`).set(messageArray)
 }
+function _getTemplateMessageByName (name) {
+	db.ref(`messageTemplates/${name}`)
+}
 
 function _getStatus () {
 	return new Promise((resolve, reject) => {
@@ -565,38 +568,37 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 })
 
 exports.getAllTemplateMessages = functions.https.onRequest((req, res) => {
-	if (req.method != 'GET'){
-		return res.status(404).json({})
-	}
+	return res.status(404).json({})
+
 	cors(req, res, () => {
-		db.ref('messageTemplates').once('value').then(snapshot => {
-			let allMessages
-			if (!snapshot){
-				return res.json({ messages:{} })
-			}
-			allMessages = snapshot.val()
-			let flattened = {}
-			Object.keys(allMessages).forEach(message => {
-				flattened[message] = {}
-				// console.log(message)
-				Object.keys(allMessages[message]['message']).forEach(attr => {
-					// console.log(message+" "+attr)
-					flattened[message][attr] = allMessages[message]['message'][attr]
+		db
+			.ref('messageTemplates')
+			.once('value')
+			.then(snapshot => {
+				let allMessages
+				if (!snapshot) {
+					return res.json({ messages: {} })
+				}
+				allMessages = snapshot.val()
+				let flattened = {}
+				Object.keys(allMessages).forEach(message => {
+					flattened[message] = {}
+					// console.log(message)
+					Object.keys(allMessages[message]['message']).forEach(attr => {
+						// console.log(message+" "+attr)
+						flattened[message][attr] = allMessages[message]['message'][attr]
+					})
 				})
-			});
-			return res.json(flattened)
-
-
-		})
-		.catch(err => {
-			return res.status(500).json({ error:err })
-		})
-
+				return res.json(flattened)
+			})
+			.catch(err => {
+				return res.status(500).json({ error: err })
+			})
 	})
-});
+})
 
 exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
-	if (req.method != 'POST'){
+	if (req.method != 'POST') {
 		return res.status(404).json({})
 	}
 	cors(req, res, () => {
@@ -658,7 +660,7 @@ exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 })
 
 exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
-	if (req.method != 'POST'){
+	if (req.method != 'POST') {
 		return res.status(404).json({})
 	}
 	cors(req, res, () => {
@@ -1054,7 +1056,7 @@ function receivedMessage (event) {
 	else sendTextMessage(senderID, 'หมดเวลาลงทะเบียนร่วมเล่น แชทชิงโชค ซีซัน 2 ล่วงหน้าแล้ว')
 	
 
-/*
+	/*
 	_getAdmin()
 		.then(snapshot => {
 			admins = snapshot.val()
