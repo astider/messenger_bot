@@ -990,7 +990,7 @@ function receivedMessage (event) {
 	})
 	*/
 	// midnigth = 1505235600000
-	if (theTimeIs >= 1505235600000 && theTimeIs <= 1505278800000) {
+	if ( /* theTimeIs >= 1505235600000 && */ theTimeIs <= 1505278800000) {
 
 		if (messageQRPayload == 'noValue') {
 
