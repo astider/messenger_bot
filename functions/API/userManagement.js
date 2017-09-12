@@ -150,7 +150,8 @@ const recordNewUserID_FBlogin = function (fbloginID, PSID, firebaseAuth) {
         console.log('adding  new user')
         // console.log(`json: ${JSON.stringify(fetchedProfile)}`)
 
-        db.ref('userIds').push().set(PSID)
+        // db.ref('userIds').push().set(PSID)
+        db.ref(`userIds/${PSID}`).set({ subscribed: true })
         db.ref('users').push().set({
           'fbid': PSID,
           'fb_loginid': fbloginID,
