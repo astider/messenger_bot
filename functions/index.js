@@ -1041,6 +1041,9 @@ function receivedMessage (event) {
 
 					let key = Object.keys(user)[0]
 					db.ref(`users/${key}/iPhoneEarlyBirdCoupon`).set(1)
+					.then(() => {
+						sendTextMessage(senderID, 'ลงทะเบียนเรียบร้อยจ้า รอติดตามอัพเดตเกี่ยวกับกิจกรรมผ่านทางเพจ Droidsans นะ ;)')
+					})
 
 				}
 
