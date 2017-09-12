@@ -53,15 +53,19 @@ function _getFireQuizAt () {
 function _getAdmin () {
 	return db.ref('admin').once('value')
 }
+
 function _getAllUsers () {
 	return db.ref('users').once('value')
 }
+
 function _getTesters () {
 	return db.ref('tester').once('value')
 }
+
 function _getBatchMessageHistory () {
 	return db.ref('batchMessageArray/messages').once('value')
 }
+
 function _setBatchMessageHistory (messageArray, firebaseKey) {
 	db.ref(`batchMessageArray/${firebaseKey}`).set(messageArray)
 }
@@ -111,31 +115,6 @@ function _getStatus () {
 	})
 }
 
-/*
-exports.addCoupon = functions.https.onRequest((req, res) => {
-
-	db.ref('users').once('value')
-	.then(us => {
-		let users = us.val()
-
-		for (let key in users) {
-			users[key].coupon = 0
-		}
-
-		return db.ref('users').set(users)
-
-	})
-	.then(() => {
-		res.send('success')
-	})
-	.catch(error => {
-		console.log(`error testChecker: ${error}`)
-		res.send('failed')
-	})
-
-})
-*/
-
 // ------------------------------
 
 exports.addTemplateMessage = functions.https.onRequest(function (req, res) {
@@ -150,6 +129,7 @@ exports.addTemplateMessage = functions.https.onRequest(function (req, res) {
 		httpsFunctions.addTemplateMessage(req, res)
 	})
 })
+
 exports.testFrontFunctionFacebook = functions.https.onRequest(function (req, res) {
 	cors(req, res, () => {
 		if (req.method != 'POST') {
@@ -171,6 +151,7 @@ exports.testFrontFunctionFacebook = functions.https.onRequest(function (req, res
 		// })
 	})
 })
+
 exports.viewIfUserSharePost = functions.https.onRequest(function (req, res) {
 	if (req.method != 'GET') {
 		return res.status(403).json({})
@@ -185,6 +166,7 @@ exports.viewIfUserSharePost = functions.https.onRequest(function (req, res) {
 		httpsFunctions.testCheckUserSharedPost(req, res)
 	})
 })
+
 exports.testViewSharedPosts = functions.https.onRequest(function (req, res) {
 	if (req.method != 'GET') {
 		return res.status(403).json({})
@@ -474,7 +456,7 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 				if (!quiz)
 					res.json({
 						error: 'quiz not ready, try again later',
-						quiz: quizSnapshot.val()
+						quiz: quiz
 					})
 				else if (!participants) res.json({ error: 'no participants, try again later' })
 				else {
@@ -581,38 +563,40 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 			})
 	})
 })
+
 exports.getAllTemplateMessages = functions.https.onRequest((req, res) => {
-	if(req.method!="GET"){
+	if (req.method != 'GET'){
 		return res.status(404).json({})
 	}
 	cors(req, res, () => {
-		db.ref("messageTemplates").once('value').then(snapshot=>{
+		db.ref('messageTemplates').once('value').then(snapshot => {
 			let allMessages
-			if(!snapshot){
-				return res.json({messages:{}})
+			if (!snapshot){
+				return res.json({ messages:{} })
 			}
 			allMessages = snapshot.val()
 			let flattened = {}
-			Object.keys(allMessages).forEach(message=>{
-				flattened[message]={}
+			Object.keys(allMessages).forEach(message => {
+				flattened[message] = {}
 				// console.log(message)
-				Object.keys(allMessages[message]['message']).forEach(attr=>{
+				Object.keys(allMessages[message]['message']).forEach(attr => {
 					// console.log(message+" "+attr)
-					flattened[message][attr]=allMessages[message]['message'][attr]
+					flattened[message][attr] = allMessages[message]['message'][attr]
 				})
 			});
 			return res.json(flattened)
 
 
 		})
-		.catch(err=>{
-			return res.status(500).json({error:err})
+		.catch(err => {
+			return res.status(500).json({ error:err })
 		})
 
 	})
 });
+
 exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
-	if(req.method!="POST"){
+	if (req.method != 'POST'){
 		return res.status(404).json({})
 	}
 	cors(req, res, () => {
@@ -672,8 +656,9 @@ exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 			})
 	})
 })
+
 exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
-	if(req.method!="POST"){
+	if (req.method != 'POST'){
 		return res.status(404).json({})
 	}
 	cors(req, res, () => {
@@ -991,57 +976,25 @@ function receivedMessage (event) {
 	let admins = null
 
 	// sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans ;)')
-	/*
-	db.ref(`/winners/${senderID}`).once('value')
-	.then(winnerSnap => {
+	let theTimeIs = (new Date()).getTime()
+	
+	if (theTimeIs <= 1505278800000) {
 
-		let winnerInfo = winnerSnap.val()
+		/*
+		db.ref('userIds').once('value')
+		.then(uidSnap => {
 
-		if (winnerInfo == null || !winnerInfo.approved) {} // sendTextMessage(senderID, 'แชทชิงโชคกำลังจะจับรางวัลหาผู้โชคดี Galaxy Note 8 คืนนี้เวลา 2 ทุ่ม ไว้เจอกันนะ') // sendTextMessage(senderID, 'คุณไม่ใช่ผู้ได้รับรางวัล')
-		else {
+			let uidWithKey = uidSnap.val()
+			let uids = Object.keys(uidWithKey).map(key => { return uidWithKey[key] })
 
-			
-
-			if (winnerInfo.confirm) sendTextMessage(senderID, 'คุณได้ยืนยันสิทธิ์รับรางวัลแล้ว')
-			else {
-				
-				if (messageQRPayload == 'noValue') {
-					
-					let confirmAns = {
-						text: `ยินดีด้วยคุณ ${winnerInfo.firstName} \r\nกรุณากดยืนยันสิทธิ์ในการรับรางวัล หาไม่ได้กดจะถือว่าคุณสละสิทธิ์`,
-						quick_replies: [
-							{
-								content_type: 'text',
-								title: 'ยืนยันสิทธิ์',
-								payload: 'winnerConfirmed'
-							}
-						]
-					}
-
-					sendQuickReplies(senderID, confirmAns)
-
-				}
-				else if (messageQRPayload == 'winnerConfirmed') {
-
-					winnerInfo.confirm = true
-					db.ref(`/winners/${senderID}`).set(winnerInfo)
-					.then(() => {
-						console.log(`user ${senderID} confirmed the right to get prize`)
-						sendTextMessage(senderID, 'ทางทีมงานได้รับการยืนยันเรียบร้อย รอการติดต่อกลับไปนะ :D')
-					})
-
-				}
-
-			}
-
-		}
+		})
+		*/
 		
-	})
-	.catch(error => {
-		console.error(`receive message error ${error}`)
-	})
-*/
+	}
+	else sendTextMessage(senderID, 'หมดเวลาลงทะเบียนร่วมเล่น แชทชิงโชค ซีซัน 2 ล่วงหน้าแล้ว')
+	
 
+/*
 	_getAdmin()
 		.then(snapshot => {
 			admins = snapshot.val()
@@ -1407,6 +1360,8 @@ function receivedMessage (event) {
 		.catch(error => {
 			console.error(`there's an error in receiving message: ${error}`)
 		})
+
+		*/
 }
 
 // ------------------------ TIMER  -------------------------

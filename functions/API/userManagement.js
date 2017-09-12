@@ -17,7 +17,7 @@ const getAllID = function () {
         let obj = snapshot.val()
 
         for (let key in obj)
-          idArray.push(obj[key])
+          idArray.push(key)
       
         return resolve(idArray)
       }
@@ -55,7 +55,7 @@ const recordNewUserID = function (userId) {
       console.log('adding  new user')
       // console.log(`json: ${JSON.stringify(fetchedProfile)}`)
 
-      db.ref('userIds').push().set(userId)
+      db.ref(`userIds/${userId}`).set({ subscribed: true })
       db.ref('users').push().set({
         'fbid': userId,
         'firstName': fetchedProfile.first_name,
