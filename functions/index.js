@@ -950,7 +950,9 @@ function addNewUser (newUserId) {
 
 				sendCascadeMessage(newUserId, texts)
 				*/
-				if ( /* theTimeIs >= 1505235600000 && */ theTimeIs <= 1505278800000) {
+				let theTimeIs = (new Date()).getTime()
+
+				if ( theTimeIs >= 1505235600000 && theTimeIs <= 1505278800000) {
 
 					let regist = {
 						text: 'ต้องการลงทะเบียนล่วงหน้าเพื่อร่วมกิจกรรม แชทชิงโชค ซีซัน 2 ใช่หรือไม่ ?',
@@ -963,9 +965,9 @@ function addNewUser (newUserId) {
 						]
 					}
 
-					sendQuickReplies(senderID, regist)
+					sendQuickReplies(newUserId, regist)
 
-				} else sendTextMessage(senderID, 'หมดเวลาลงทะเบียนล่วงหน้าสำหรับ แชทชิงโชค ซีซัน 2 แล้วจ้า \r\n แต่ไม่เป็นไรนะ ยังสามารถร่วมเล่นได้อยู่ รออ่านอัพเดตเกี่ยวกับกิจกรรมผ่านทางหน้าเพจ Droidsans นะ ;)')
+				} else sendTextMessage(newUserId, 'หมดเวลาลงทะเบียนล่วงหน้าสำหรับ แชทชิงโชค ซีซัน 2 แล้วจ้า \r\n แต่ไม่เป็นไรนะ ยังสามารถร่วมเล่นได้อยู่ รออ่านอัพเดตเกี่ยวกับกิจกรรมผ่านทางหน้าเพจ Droidsans นะ ;)')
 
 			}
 		})
@@ -1010,7 +1012,7 @@ function receivedMessage (event) {
 	})
 	*/
 	// midnigth = 1505235600000
-	if ( /* theTimeIs >= 1505235600000 && */ theTimeIs <= 1505278800000) {
+	if ( theTimeIs >= 1505235600000 && theTimeIs <= 1505278800000) {
 
 		if (messageQRPayload == 'noValue') {
 
