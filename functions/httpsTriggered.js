@@ -600,21 +600,36 @@ module.exports = function (util, messengerFunctions) {
 			})
 			.then(partSnap => {
 				let participants = partSnap.val()
-				let updates = []
+				let updates = {}
 
 				Object.keys(participants).map(key => {
 					let playerAnswerInfo = participants[key].answerPack[currentQuiz]
 
-					if (playerAnswerInfo.ans == selectedAnswer) {
+					if (playerAnswerInfo.ans == selectedAnswer && !playerAnswerInfo.correct) {
 						playerAnswerInfo.correct = true
+						participants[key].point = participants[key].point + 1
+
 						updates[`/${key}/answerPack/${currentQuiz}`] = playerAnswerInfo
+						updates[`/${key}/point`] = participants[key].point
 					}
 				})
 
 				db.ref('participants').update(updates)
+				.then(() => {
+					console.log('update completed')
+					res.json({
+						error: null,
+						message: 'updated!'
+					})
+				})
+
 			})
 			.catch(error => {
 				console.error(`selectVoteAnswer error: ${error}`)
+				res.json({
+					error: error,
+					message: 'error found'
+				})
 			})
 		}
 	}
