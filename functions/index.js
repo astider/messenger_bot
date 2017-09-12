@@ -977,19 +977,79 @@ function receivedMessage (event) {
 
 	// sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans ;)')
 	let theTimeIs = (new Date()).getTime()
+	/*
+	db.ref('promotionCodes').once('value')
+	.then(promoSnap => {
+		let code = promoSnap.val()
+		if(code == 'FREE' || messageText == 'code') {
+
+		}
+		else 
+	})
+	*/
+	// midnigth = 1505235600000
+	if (theTimeIs >= 1505235600000 && theTimeIs <= 1505278800000) {
+
+		if (messageQRPayload == 'noValue') {
+
+			db.ref('users').orderByChild('fbid').equalTo(senderID).once('value')
+			.then(userSnap => {
 	
-	if (theTimeIs <= 1505278800000) {
+				let user = userSnap.val()
+				if (!user || !(Object.keys(user).length > 0)) addNewUser(senderID)
+				else {
+	
+					let key = Object.keys(user)[0]
+					let userInfo = user[key]
 
-		/*
-		db.ref('userIds').once('value')
-		.then(uidSnap => {
+					if (userInfo.iPhoneEarlyBirdCoupon > 0) sendTextMessage(senderID, 'คุณได้รับคูปองจากการลงทะเบียนล่วงหน้าแล้ว')
+					else {
 
-			let uidWithKey = uidSnap.val()
-			let uids = Object.keys(uidWithKey).map(key => { return uidWithKey[key] })
+						let regist = {
+							text: 'ต้องการลงทะเบียนล่วงหน้าเพื่อร่วมกิจกรรม แชทชิงโชค ซีซัน 2 ใช่หรือไม่ ?',
+							quick_replies: [
+								{
+									content_type: 'text',
+									title: 'ลงทะเบียน',
+									payload: 'earlyBirdRegister'
+								}
+							]
+						}
+	
+						sendQuickReplies(senderID, regist)
 
-		})
-		*/
+					}
+
+				}
+	
+			})
+			.catch(error => {
+				console.error(`error while querying userIds: ${error}`)
+			})
+
+		}
+		else if (messageQRPayload == 'earlyBirdRegister') {
+
+			db.ref('users').orderByChild('fbid').equalTo(senderID).once('value')
+			.then(userSnap => {
+
+				let user = userSnap.val()
+				if (!user || !(Object.keys(user).length > 0)) throw 'user info not found'
+				else {
+
+					let key = Object.keys(user)[0]
+					db.ref(`users/${key}/iPhoneEarlyBirdCoupon`).set(1)
+
+				}
+
+			})
+			.catch(error => {
+				console.error(`getting user info error: ${error}`)
+			})
+
+		}
 		
+
 	}
 	else sendTextMessage(senderID, 'หมดเวลาลงทะเบียนร่วมเล่น แชทชิงโชค ซีซัน 2 ล่วงหน้าแล้ว')
 	
