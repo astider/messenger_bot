@@ -592,7 +592,16 @@ exports.getAllTemplateMessages = functions.https.onRequest((req, res) => {
 				return res.json({messages:{}})
 			}
 			allMessages = snapshot.val()
-			return res.json({messages:allMessages})
+			let flattened = {}
+			Object.keys(allMessages).forEach(message=>{
+				flattened[message]={}
+				// console.log(message)
+				Object.keys(allMessages[message]['message']).forEach(attr=>{
+					// console.log(message+" "+attr)
+					flattened[message][attr]=allMessages[message]['message'][attr]
+				})
+			});
+			return res.json(flattened)
 
 
 		})
