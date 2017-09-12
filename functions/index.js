@@ -939,6 +939,8 @@ function addNewUser (newUserId) {
 				}, 1000)
 			} else {
 				// welcome message
+
+				/*
 				let texts = [
 					'ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค : แชทตอบคำถามสุดฮา เจอกันทุกวันจันทร์เวลา 2 ทุ่ม',
 					`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,
@@ -947,6 +949,24 @@ function addNewUser (newUserId) {
 				]
 
 				sendCascadeMessage(newUserId, texts)
+				*/
+				if ( /* theTimeIs >= 1505235600000 && */ theTimeIs <= 1505278800000) {
+
+					let regist = {
+						text: 'ต้องการลงทะเบียนล่วงหน้าเพื่อร่วมกิจกรรม แชทชิงโชค ซีซัน 2 ใช่หรือไม่ ?',
+						quick_replies: [
+							{
+								content_type: 'text',
+								title: 'ลงทะเบียน',
+								payload: 'earlyBirdRegister'
+							}
+						]
+					}
+
+					sendQuickReplies(senderID, regist)
+
+				} else sendTextMessage(senderID, 'หมดเวลาลงทะเบียนล่วงหน้าสำหรับ แชทชิงโชค ซีซัน 2 แล้วจ้า \r\n แต่ไม่เป็นไรนะ ยังสามารถร่วมเล่นได้อยู่ รออ่านอัพเดตเกี่ยวกับกิจกรรมผ่านทางหน้าเพจ Droidsans นะ ;)')
+
 			}
 		})
 		.catch(error => {
@@ -1056,7 +1076,7 @@ function receivedMessage (event) {
 		
 
 	}
-	else sendTextMessage(senderID, 'หมดเวลาลงทะเบียนร่วมเล่น แชทชิงโชค ซีซัน 2 ล่วงหน้าแล้ว')
+	else sendTextMessage(senderID, 'หมดเวลาลงทะเบียนล่วงหน้าสำหรับ แชทชิงโชค ซีซัน 2 แล้วจ้า \r\n แต่ไม่เป็นไรนะ ยังสามารถร่วมเล่นได้อยู่ รออ่านอัพเดตเกี่ยวกับกิจกรรมผ่านทางหน้าเพจ Droidsans นะ ;)')
 	
 
 	/*
