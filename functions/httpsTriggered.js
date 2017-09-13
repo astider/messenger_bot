@@ -268,9 +268,19 @@ module.exports = function (util, messengerFunctions) {
 				|-'welcome'-|
 										|-type:""
 		*/
-		
-		db.ref(`messageTemplates/${name}`).set(message['message'])
-		return res.json({ error: null })
+		// let newMessageKey = db.ref('posts').push().key;
+		db.ref(`messageTypes/${name}`).push(true).key;
+		return db
+		.ref(`messageTypes/${name}`)
+		.limitToLast(1)
+		.on('child_added', snapshot => {
+				db.ref(`messageTemplates/${snapshot.key}`).set(message['message'])
+				return res.json({ error: null })
+		}).catch(e=>{
+
+		});
+		// db.ref(`messageTemplates/${name}`).set(message['message'])
+	
 	}
 	// --------- START HERE
 	module.getOverallStatus = function (req, res) {
