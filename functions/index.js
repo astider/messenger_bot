@@ -1095,16 +1095,16 @@ function receivedMessage(event) {
 					console.error(`getting user info error: ${error}`)
 				})
 		}
-<<<<<<< HEAD
+
 	} else sendTextMessage(senderID, 'หมดเวลาลงทะเบียนร่วมเล่น แชทชิงโชค ซีซัน 2 ล่วงหน้าแล้ว')
-=======
+
 		
 
 	}
 	else if (theTimeIs > 1505278800000) sendTextMessage(senderID, 'หมดเวลาลงทะเบียนล่วงหน้าสำหรับ แชทชิงโชค ซีซัน 2 แล้วจ้า \r\nแต่ไม่เป็นไรนะ ยังสามารถร่วมเล่นได้อยู่ รออ่านอัพเดตเกี่ยวกับกิจกรรมผ่านทางหน้าเพจ Droidsans นะ ;)')
 	else sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans :D')
 	*/
->>>>>>> 080f661eb82620d01226952e56d25247c754c7a1
+
 
 	/*
 	_getAdmin()
