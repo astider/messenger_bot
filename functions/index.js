@@ -69,6 +69,7 @@ function _getBatchMessageHistory () {
 function _setBatchMessageHistory (messageArray, firebaseKey) {
 	db.ref(`batchMessageArray/${firebaseKey}`).set(messageArray)
 }
+
 function _getTemplateMessageByName (name) {
 	db.ref(`messageTemplates/${name}`)
 }
@@ -461,7 +462,10 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 						error: 'quiz not ready, try again later',
 						quiz: quiz
 					})
-				else if (!participants) res.json({ error: 'no participants, try again later' })
+				else if (!participants)
+					res.json({
+						error: 'no participants, try again later'
+					})
 				else {
 					let oldc = status.currentQuiz
 					if (req.query.next == 'true' && status.currentQuiz < quiz.length) {
@@ -577,7 +581,9 @@ exports.getAllTemplateMessages = functions.https.onRequest((req, res) => {
 			.then(snapshot => {
 				let allMessages
 				if (!snapshot) {
-					return res.json({ messages: {} })
+					return res.json({
+						messages: {}
+					})
 				}
 				allMessages = snapshot.val()
 				let flattened = {}
@@ -592,7 +598,9 @@ exports.getAllTemplateMessages = functions.https.onRequest((req, res) => {
 				return res.json(flattened)
 			})
 			.catch(err => {
-				return res.status(500).json({ error: err })
+				return res.status(500).json({
+					error: err
+				})
 			})
 	})
 })
@@ -603,10 +611,14 @@ exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 	}
 	cors(req, res, () => {
 		if (!req.body) {
-			return res.status(400).json({ error: 'no data' })
+			return res.status(400).json({
+				error: 'no data'
+			})
 		}
 		if (!req.body.message) {
-			return res.status(400).json({ error: 'no data' })
+			return res.status(400).json({
+				error: 'no data'
+			})
 		}
 		let users = null
 		let message = req.body.message
@@ -650,7 +662,9 @@ exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 					})
 				})
 				sendBatchMessageWithDelay2(sendMessageBatch, 100)
-				return res.json({ error: null })
+				return res.json({
+					error: null
+				})
 			})
 			.catch(error => {
 				console.log(`there's an error in broadcastMessageTest: ${error}`)
@@ -665,10 +679,14 @@ exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
 	}
 	cors(req, res, () => {
 		if (!req.body) {
-			return res.status(400).json({ error: 'no data' })
+			return res.status(400).json({
+				error: 'no data'
+			})
 		}
 		if (!req.body.message) {
-			return res.status(400).json({ error: 'no data' })
+			return res.status(400).json({
+				error: 'no data'
+			})
 		}
 		let users = null
 		let message = req.body.message
@@ -710,7 +728,9 @@ exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
 					})
 				})
 				sendBatchMessageWithDelay2(sendMessageBatch, 100)
-				return res.json({ error: null })
+				return res.json({
+					error: null
+				})
 			})
 			.catch(error => {
 				console.log(`there's an error in broadcastMessageTest: ${error}`)
@@ -939,7 +959,6 @@ function addNewUser (newUserId) {
 				}, 1000)
 			} else {
 				// welcome message
-
 				/*
 				let texts = [
 					'ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค : แชทตอบคำถามสุดฮา เจอกันทุกวันจันทร์เวลา 2 ทุ่ม',
@@ -1003,7 +1022,7 @@ function receivedMessage (event) {
 	let admins = null
 
 	// sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans ;)')
-	let theTimeIs = (new Date()).getTime()
+	let theTimeIs = new Date().getTime()
 	/*
 	db.ref('promotionCodes').once('value')
 	.then(promoSnap => {
@@ -1018,68 +1037,63 @@ function receivedMessage (event) {
 	
 	if ( theTimeIs <= 1505365200000) {
 
+
 		if (messageQRPayload == 'noValue') {
-
-			db.ref('users').orderByChild('fbid').equalTo(senderID).once('value')
-			.then(userSnap => {
-	
-				let user = userSnap.val()
-				if (!user || !(Object.keys(user).length > 0)) addNewUser(senderID)
-				else {
-	
-					let key = Object.keys(user)[0]
-					let userInfo = user[key]
-
-					if (userInfo.iPhoneEarlyBirdCoupon > 0) sendTextMessage(senderID, 'คุณได้รับคูปองจากการลงทะเบียนล่วงหน้าแล้ว')
+			db
+				.ref('users')
+				.orderByChild('fbid')
+				.equalTo(senderID)
+				.once('value')
+				.then(userSnap => {
+					let user = userSnap.val()
+					if (!user || !(Object.keys(user).length > 0)) addNewUser(senderID)
 					else {
+						let key = Object.keys(user)[0]
+						let userInfo = user[key]
 
-						let regist = {
-							text: 'ต้องการลงทะเบียนล่วงหน้าเพื่อร่วมกิจกรรม แชทชิงโชค ซีซัน 2 ใช่หรือไม่ ?',
-							quick_replies: [
-								{
-									content_type: 'text',
-									title: 'ลงทะเบียน',
-									payload: 'earlyBirdRegister'
-								}
-							]
+						if (userInfo.iPhoneEarlyBirdCoupon > 0) sendTextMessage(senderID, 'คุณได้รับคูปองจากการลงทะเบียนล่วงหน้าแล้ว')
+						else {
+							let regist = {
+								text: 'ต้องการลงทะเบียนล่วงหน้าเพื่อร่วมกิจกรรม แชทชิงโชค ซีซัน 2 ใช่หรือไม่ ?',
+								quick_replies: [
+									{
+										content_type: 'text',
+										title: 'ลงทะเบียน',
+										payload: 'earlyBirdRegister'
+									}
+								]
+							}
+
+							sendQuickReplies(senderID, regist)
 						}
-	
-						sendQuickReplies(senderID, regist)
-
 					}
-
-				}
-	
-			})
-			.catch(error => {
-				console.error(`error while querying userIds: ${error}`)
-			})
-
+				})
+				.catch(error => {
+					console.error(`error while querying userIds: ${error}`)
+				})
+		} else if (messageQRPayload == 'earlyBirdRegister') {
+			db
+				.ref('users')
+				.orderByChild('fbid')
+				.equalTo(senderID)
+				.once('value')
+				.then(userSnap => {
+					let user = userSnap.val()
+					if (!user || !(Object.keys(user).length > 0)) throw 'user info not found'
+					else {
+						let key = Object.keys(user)[0]
+						db
+							.ref(`users/${key}/iPhoneEarlyBirdCoupon`)
+							.set(1)
+							.then(() => {
+								sendTextMessage(senderID, 'ลงทะเบียนเรียบร้อยจ้า รอติดตามอัพเดตเกี่ยวกับกิจกรรมผ่านทางเพจ Droidsans นะ ;)')
+							})
+					}
+				})
+				.catch(error => {
+					console.error(`getting user info error: ${error}`)
+				})
 		}
-		else if (messageQRPayload == 'earlyBirdRegister') {
-
-			db.ref('users').orderByChild('fbid').equalTo(senderID).once('value')
-			.then(userSnap => {
-
-				let user = userSnap.val()
-				if (!user || !(Object.keys(user).length > 0)) throw 'user info not found'
-				else {
-
-					let key = Object.keys(user)[0]
-					db.ref(`users/${key}/iPhoneEarlyBirdCoupon`).set(1)
-					.then(() => {
-						sendTextMessage(senderID, 'ลงทะเบียนเรียบร้อยจ้า รอติดตามอัพเดตเกี่ยวกับกิจกรรมผ่านทางเพจ Droidsans นะ ;)')
-					})
-
-				}
-
-			})
-			.catch(error => {
-				console.error(`getting user info error: ${error}`)
-			})
-
-		}
-		
 
 	}
 	else if (theTimeIs > 1505365200000) sendTextMessage(senderID, 'หมดเวลาลงทะเบียนล่วงหน้าสำหรับ แชทชิงโชค ซีซัน 2 แล้วจ้า \r\nแต่ไม่เป็นไรนะ ยังสามารถร่วมเล่นได้อยู่ รออ่านอัพเดตเกี่ยวกับกิจกรรมผ่านทางหน้าเพจ Droidsans นะ ;)')

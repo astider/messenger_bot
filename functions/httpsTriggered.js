@@ -206,8 +206,11 @@ module.exports = function (util, messengerFunctions) {
 	}
 
 	module.addTemplateMessage = function (req, res) {
-		let type = req.body.messageType
-		let name = req.body.name
+		let type = req.body.category
+		let name = req.body.messageType
+		if(!type || !name){
+			return res.status(500).json({})
+		}
 		let message
 		if (type == 'text') {
 			if (!req.body.payload) {
@@ -268,9 +271,19 @@ module.exports = function (util, messengerFunctions) {
 				|-'welcome'-|
 										|-type:""
 		*/
-		
-		db.ref(`messageTemplates/${name}`).set(message['message'])
-		return res.json({ error: null })
+		// let newMessageKey = db.ref('posts').push().key;
+		db.ref(`messageTypes/${name}`).push(true)
+		return db
+		.ref(`messageTypes/${name}`)
+		.limitToLast(1)
+		.on('child_added', snapshot => {
+				db.ref(`messageTemplates/${snapshot.key}`).set(message['message'])
+				return res.json({ error: null })
+		}).catch(e=>{
+
+		});
+		// db.ref(`messageTemplates/${name}`).set(message['message'])
+	
 	}
 	// --------- START HERE
 	module.getOverallStatus = function (req, res) {
