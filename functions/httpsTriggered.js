@@ -239,7 +239,7 @@ module.exports = function (util, messengerFunctions) {
 			
 			*/
 			let quickRepliesArray = []
-			if (!req.body.headerText) {
+			if (!req.body.text) {
 				return res.status(500).json({})
 			}
 			if (!Array.isArray(req.body.quickReplies)) {
