@@ -206,9 +206,9 @@ module.exports = function (util, messengerFunctions) {
 	}
 
 	module.addTemplateMessage = function (req, res) {
-		let type = req.body.messageType
-		let name = req.body.type
-		if(!type){
+		let type = req.body.category
+		let name = req.body.messageType
+		if(!type || !name){
 			return res.status(500).json({})
 		}
 		let message
@@ -272,9 +272,9 @@ module.exports = function (util, messengerFunctions) {
 										|-type:""
 		*/
 		// let newMessageKey = db.ref('posts').push().key;
-		db.ref(`messageTypes/${type}`).push(true)
+		db.ref(`messageTypes/${name}`).push(true)
 		return db
-		.ref(`messageTypes/${type}`)
+		.ref(`messageTypes/${name}`)
 		.limitToLast(1)
 		.on('child_added', snapshot => {
 				db.ref(`messageTemplates/${snapshot.key}`).set(message['message'])

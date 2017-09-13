@@ -959,7 +959,6 @@ function addNewUser(newUserId) {
 				}, 1000)
 			} else {
 				// welcome message
-
 				/*
 				let texts = [
 					'ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค : แชทตอบคำถามสุดฮา เจอกันทุกวันจันทร์เวลา 2 ทุ่ม',
@@ -970,7 +969,6 @@ function addNewUser(newUserId) {
 
 				sendCascadeMessage(newUserId, texts)
 				*/
-
 				/*
 				let theTimeIs = (new Date()).getTime()
 
@@ -1104,7 +1102,6 @@ function receivedMessage(event) {
 	else if (theTimeIs > 1505278800000) sendTextMessage(senderID, 'หมดเวลาลงทะเบียนล่วงหน้าสำหรับ แชทชิงโชค ซีซัน 2 แล้วจ้า \r\nแต่ไม่เป็นไรนะ ยังสามารถร่วมเล่นได้อยู่ รออ่านอัพเดตเกี่ยวกับกิจกรรมผ่านทางหน้าเพจ Droidsans นะ ;)')
 	else sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans :D')
 	*/
-
 
 	/*
 	_getAdmin()
