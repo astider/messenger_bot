@@ -269,7 +269,7 @@ module.exports = function (util, messengerFunctions) {
 										|-type:""
 		*/
 		// let newMessageKey = db.ref('posts').push().key;
-		db.ref(`messageTypes/${name}`).push(true).key;
+		db.ref(`messageTypes/${name}`).push(true)
 		return db
 		.ref(`messageTypes/${name}`)
 		.limitToLast(1)
