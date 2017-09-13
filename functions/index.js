@@ -951,10 +951,10 @@ function addNewUser (newUserId) {
 				sendCascadeMessage(newUserId, texts)
 				*/
 
-				/*
+				
 				let theTimeIs = (new Date()).getTime()
 
-				if ( theTimeIs >= 1505235600000 && theTimeIs <= 1505278800000) {
+				if (theTimeIs <= 1505365200000) {
 
 					let regist = {
 						text: 'ต้องการลงทะเบียนล่วงหน้าเพื่อร่วมกิจกรรม แชทชิงโชค ซีซัน 2 ใช่หรือไม่ ?',
@@ -969,9 +969,9 @@ function addNewUser (newUserId) {
 
 					sendQuickReplies(newUserId, regist)
 
-				} else if (theTimeIs > 1505278800000) sendTextMessage(newUserId, 'หมดเวลาลงทะเบียนล่วงหน้าสำหรับ แชทชิงโชค ซีซัน 2 แล้วจ้า \r\nแต่ไม่เป็นไรนะ ยังสามารถร่วมเล่นได้อยู่ รออ่านอัพเดตเกี่ยวกับกิจกรรมผ่านทางหน้าเพจ Droidsans นะ ;)')
+				} else if (theTimeIs > 1505365200000) sendTextMessage(newUserId, 'หมดเวลาลงทะเบียนล่วงหน้าสำหรับ แชทชิงโชค ซีซัน 2 แล้วจ้า \r\nแต่ไม่เป็นไรนะ ยังสามารถร่วมเล่นได้อยู่ รออ่านอัพเดตเกี่ยวกับกิจกรรมผ่านทางหน้าเพจ Droidsans นะ ;)')
 				else sendTextMessage(newUserId, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans :D')
-				*/
+				
 			}
 		})
 		.catch(error => {
@@ -1015,8 +1015,8 @@ function receivedMessage (event) {
 	})
 	*/
 	// midnigth = 1505235600000
-	/*
-	if ( theTimeIs >= 1505235600000 && theTimeIs <= 1505278800000) {
+	
+	if ( theTimeIs <= 1505365200000) {
 
 		if (messageQRPayload == 'noValue') {
 
@@ -1082,9 +1082,9 @@ function receivedMessage (event) {
 		
 
 	}
-	else if (theTimeIs > 1505278800000) sendTextMessage(senderID, 'หมดเวลาลงทะเบียนล่วงหน้าสำหรับ แชทชิงโชค ซีซัน 2 แล้วจ้า \r\nแต่ไม่เป็นไรนะ ยังสามารถร่วมเล่นได้อยู่ รออ่านอัพเดตเกี่ยวกับกิจกรรมผ่านทางหน้าเพจ Droidsans นะ ;)')
+	else if (theTimeIs > 1505365200000) sendTextMessage(senderID, 'หมดเวลาลงทะเบียนล่วงหน้าสำหรับ แชทชิงโชค ซีซัน 2 แล้วจ้า \r\nแต่ไม่เป็นไรนะ ยังสามารถร่วมเล่นได้อยู่ รออ่านอัพเดตเกี่ยวกับกิจกรรมผ่านทางหน้าเพจ Droidsans นะ ;)')
 	else sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans :D')
-	*/
+	
 
 	/*
 	_getAdmin()
