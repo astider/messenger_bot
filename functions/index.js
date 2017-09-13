@@ -1086,7 +1086,7 @@ function receivedMessage (event) {
 							.ref(`users/${key}/iPhoneEarlyBirdCoupon`)
 							.set(1)
 							.then(() => {
-								sendTextMessage(senderID, 'ลงทะเบียนเรียบร้อยจ้า รอติดตามอัพเดตเกี่ยวกับกิจกรรมผ่านทางเพจ Droidsans นะ ;)')
+								sendTextMessage(senderID, 'ลงทะเบียนเรียบร้อยจ้า สามารถอ่านกฎกติกาได้ที่ https://goo.gl/inf2FN และรอติดตามอัพเดตเกี่ยวกับกิจกรรมผ่านทางเพจ Droidsans นะ ;)')
 							})
 					}
 				})
