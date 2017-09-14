@@ -127,11 +127,12 @@ function callSendAPI(messageData) {
 
 function scheduleBroadcast() {
 	// set interval to be 15 mins
-	
+
 	setInterval(() => {
 		let wholeObj
 		let scheduledTime
-		console.log("10-minutes interval scheduled broadcast check ")
+		let currentTime = Date.now()
+		console.log('10-minutes interval scheduled broadcast check ')
 		db
 			.ref(`scheduledBroadcast`)
 			.orderByChild('active')
@@ -139,25 +140,26 @@ function scheduleBroadcast() {
 			.once('value')
 			.then(snapshot => {
 				if (!snapshot) {
-					console.log("snapshot not found")
+					console.log('snapshot not found')
 					return
-				}
-				else {
-					let currentTime = Date.now()
+				} else {
+					console.log(snapshot.val())
+					console.log(snapshot.key)
 					scheduledTime = parseInt(snapshot.key)
 					console.log(`currentTime: ${currentTime}, scheduledTime: ${scheduledTime}`)
-					wholeObj = snapshot.val()		
-					if (currentTime >= scheduledTime) {
-						console.log("getTesters to broadcast")
-						return _getTesters()
-					}
+					wholeObj = snapshot.val()
+					console.log('getTesters to broadcast')
+					return db.ref('tester').once('value')
 				}
 			})
 			.then(testerSnap => {
-				console.log("Test users got")
+				console.log('Test users got')
 				let sendMessageBatch = []
 				let message = wholeObj.message
 				let users = testerSnap.val()
+				if (currentTime < scheduledTime) {
+					return null
+				}
 				Object.keys(users).forEach(firebaseKey => {
 					let messageBodyData = {
 						recipient: {
@@ -171,13 +173,14 @@ function scheduleBroadcast() {
 						relative_url: 'me/messages?include_headers=false',
 						body: param(wholeObj['message'])
 					})
-				
 				})
 				sendBatchMessageWithDelay2(sendMessageBatch, 100)
 				db.ref(`scheduledBroadcast/${scheduledTime}`).set({ active: false })
 			})
-			.catch(error => {console.log(error)})
-	}, 300000)
+			.catch(error => {
+				console.log(error)
+			})
+	}, 60000)
 }
 
 /*
@@ -200,7 +203,7 @@ module.exports = function(util, messengerFunctions) {
 	}
 	module.invokeBroadcastScheduler = function(req, res) {
 		// we will use epoch time stored in database
-		scheduleBroadcast();
+		scheduleBroadcast()
 		return res.json({})
 	}
 	return module
