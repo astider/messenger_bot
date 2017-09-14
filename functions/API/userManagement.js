@@ -33,6 +33,44 @@ const getAllID = function () {
 
 }
 
+const getAllSubscribedID = function () {
+  
+  return new Promise((resolve, reject) => {
+  
+    db.ref('userIds').once('value')
+    .then(snapshot => {
+  
+      if (snapshot.val() !== null) {
+        let idArray = []
+				let obj = snapshot.val()
+				
+				idArray = Object.keys(obj).reduce((sub, key) => {
+					
+					if (obj[key].subscribed) {
+						sub.push(key)
+						return sub
+					}
+					else {
+						console.log(`id [${key}] not subscribed`)
+						return sub
+					}
+					
+				}, [])
+        
+        return resolve(idArray)
+      }
+      else return resolve([])
+      
+    })
+    .catch(error => {
+      console.log(`get All subscibed Id error: ${error}`);
+      reject(error)
+    })
+  
+  })
+  
+}
+
 // record new user id when user interact with bot for the first time
 const recordNewUserID = function (userId) {
 
