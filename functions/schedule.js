@@ -179,7 +179,7 @@ function scheduleBroadcast() {
 					sendMessageBatch.push({
 						method: 'POST',
 						relative_url: 'me/messages?include_headers=false',
-						body: param(wholeObj['message'])
+						body: param(messageBodyData)
 					})
 				})
 				sendBatchMessageWithDelay2(sendMessageBatch, 100)
