@@ -970,7 +970,7 @@ function addNewUser (newUserId) {
 				sendCascadeMessage(newUserId, texts)
 				*/
 
-				
+				/*
 				let theTimeIs = (new Date()).getTime()
 
 				if (theTimeIs <= 1505365200000) {
@@ -990,7 +990,9 @@ function addNewUser (newUserId) {
 
 				} else if (theTimeIs > 1505365200000) sendTextMessage(newUserId, 'หมดเวลาลงทะเบียนล่วงหน้าสำหรับ แชทชิงโชค ซีซัน 2 แล้วจ้า \r\nแต่ไม่เป็นไรนะ ยังสามารถร่วมเล่นได้อยู่ รออ่านอัพเดตเกี่ยวกับกิจกรรมผ่านทางหน้าเพจ Droidsans นะ ;)')
 				else sendTextMessage(newUserId, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans :D')
-				
+				*/
+				sendTextMessage(newUserId, 'ตอนนี้กิจกรรมยังไม่เริ่มนะ สามารถติดตามอัพเดตได้ผ่านเพจ Droidsans หรืออ่านกฎกติกาได้ที่ https://goo.gl/inf2FN ')
+
 			}
 		})
 		.catch(error => {
@@ -1035,6 +1037,16 @@ function receivedMessage (event) {
 	*/
 	// midnigth = 1505235600000
 	
+	userManagementAPI.getAllID()
+	.then(ids => {
+		if (ids.indexOf(senderID) > -1) addNewUser(senderID)
+		else sendTextMessage(senderID, 'ตอนนี้กิจกรรมยังไม่เริ่มนะ สามารถติดตามอัพเดตได้ผ่านเพจ Droidsans หรืออ่านกฎกติกาได้ที่ https://goo.gl/inf2FN ')
+	})
+	.catch(error => {
+		console.error(`error in receive message: ${error}`)
+	})
+
+	/*
 	if ( theTimeIs <= 1505365200000) {
 
 
@@ -1098,7 +1110,7 @@ function receivedMessage (event) {
 	}
 	else if (theTimeIs > 1505365200000) sendTextMessage(senderID, 'หมดเวลาลงทะเบียนล่วงหน้าสำหรับ แชทชิงโชค ซีซัน 2 แล้วจ้า \r\nแต่ไม่เป็นไรนะ ยังสามารถร่วมเล่นได้อยู่ รออ่านอัพเดตเกี่ยวกับกิจกรรมผ่านทางหน้าเพจ Droidsans นะ ;)')
 	else sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans :D')
-	
+	*/
 
 	/*
 	_getAdmin()
