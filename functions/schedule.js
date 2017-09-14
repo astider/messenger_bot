@@ -138,20 +138,23 @@ function scheduleBroadcast() {
 			.equalTo(true)
 			.once('value')
 			.then(snapshot => {
-				if (!snapshot) return
+				if (!snapshot) {
+					console.log("snapshot not found")
+					return
+				}
 				else {
 					let currentTime = Date.now()
 					scheduledTime = parseInt(snapshot.key)
-					wholeObj = snapshot.val()
-					if (currentTime < scheduledTime) {
-						return
-					}
+					console.log(`currentTime: ${currentTime}, scheduledTime: ${scheduledTime}`)
+					wholeObj = snapshot.val()		
 					if (currentTime >= scheduledTime) {
+						console.log("getTesters to broadcast")
 						return _getTesters()
 					}
 				}
 			})
 			.then(testerSnap => {
+				console.log("Test users got")
 				let sendMessageBatch = []
 				let message = wholeObj.message
 				let users = testerSnap.val()
@@ -168,12 +171,13 @@ function scheduleBroadcast() {
 						relative_url: 'me/messages?include_headers=false',
 						body: param(wholeObj['message'])
 					})
-					sendBatchMessageWithDelay2(sendMessageBatch, 100)
+				
 				})
+				sendBatchMessageWithDelay2(sendMessageBatch, 100)
 				db.ref(`scheduledBroadcast/${scheduledTime}`).set({ active: false })
 			})
-			.catch(error => {})
-	}, 600000)
+			.catch(error => {console.log(error)})
+	}, 300000)
 }
 
 /*
@@ -184,7 +188,7 @@ module.exports = function(util, messengerFunctions) {
 	module.setScheduledBroadcast = function(req, res) {
 		// we will use epoch time stored in database
 
-		let date = Date.parse(req.body.date) - GMTOffset
+		let date = Date.parse(req.body.date)
 		if (isNaN(date)) {
 			return res.status(500).send('error')
 		}
