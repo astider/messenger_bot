@@ -129,8 +129,8 @@ function scheduleBroadcast() {
 	// set interval to be 15 mins
 
 	setInterval(() => {
-		let wholeObj
-		let scheduledTime
+		let wholeObj = {}
+		let scheduledTime 
 		let currentTime = Date.now()
 		console.log('10-minutes interval scheduled broadcast check ')
 		db
@@ -147,7 +147,7 @@ function scheduleBroadcast() {
 					// console.log(snapshot.key)
 
 					// scheduledTime = parseInt(snapshot.key)
-					wholeObj = snapshot.val()
+					let wholeObj = snapshot.val()
 				
 
 					scheduledTime = parseInt(Object.keys(wholeObj)[0]);
