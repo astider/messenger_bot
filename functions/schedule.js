@@ -7,6 +7,7 @@ const messengerTemplates = require('./FBMessageTemplate/templates.js')
 const db = firebaseInit.admin.database()
 let GMTOffset = 7 * 60 * 60 * 1000
 const FB = require('fbgraph')
+const env = firebaseInit.env
 FB.setAccessToken(env.messenger.page_token)
 
 function _getTesters() {
