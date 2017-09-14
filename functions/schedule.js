@@ -147,7 +147,7 @@ function scheduleBroadcast() {
 					// console.log(snapshot.key)
 
 					// scheduledTime = parseInt(snapshot.key)
-					let wholeObj = snapshot.val()
+					wholeObj = snapshot.val()
 				
 
 					scheduledTime = parseInt(Object.keys(wholeObj)[0]);
@@ -189,7 +189,7 @@ function scheduleBroadcast() {
 			.catch(error => {
 				console.log(error)
 			})
-	}, 60000)
+	}, 300000)
 }
 
 /*
