@@ -128,6 +128,14 @@ exports.addScheduleMessage = functions.https.onRequest(function(req, res) {
 		scheduleFunctions.setScheduledBroadcast(req,res);
 	})
 });
+exports.activeBroadcastScheduler = functions.https.onRequest(function(req, res) {
+	cors(req, res, () => {
+		if (req.method != 'POST') {
+			return res.status(403).json({})
+		}
+		scheduleFunctions.invokeBroadcastScheduler(req,res);
+	})
+});
 exports.addTemplateMessage = functions.https.onRequest(function(req, res) {
 	cors(req, res, () => {
 		if (req.method != 'POST') {

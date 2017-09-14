@@ -127,30 +127,34 @@ function callSendAPI(messageData) {
 
 function scheduleBroadcast() {
 	// set interval to be 15 mins
-	console.log("10-minutes interval scheduled broadcast check ")
+	
 	setInterval(() => {
 		let wholeObj
 		let scheduledTime
+		console.log("10-minutes interval scheduled broadcast check ")
 		db
 			.ref(`scheduledBroadcast`)
 			.orderByChild('active')
 			.equalTo(true)
 			.once('value')
 			.then(snapshot => {
-				if (!snapshot) return
+				if (!snapshot) {
+					console.log("snapshot not found")
+					return
+				}
 				else {
 					let currentTime = Date.now()
 					scheduledTime = parseInt(snapshot.key)
-					wholeObj = snapshot.val()
-					if (currentTime < scheduledTime) {
-						return
-					}
+					console.log(`currentTime: ${currentTime}, scheduledTime: ${scheduledTime}`)
+					wholeObj = snapshot.val()		
 					if (currentTime >= scheduledTime) {
+						console.log("getTesters to broadcast")
 						return _getTesters()
 					}
 				}
 			})
 			.then(testerSnap => {
+				console.log("Test users got")
 				let sendMessageBatch = []
 				let message = wholeObj.message
 				let users = testerSnap.val()
@@ -167,14 +171,15 @@ function scheduleBroadcast() {
 						relative_url: 'me/messages?include_headers=false',
 						body: param(wholeObj['message'])
 					})
-					sendBatchMessageWithDelay2(sendMessageBatch, 100)
+				
 				})
+				sendBatchMessageWithDelay2(sendMessageBatch, 100)
 				db.ref(`scheduledBroadcast/${scheduledTime}`).set({ active: false })
 			})
-			.catch(error => {})
-	}, 600000)
+			.catch(error => {console.log(error)})
+	}, 300000)
 }
-scheduleBroadcast();
+
 /*
  scheduledBroadcast collection will have 2 attr, with its epoch time as its key
  */
@@ -183,7 +188,7 @@ module.exports = function(util, messengerFunctions) {
 	module.setScheduledBroadcast = function(req, res) {
 		// we will use epoch time stored in database
 
-		let date = Date.parse(req.body.date) - GMTOffset
+		let date = Date.parse(req.body.date)
 		if (isNaN(date)) {
 			return res.status(500).send('error')
 		}
@@ -191,6 +196,11 @@ module.exports = function(util, messengerFunctions) {
 		// assume that date string will be in ISO format e.g 2017-09-13T11:27:54.088Z
 
 		db.ref(`scheduledBroadcast/${date}`).set({ message: message, active: true })
+		return res.json({})
+	}
+	module.invokeBroadcastScheduler = function(req, res) {
+		// we will use epoch time stored in database
+		scheduleBroadcast();
 		return res.json({})
 	}
 	return module
