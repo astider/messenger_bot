@@ -127,11 +127,12 @@ function callSendAPI(messageData) {
 
 function scheduleBroadcast() {
 	// set interval to be 15 mins
-	
+
 	setInterval(() => {
-		let wholeObj
-		let scheduledTime
-		console.log("10-minutes interval scheduled broadcast check ")
+		let wholeObj = {}
+		let scheduledTime 
+		let currentTime = Date.now()
+		console.log('10-minutes interval scheduled broadcast check ')
 		db
 			.ref(`scheduledBroadcast`)
 			.orderByChild('active')
@@ -139,25 +140,33 @@ function scheduleBroadcast() {
 			.once('value')
 			.then(snapshot => {
 				if (!snapshot) {
-					console.log("snapshot not found")
+					console.log('snapshot not found')
 					return
-				}
-				else {
-					let currentTime = Date.now()
-					scheduledTime = parseInt(snapshot.key)
+				} else {
+					// console.log(snapshot.val())
+					// console.log(snapshot.key)
+
+					// scheduledTime = parseInt(snapshot.key)
+					let wholeObj = snapshot.val()
+				
+
+					scheduledTime = parseInt(Object.keys(wholeObj)[0]);
+					let wholeObj = wholeObj[scheduleTime]
 					console.log(`currentTime: ${currentTime}, scheduledTime: ${scheduledTime}`)
-					wholeObj = snapshot.val()		
-					if (currentTime >= scheduledTime) {
-						console.log("getTesters to broadcast")
-						return _getTesters()
-					}
+
+					console.log('getTesters to broadcast')
+					return db.ref('tester').once('value')
 				}
 			})
 			.then(testerSnap => {
-				console.log("Test users got")
+				console.log('Test users got')
 				let sendMessageBatch = []
 				let message = wholeObj.message
 				let users = testerSnap.val()
+				console.log(users)
+				if (currentTime < scheduledTime) {
+					return null
+				}
 				Object.keys(users).forEach(firebaseKey => {
 					let messageBodyData = {
 						recipient: {
@@ -165,19 +174,21 @@ function scheduleBroadcast() {
 						},
 						message: message
 					}
+					console.log(messageBodyData)
 
 					sendMessageBatch.push({
 						method: 'POST',
 						relative_url: 'me/messages?include_headers=false',
-						body: param(wholeObj['message'])
+						body: param(messageBodyData)
 					})
-				
 				})
 				sendBatchMessageWithDelay2(sendMessageBatch, 100)
 				db.ref(`scheduledBroadcast/${scheduledTime}`).set({ active: false })
 			})
-			.catch(error => {console.log(error)})
-	}, 300000)
+			.catch(error => {
+				console.log(error)
+			})
+	}, 60000)
 }
 
 /*
@@ -200,7 +211,7 @@ module.exports = function(util, messengerFunctions) {
 	}
 	module.invokeBroadcastScheduler = function(req, res) {
 		// we will use epoch time stored in database
-		scheduleBroadcast();
+		scheduleBroadcast()
 		return res.json({})
 	}
 	return module
