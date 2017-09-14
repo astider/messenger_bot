@@ -151,7 +151,7 @@ function scheduleBroadcast() {
 				
 
 					scheduledTime = parseInt(Object.keys(wholeObj)[0]);
-					let wholeObj = wholeObj[scheduleTime]
+					wholeObj = wholeObj[scheduleTime]
 					console.log(`currentTime: ${currentTime}, scheduledTime: ${scheduledTime}`)
 
 					console.log('getTesters to broadcast')
