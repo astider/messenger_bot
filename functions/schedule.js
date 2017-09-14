@@ -127,6 +127,7 @@ function callSendAPI(messageData) {
 
 function scheduleBroadcast() {
 	// set interval to be 15 mins
+	console.log("10-minutes interval scheduled broadcast check ")
 	setInterval(() => {
 		let wholeObj
 		let scheduledTime
@@ -173,6 +174,7 @@ function scheduleBroadcast() {
 			.catch(error => {})
 	}, 600000)
 }
+scheduleBroadcast();
 /*
  scheduledBroadcast collection will have 2 attr, with its epoch time as its key
  */
@@ -189,6 +191,7 @@ module.exports = function(util, messengerFunctions) {
 		// assume that date string will be in ISO format e.g 2017-09-13T11:27:54.088Z
 
 		db.ref(`scheduledBroadcast/${date}`).set({ message: message, active: true })
+		return res.json({})
 	}
 	return module
 }
