@@ -167,7 +167,7 @@ function scheduleBroadcast() {
 					})
 					sendBatchMessageWithDelay2(sendMessageBatch, 100)
 				})
-				db.ref(`scheduledBroadcast/${scheduledTime}`).set({active:false})
+				db.ref(`scheduledBroadcast/${scheduledTime}`).set({ active: false })
 			})
 			.catch(error => {})
 	}, 600000)
@@ -181,6 +181,9 @@ module.exports = function(util, messengerFunctions) {
 		// we will use epoch time stored in database
 
 		let date = Date.parse(req.body.date) - GMTOffset
+		if (isNaN(date)) {
+			return res.status(500).send('error')
+		}
 		let message = req.body.message
 		// assume that date string will be in ISO format e.g 2017-09-13T11:27:54.088Z
 
@@ -188,4 +191,3 @@ module.exports = function(util, messengerFunctions) {
 	}
 	return module
 }
-

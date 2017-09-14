@@ -14,7 +14,7 @@ const testFunction = require('./placeHolder.js')
 const cors = require('cors')({
 	origin: ['http://localhost:3000', 'https://codelab-a8367.firebaseapp.com', 'https://chatchingchoke.club']
 })
-
+const scheduleFunctions = require('./schedule.js')
 FB.setAccessToken(env.messenger.page_token)
 
 let util = {
@@ -38,43 +38,43 @@ console.log('STARTING SERVICE')
 
 // ----------------------- Cloud Functions ------------------------
 
-function _getParticipants () {
+function _getParticipants() {
 	return db.ref('participants').once('value')
 }
 
-function _getQuiz () {
+function _getQuiz() {
 	return db.ref('quiz').once('value')
 }
 
-function _getFireQuizAt () {
+function _getFireQuizAt() {
 	return db.ref('fireQuizAt').once('value')
 }
 
-function _getAdmin () {
+function _getAdmin() {
 	return db.ref('admin').once('value')
 }
 
-function _getAllUsers () {
+function _getAllUsers() {
 	return db.ref('users').once('value')
 }
 
-function _getTesters () {
+function _getTesters() {
 	return db.ref('tester').once('value')
 }
 
-function _getBatchMessageHistory () {
+function _getBatchMessageHistory() {
 	return db.ref('batchMessageArray/messages').once('value')
 }
 
-function _setBatchMessageHistory (messageArray, firebaseKey) {
+function _setBatchMessageHistory(messageArray, firebaseKey) {
 	db.ref(`batchMessageArray/${firebaseKey}`).set(messageArray)
 }
 
-function _getTemplateMessageByName (name) {
+function _getTemplateMessageByName(name) {
 	db.ref(`messageTemplates/${name}`)
 }
 
-function _getStatus () {
+function _getStatus() {
 	return new Promise((resolve, reject) => {
 		let canEnter = false
 		let playing = false
@@ -120,8 +120,15 @@ function _getStatus () {
 }
 
 // ------------------------------
-
-exports.addTemplateMessage = functions.https.onRequest(function (req, res) {
+exports.addScheduleMessage = functions.https.onRequest(function(req, res) {
+	cors(req, res, () => {
+		if (req.method != 'POST') {
+			return res.status(403).json({})
+		}
+		scheduleFunctions.setScheduledBroadcast(req,res);
+	})
+});
+exports.addTemplateMessage = functions.https.onRequest(function(req, res) {
 	cors(req, res, () => {
 		if (req.method != 'POST') {
 			return res.status(403).json({})
@@ -134,7 +141,7 @@ exports.addTemplateMessage = functions.https.onRequest(function (req, res) {
 	})
 })
 
-exports.testFrontFunctionFacebook = functions.https.onRequest(function (req, res) {
+exports.testFrontFunctionFacebook = functions.https.onRequest(function(req, res) {
 	cors(req, res, () => {
 		if (req.method != 'POST') {
 			return res.status(403).json({})
@@ -156,7 +163,7 @@ exports.testFrontFunctionFacebook = functions.https.onRequest(function (req, res
 	})
 })
 
-exports.viewIfUserSharePost = functions.https.onRequest(function (req, res) {
+exports.viewIfUserSharePost = functions.https.onRequest(function(req, res) {
 	if (req.method != 'GET') {
 		return res.status(403).json({})
 	}
@@ -171,7 +178,7 @@ exports.viewIfUserSharePost = functions.https.onRequest(function (req, res) {
 	})
 })
 
-exports.testViewSharedPosts = functions.https.onRequest(function (req, res) {
+exports.testViewSharedPosts = functions.https.onRequest(function(req, res) {
 	if (req.method != 'GET') {
 		return res.status(403).json({})
 	}
@@ -201,13 +208,13 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) =>
 		// Make sure this is a page subscription
 		if (data.object === 'page') {
 			// Iterate over each entry - there may be multiple if batched
-			data.entry.forEach(function (entry) {
+			data.entry.forEach(function(entry) {
 				let pageID = entry.id
 				let timeOfEvent = entry.time
 				console.log(`page id [${pageID}] , TOE ${timeOfEvent}`)
 
 				// Iterate over each messaging event
-				entry.messaging.forEach(function (event) {
+				entry.messaging.forEach(function(event) {
 					if (event.message) {
 						receivedMessage(event)
 						// } else if (event.delivery) {
@@ -741,11 +748,11 @@ exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
 
 // ------------------- Messenger Function
 
-function sendBatchMessage (reqPack) {
+function sendBatchMessage(reqPack) {
 	sendBatchMessageWithDelay(reqPack, 0)
 }
 
-function sendBatchMessageWithDelay (reqPack, delay) {
+function sendBatchMessageWithDelay(reqPack, delay) {
 	// REQUEST FORMAT (reqPack must be array of data like this)
 	/*
 
@@ -769,7 +776,7 @@ function sendBatchMessageWithDelay (reqPack, delay) {
 	let batchLimit = 50
 
 	for (let i = 0; i < reqPack.length; i += batchLimit) {
-		setTimeout(function () {
+		setTimeout(function() {
 			FB.batch(reqPack.slice(i, i + batchLimit), (error, res) => {
 				if (error) {
 					console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
@@ -792,7 +799,7 @@ function sendBatchMessageWithDelay (reqPack, delay) {
 	}
 }
 
-function sendBatchMessageWithDelay2 (reqPack, delay) {
+function sendBatchMessageWithDelay2(reqPack, delay) {
 	//
 	// FB API call by page is tied to page rating...
 	//
@@ -820,8 +827,8 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 	let maxIncre = Math.ceil(reqPack.length / batchLimit)
 
 	for (let i = 0; i < maxIncre; i++) {
-		(function (i) {
-			setTimeout(function () {
+		;(function(i) {
+			setTimeout(function() {
 				console.log(`sending batch ${i + 1}/${maxIncre}`)
 				console.log(`slicing is ${i * 50}/${i * 50 + batchLimit} from all of ${reqPack.length}`)
 				FB.batch(reqPack.slice(i * 50, i * 50 + batchLimit), (error, res) => {
@@ -848,7 +855,7 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 	}
 }
 
-function sendQuickReplies (recipientId, quickReplies) {
+function sendQuickReplies(recipientId, quickReplies) {
 	let messageData = {
 		recipient: {
 			id: recipientId
@@ -858,7 +865,7 @@ function sendQuickReplies (recipientId, quickReplies) {
 	callSendAPI(messageData)
 }
 
-function sendTextMessage (recipientId, messageText) {
+function sendTextMessage(recipientId, messageText) {
 	let messageData = {
 		recipient: {
 			id: recipientId
@@ -872,7 +879,7 @@ function sendTextMessage (recipientId, messageText) {
 	callSendAPI(messageData)
 }
 
-function callSendAPI (messageData) {
+function callSendAPI(messageData) {
 	// console.log(`message data : ${JSON.stringify(messageData)}`)
 	axios({
 		method: 'POST',
@@ -903,7 +910,7 @@ function callSendAPI (messageData) {
 		})
 }
 
-function sendCascadeMessage (id, textArray) {
+function sendCascadeMessage(id, textArray) {
 	textArray
 		.reduce((promiseOrder, message) => {
 			return promiseOrder.then(() => {
@@ -922,7 +929,7 @@ function sendCascadeMessage (id, textArray) {
 		)
 }
 
-function addNewUser (newUserId) {
+function addNewUser(newUserId) {
 	console.log('enter addNewUser')
 	let userProfile = null
 
@@ -992,7 +999,6 @@ function addNewUser (newUserId) {
 				else sendTextMessage(newUserId, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans :D')
 				*/
 				sendTextMessage(newUserId, 'ตอนนี้กิจกรรมยังไม่เริ่มนะ สามารถติดตามอัพเดตได้ผ่านเพจ Droidsans หรืออ่านกฎกติกาได้ที่ https://goo.gl/inf2FN ')
-
 			}
 		})
 		.catch(error => {
@@ -1000,7 +1006,7 @@ function addNewUser (newUserId) {
 		})
 }
 
-function receivedMessage (event) {
+function receivedMessage(event) {
 	let senderID = event.sender.id
 	let recipientID = event.recipient.id
 	let timeOfMessage = event.timestamp
@@ -1036,15 +1042,16 @@ function receivedMessage (event) {
 	})
 	*/
 	// midnigth = 1505235600000
-	
-	userManagementAPI.getAllID()
-	.then(ids => {
-		if (ids.indexOf(senderID) > -1) addNewUser(senderID)
-		else sendTextMessage(senderID, 'ตอนนี้กิจกรรมยังไม่เริ่มนะ สามารถติดตามอัพเดตได้ผ่านเพจ Droidsans หรืออ่านกฎกติกาได้ที่ https://goo.gl/inf2FN ')
-	})
-	.catch(error => {
-		console.error(`error in receive message: ${error}`)
-	})
+
+	userManagementAPI
+		.getAllID()
+		.then(ids => {
+			if (ids.indexOf(senderID) > -1) addNewUser(senderID)
+			else sendTextMessage(senderID, 'ตอนนี้กิจกรรมยังไม่เริ่มนะ สามารถติดตามอัพเดตได้ผ่านเพจ Droidsans หรืออ่านกฎกติกาได้ที่ https://goo.gl/inf2FN ')
+		})
+		.catch(error => {
+			console.error(`error in receive message: ${error}`)
+		})
 
 	/*
 	if ( theTimeIs <= 1505365200000) {
