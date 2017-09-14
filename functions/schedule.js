@@ -163,6 +163,7 @@ function scheduleBroadcast() {
 				let sendMessageBatch = []
 				let message = wholeObj.message
 				let users = testerSnap.val()
+				console.log(`2nd promise currentTime: ${currentTime}, scheduledTime: ${scheduledTime}`)
 				console.log(users)
 				if (currentTime < scheduledTime) {
 					return null
