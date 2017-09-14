@@ -14,7 +14,7 @@ const testFunction = require('./placeHolder.js')
 const cors = require('cors')({
 	origin: ['http://localhost:3000', 'https://codelab-a8367.firebaseapp.com', 'https://chatchingchoke.club']
 })
-const scheduleFunctions = require('./schedule.js')
+
 FB.setAccessToken(env.messenger.page_token)
 
 let util = {
@@ -33,7 +33,7 @@ let messengerFunctions = {
 }
 
 const httpsFunctions = require('./httpsTriggered.js')(util, messengerFunctions)
-
+const scheduleFunctions = require('./schedule.js')(util, messengerFunctions)
 console.log('STARTING SERVICE')
 
 // ----------------------- Cloud Functions ------------------------
