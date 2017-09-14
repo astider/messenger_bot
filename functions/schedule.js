@@ -143,11 +143,17 @@ function scheduleBroadcast() {
 					console.log('snapshot not found')
 					return
 				} else {
-					console.log(snapshot.val())
-					console.log(snapshot.key)
-					scheduledTime = parseInt(snapshot.key)
-					console.log(`currentTime: ${currentTime}, scheduledTime: ${scheduledTime}`)
+					// console.log(snapshot.val())
+					// console.log(snapshot.key)
+
+					// scheduledTime = parseInt(snapshot.key)
 					wholeObj = snapshot.val()
+				
+
+					scheduledTime = parseInt(Object.keys(wholeObj)[0]);
+					let wholeObj = wholeObj[scheduleTime]
+					console.log(`currentTime: ${currentTime}, scheduledTime: ${scheduledTime}`)
+
 					console.log('getTesters to broadcast')
 					return db.ref('tester').once('value')
 				}
@@ -157,6 +163,7 @@ function scheduleBroadcast() {
 				let sendMessageBatch = []
 				let message = wholeObj.message
 				let users = testerSnap.val()
+				console.log(users)
 				if (currentTime < scheduledTime) {
 					return null
 				}
@@ -167,6 +174,7 @@ function scheduleBroadcast() {
 						},
 						message: message
 					}
+					console.log(messageBodyData)
 
 					sendMessageBatch.push({
 						method: 'POST',
