@@ -277,6 +277,7 @@ module.exports = function(util, messengerFunctions) {
 			.push(true)
 			.then(snap => {
 				let key = snap.key
+				message['message']['messageType']=name
 				db.ref(`messageTemplates/${key}`).set(message['message'])
 				return res.json({ error: null })
 			})
