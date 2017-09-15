@@ -1191,34 +1191,41 @@ function receivedMessage(event) {
 
 					if (!status.canAnswer) sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
 					else if (playerInfo.answerPack[status.currentQuiz].ans) sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
-					else if (messageQRPayload == 'noValue') {
+					
+					// else if (messageQRPayload == 'noValue') {
+					// 	let lowerCasedAnswer = messageText.toLowerCase()
+
+					// 	let confirmAns = {
+					// 		text: `ยืนยันคำตอบเป็น "${messageText}" ?\r\nหากต้องการเปลี่ยนคำตอบให้พิมพ์ใหม่ได้เลย`,
+					// 		quick_replies: [
+					// 			{
+					// 				content_type: 'text',
+					// 				title: 'ยืนยัน',
+					// 				payload: lowerCasedAnswer
+					// 			}
+					// 		]
+					// 	}
+
+					// 	sendQuickReplies(senderID, confirmAns)
+					// }
+					
+					else {
+
 						let lowerCasedAnswer = messageText.toLowerCase()
 
-						let confirmAns = {
-							text: `ยืนยันคำตอบเป็น "${messageText}" ?\r\nหากต้องการเปลี่ยนคำตอบให้พิมพ์ใหม่ได้เลย`,
-							quick_replies: [
-								{
-									content_type: 'text',
-									title: 'ยืนยัน',
-									payload: lowerCasedAnswer
-								}
-							]
-						}
-
-						sendQuickReplies(senderID, confirmAns)
-					} else {
 						sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
 
-						playerInfo.answerPack[status.currentQuiz].ans = messageQRPayload
+						playerInfo.answerPack[status.currentQuiz].ans = lowerCasedAnswer // messageQRPayload
 						playerInfo.answerPack[status.currentQuiz].at = new Date().getTime()
 
-						if (quiz[status.currentQuiz].a.indexOf(messageQRPayload) > -1) {
+						if (quiz[status.currentQuiz].a.indexOf(lowerCasedAnswer) > -1) {
 							playerInfo.answerPack[status.currentQuiz].correct = true
 							playerInfo.point++
 						}
 
 						db.ref(`participants/${senderID}`).set(playerInfo)
 					}
+
 				} else if (quizType == 'VOTE' && quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
 					sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
 
