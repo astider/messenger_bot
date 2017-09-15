@@ -691,10 +691,11 @@ exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
 })
 
 exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
-	if (req.method != 'POST') {
-		return res.status(404).json({})
-	}
+
 	cors(req, res, () => {
+		if (req.method != 'POST') {
+			return res.status(404).json({})
+		}
 		if (!req.body) {
 			return res.status(400).json({
 				error: 'no data'
