@@ -131,9 +131,9 @@ function scheduleBroadcast() {
 	setInterval(() => {
 		let wholeObj = {}
 		let message
-		let scheduledTime 
+		let scheduledTime
 		let currentTime = Date.now()
-		console.log('10-minutes interval scheduled broadcast check ')
+		console.log('5-minutes interval scheduled broadcast check ')
 		db
 			.ref(`scheduledBroadcast`)
 			.orderByChild('active')
@@ -149,9 +149,8 @@ function scheduleBroadcast() {
 
 					// scheduledTime = parseInt(snapshot.key)
 					wholeObj = snapshot.val()
-				
 
-					scheduledTime = parseInt(Object.keys(wholeObj)[0]);
+					scheduledTime = parseInt(Object.keys(wholeObj)[0])
 					wholeObj = wholeObj[scheduledTime]
 					message = wholeObj['message']
 					console.log(`currentTime: ${currentTime}, scheduledTime: ${scheduledTime}`)
@@ -164,7 +163,7 @@ function scheduleBroadcast() {
 				console.log('Test users got')
 				console.log(wholeObj)
 				let sendMessageBatch = []
-		
+
 				let users = testerSnap.val()
 				console.log(`2nd promise currentTime: ${currentTime}, scheduledTime: ${scheduledTime}`)
 				console.log(users)
