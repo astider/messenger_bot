@@ -620,7 +620,7 @@ exports.getAllTemplateMessages = functions.https.onRequest((req, res) => {
 	})
 })
 
-exports.broadcastMessageTest = functions.https.onRequest((req, res) => {
+exports.broadcastMessage = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
 		if (req.method != 'POST') {
 			return res.status(404).json({})
