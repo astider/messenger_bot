@@ -430,6 +430,12 @@ exports.sendToAll = functions.https.onRequest((req, res) => {
 	})
 })
 
+exports.getVoteResult = functions.https.onRequest((req, res) => {
+	cors(req, res, () => {
+		httpsFunctions.getVoteResult(req, res)
+	})
+})
+
 // exports.assignCounponNumber = functions.https.onRequest((req, res) => {
 // 	cors(req, res, () => {
 // 		httpsFunctions.assignCounponNumber(req, res)
@@ -1118,12 +1124,18 @@ function receivedMessage (event) {
 
 				} else if (quizType == 'VOTE' && quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
 
-					sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
+					if (!status.canAnswer) sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
+					else if (playerInfo.answerPack[status.currentQuiz].ans) sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
+					else {
 
-					playerInfo.answerPack[status.currentQuiz].ans = messageQRPayload
-					playerInfo.answerPack[status.currentQuiz].at = new Date().getTime()
+						sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
 
-					db.ref(`participants/${senderID}`).set(playerInfo)
+						playerInfo.answerPack[status.currentQuiz].ans = messageQRPayload
+						playerInfo.answerPack[status.currentQuiz].at = new Date().getTime()
+
+						db.ref(`participants/${senderID}`).set(playerInfo)
+
+					}
 					
 				} else if (quizType == 'CHOICES' && quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
 
