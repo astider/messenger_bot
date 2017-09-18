@@ -567,7 +567,8 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 								})
 								.then(() => {
 									console.log('sync SENDING')
-									sendBatchMessage(sendQuizBatch)
+									// sendBatchMessage(sendQuizBatch)
+									sendBatchMessageWithDelay2(sendQuizBatch, 200)
 
 									res.json({
 										error: null,
@@ -582,7 +583,8 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 								.set(true)
 								.then(() => {
 									console.log('sync SENDING / not set new FQA')
-									sendBatchMessage(sendQuizBatch)
+									// sendBatchMessage(sendQuizBatch)
+									sendBatchMessageWithDelay2(sendQuizBatch, 200)
 
 									res.json({
 										error: null,
@@ -1360,7 +1362,7 @@ function receivedMessage (event) {
 						}
 					}
 
-				} else if (!user || (user && !playerInfo)) {
+				} else if (status.canEnter && (!user || (user && !playerInfo) ) ) {
 
 					console.log('user id not found in DB {OR} not in participants -> adding new user')
 					setTimeout( () => { addNewUser(senderID) }, 500)
