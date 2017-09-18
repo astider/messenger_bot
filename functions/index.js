@@ -822,7 +822,7 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 		*/
 
 	// batch allow 50 commands per request, read this : https://developers.facebook.com/docs/graph-api/making-multiple-requests/
-	let batchLimit = 50
+	let batchLimit = 25 // 50
 	let maxIncre = Math.ceil(reqPack.length / batchLimit)
 
 	for (let i = 0; i < maxIncre; i++) {
