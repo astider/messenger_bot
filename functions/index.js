@@ -1351,7 +1351,7 @@ function receivedMessage (event) {
 				} else if (!user || (user && !playerInfo)) {
 
 					console.log('user id not found in DB {OR} not in participants -> adding new user')
-					setTimeout( () => { addNewUser(senderID) }, 1500)
+					setTimeout( () => { addNewUser(senderID) }, 500)
 
 				} else if (!status.playing && !status.canEnter) {
 
@@ -1398,7 +1398,7 @@ function receivedMessage (event) {
 
 				if (!user || !playerInfo) {
 					console.log('[ATTACHMENT] user id not found in DB {OR} not in participants -> adding new user')
-					setTimeout( () => { addNewUser(senderID) }, 1500)
+					setTimeout( () => { addNewUser(senderID) }, 500)
 				}
 			}
 
