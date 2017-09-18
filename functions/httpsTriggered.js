@@ -553,7 +553,8 @@ module.exports = function (util, messengerFunctions) {
 					// sendQuickReplies(id, inviteMessage)
 				})
 
-				messengerFunctions.sendBatchMessage(sendRequestBatch)
+				// messengerFunctions.sendBatchMessage(sendRequestBatch)
+				messengerFunctions.sendBatchMessage(sendRequestBatch, 200)
 
 				res.json({
 					error: null,

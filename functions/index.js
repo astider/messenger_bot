@@ -29,7 +29,8 @@ let messengerFunctions = {
 	sendCascadeMessage: sendCascadeMessage,
 	sendQuickReplies: sendQuickReplies,
 	sendBatchMessage: sendBatchMessage,
-	sendBatchMessageWithDelay: sendBatchMessageWithDelay
+	sendBatchMessageWithDelay: sendBatchMessageWithDelay,
+	sendBatchMessageWithDelay2: sendBatchMessageWithDelay2
 }
 
 const httpsFunctions = require('./httpsTriggered.js')(util, messengerFunctions)
