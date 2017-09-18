@@ -228,5 +228,6 @@ const recordNewUserID_FBlogin = function (fbloginID, PSID, firebaseAuth) {
 module.exports = {
   recordNewUserID,
   getAllID,
+  getAllSubscribedID,
   recordNewUserID_FBlogin
 }
