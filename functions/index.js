@@ -602,36 +602,6 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 
 exports.getAllTemplateMessages = functions.https.onRequest((req, res) => {
 	return res.status(404).json({})
-
-	cors(req, res, () => {
-		db
-			.ref('messageTemplates')
-			.once('value')
-			.then(snapshot => {
-				let allMessages
-				if (!snapshot) {
-					return res.json({
-						messages: {}
-					})
-				}
-				allMessages = snapshot.val()
-				let flattened = {}
-				Object.keys(allMessages).forEach(message => {
-					flattened[message] = {}
-					// console.log(message)
-					Object.keys(allMessages[message]['message']).forEach(attr => {
-						// console.log(message+" "+attr)
-						flattened[message][attr] = allMessages[message]['message'][attr]
-					})
-				})
-				return res.json(flattened)
-			})
-			.catch(err => {
-				return res.status(500).json({
-					error: err
-				})
-			})
-	})
 })
 
 exports.broadcastMessage = functions.https.onRequest((req, res) => {
@@ -658,7 +628,7 @@ exports.broadcastMessage = functions.https.onRequest((req, res) => {
 			let quiz = null
 			let fireQuizAt = null
 			// yup, query ALL users.
-			_getAllUsers()
+			userManagementAPI.getAllSubscribedID()
 				.then(usersSnapshot => {
 					users = usersSnapshot.val()
 					return _getBatchMessageHistory()
