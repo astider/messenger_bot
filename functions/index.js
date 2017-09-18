@@ -1455,7 +1455,9 @@ exports.answerGap = functions.database.ref('canAnswer').onWrite(event => {
 exports.voting = functions.database.ref('currentQuiz').onWrite(event => {
 	let currentQuiz = event.data.val()
 
-	db
+	if (currentQuiz >= 0) {
+
+		db
 		.ref(`quiz/${currentQuiz}`)
 		.once('value')
 		.then(qSnap => {
@@ -1479,4 +1481,7 @@ exports.voting = functions.database.ref('currentQuiz').onWrite(event => {
 		.catch(error => {
 			console.error(`found error is voting onWrite: ${error}`)
 		})
+		
+	} 
+	
 })
