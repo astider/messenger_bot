@@ -229,16 +229,12 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) =>
 						//	console.log(`Message delivered to ${event.sender.id}`)
 					} else {
 						if (event.postback && event.postback.payload == 'userPressedGetStartedButton') {
+
 							console.log(`receive get started action from ${event.sender.id}`)
 							addNewUser(event.sender.id)
 
-							/*
-							let welcomeText =
-							'ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค กิจกรรมจะเริ่มขึ้นในวันจันทร์ที่ 28 เวลา 2 ทุ่ม เข้ามาร่วมกิจกรรมง่ายๆ ก็มีโอกาสได้รางวัลใหญ่เป็น Galaxy Note8 ติดตามรายละเอียดเพิ่มเติมได้ในรายการ กติกาอ่านเพิ่มได้ที่ https://goo.gl/xDczAU'
-
-							sendTextMessage(event.sender.id, welcomeText)
-							*/
 						} else if (event.postback && event.postback.payload == 'checkMyCoupon') {
+
 							let id = event.sender.id
 
 							db
@@ -960,40 +956,36 @@ function addNewUser (newUserId) {
 					sendQuickReplies(newUserId, inviteMessage)
 				}, 1000)
 			} else {
+
 				// welcome message
-				/*
 				let texts = [
 					'ยินดีต้อนรับเข้าสู่เกมแชทชิงโชค : แชทตอบคำถามสุดฮา เจอกันทุกวันจันทร์เวลา 2 ทุ่ม',
-					`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`,
-					// 'กิจกรรมตอบคำถามลุ้นรับ Galaxy Note 8 กำลังจะเริ่มขึ้นแล้ว เตรียมเข้ามาร่วมเล่นกันได้ตอน 2 ทุ่มนะ อ่านรายละเอียดเพิ่มเติมได้ที่ https://goo.gl/xDczAU'
-					'ตอนนี้ยังไม่ถึงเวลากิจกรรม ไว้เราจะติดต่อกลับไปอีกครั้งนะ'
+					`สวัสดี คุณ ${userProfile.first_name} ${userProfile.last_name}`
 				]
 
-				sendCascadeMessage(newUserId, texts)
-				*/
+				let date = new Date()
+				let today = date.getDay()
+				let hour = date.getHours()
+				let minute = date.getMinutes()
 
-				/*
-				let theTimeIs = (new Date()).getTime()
+				// if monday
+				if (today == 1) {
 
-				if (theTimeIs <= 1505365200000) {
-
-					let regist = {
-						text: 'ต้องการลงทะเบียนล่วงหน้าเพื่อร่วมกิจกรรม แชทชิงโชค ซีซัน 2 ใช่หรือไม่ ?',
-						quick_replies: [
-							{
-								content_type: 'text',
-								title: 'ลงทะเบียน',
-								payload: 'earlyBirdRegister'
-							}
-						]
+					if (hour < 18) {
+						texts.push('กิจกรรมตอบคำถามลุ้นรับ iPhone 8 จะเริ่มขึ้นคืนนี้นะ เวลา 2 ทุ่ม เข้ามาร่วมกิจกรรมง่ายๆ ก็มีโอกาสได้รางวัลใหญ่เป็น iPhone 8 อ่านรายละเอียดเพิ่มเติมได้ที่ https://goo.gl/xDczAU อย่าลืมมาร่วมเล่นกับพวกเรานะ ;)')
+					}
+					else if (hour < 19 && minute < 30) {
+						texts.push('กิจกรรมตอบคำถามลุ้นรับ iPhone 8 กำลังจะเริ่มขึ้นแล้ว เตรียมเข้ามาร่วมเล่นกันได้ตอน 2 ทุ่มนะ อ่านรายละเอียดเพิ่มเติมได้ที่ https://goo.gl/ppMMSV')
+					}
+					else if (hour > 22) {
+						texts.push('ตอนนี้ยังไม่ถึงเวลากิจกรรม ไว้เราจะติดต่อกลับไปอีกครั้งนะ')
 					}
 
-					sendQuickReplies(newUserId, regist)
+				}
+				else texts.push('ตอนนี้ยังไม่ถึงเวลากิจกรรม ไว้เราจะติดต่อกลับไปอีกครั้งนะ')
 
-				} else if (theTimeIs > 1505365200000) sendTextMessage(newUserId, 'หมดเวลาลงทะเบียนล่วงหน้าสำหรับ แชทชิงโชค ซีซัน 2 แล้วจ้า \r\nแต่ไม่เป็นไรนะ ยังสามารถร่วมเล่นได้อยู่ รออ่านอัพเดตเกี่ยวกับกิจกรรมผ่านทางหน้าเพจ Droidsans นะ ;)')
-				else sendTextMessage(newUserId, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans :D')
-				*/
-				sendTextMessage(newUserId, 'ตอนนี้กิจกรรมยังไม่เริ่มนะ สามารถติดตามอัพเดตได้ผ่านเพจ Droidsans หรืออ่านกฎกติกาได้ที่ https://goo.gl/inf2FN ')
+				sendCascadeMessage(newUserId, texts)
+				
 			}
 		})
 		.catch(error => {
@@ -1025,19 +1017,7 @@ function receivedMessage (event) {
 	let admins = null
 
 	// sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans ;)')
-	let theTimeIs = new Date().getTime()
-	/*
-	db.ref('promotionCodes').once('value')
-	.then(promoSnap => {
-		let code = promoSnap.val()
-		if(code == 'FREE' || messageText == 'code') {
-
-		}
-		else 
-	})
-	*/
-	// midnigth = 1505235600000
-
+/*
 	userManagementAPI
 		.getAllID()
 		.then(ids => {
@@ -1047,74 +1027,8 @@ function receivedMessage (event) {
 		.catch(error => {
 			console.error(`error in receive message: ${error}`)
 		})
+*/
 
-	/*
-	if ( theTimeIs <= 1505365200000) {
-
-
-		if (messageQRPayload == 'noValue') {
-			db
-				.ref('users')
-				.orderByChild('fbid')
-				.equalTo(senderID)
-				.once('value')
-				.then(userSnap => {
-					let user = userSnap.val()
-					if (!user || !(Object.keys(user).length > 0)) addNewUser(senderID)
-					else {
-						let key = Object.keys(user)[0]
-						let userInfo = user[key]
-
-						if (userInfo.iPhoneEarlyBirdCoupon > 0) sendTextMessage(senderID, 'คุณได้รับคูปองจากการลงทะเบียนล่วงหน้าแล้ว')
-						else {
-							let regist = {
-								text: 'ต้องการลงทะเบียนล่วงหน้าเพื่อร่วมกิจกรรม แชทชิงโชค ซีซัน 2 ใช่หรือไม่ ?',
-								quick_replies: [
-									{
-										content_type: 'text',
-										title: 'ลงทะเบียน',
-										payload: 'earlyBirdRegister'
-									}
-								]
-							}
-
-							sendQuickReplies(senderID, regist)
-						}
-					}
-				})
-				.catch(error => {
-					console.error(`error while querying userIds: ${error}`)
-				})
-		} else if (messageQRPayload == 'earlyBirdRegister') {
-			db
-				.ref('users')
-				.orderByChild('fbid')
-				.equalTo(senderID)
-				.once('value')
-				.then(userSnap => {
-					let user = userSnap.val()
-					if (!user || !(Object.keys(user).length > 0)) throw 'user info not found'
-					else {
-						let key = Object.keys(user)[0]
-						db
-							.ref(`users/${key}/iPhoneEarlyBirdCoupon`)
-							.set(1)
-							.then(() => {
-								sendTextMessage(senderID, 'ลงทะเบียนเรียบร้อยจ้า สามารถอ่านกฎกติกาได้ที่ https://goo.gl/inf2FN และรอติดตามอัพเดตเกี่ยวกับกิจกรรมผ่านทางเพจ Droidsans นะ ;)')
-							})
-					}
-				})
-				.catch(error => {
-					console.error(`getting user info error: ${error}`)
-				})
-		}
-
-	}
-	else if (theTimeIs > 1505365200000) sendTextMessage(senderID, 'หมดเวลาลงทะเบียนล่วงหน้าสำหรับ แชทชิงโชค ซีซัน 2 แล้วจ้า \r\nแต่ไม่เป็นไรนะ ยังสามารถร่วมเล่นได้อยู่ รออ่านอัพเดตเกี่ยวกับกิจกรรมผ่านทางหน้าเพจ Droidsans นะ ;)')
-	else sendTextMessage(senderID, 'ขณะนี้ แชทชิงโชค อยู่ระหว่างการพักกิจกรรม กรุณาติดตามอัพเดตได้จากทางเพจ Droidsans :D')
-	*/
-
-	/*
 	_getAdmin()
 		.then(snapshot => {
 			admins = snapshot.val()
@@ -1146,15 +1060,6 @@ function receivedMessage (event) {
 			let userObject = fetchedUser.val()
 			let user = null
 			if (userObject && Object.keys(userObject).length > 0) user = userObject[Object.keys(userObject)[0]]
-
-			// for (let key in users) {
-			// 	allUsers[users[key].fbid] = {
-			// 		fullName: users[key].firstName + ' ' + users[key].lastName,
-			// 		firstName: users[key].firstName,
-			// 		lastName: users[key].lastName,
-			// 		profilePic: users[key].profilePic
-			// 	}
-			// }
 
 			console.log('________________________________')
 			console.log(`_______ ${JSON.stringify(status)} ______`)
@@ -1212,13 +1117,16 @@ function receivedMessage (event) {
 					}
 
 				} else if (quizType == 'VOTE' && quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
+
 					sendTextMessage(senderID, 'ได้คำตอบแล้วจ้า~')
 
 					playerInfo.answerPack[status.currentQuiz].ans = messageQRPayload
 					playerInfo.answerPack[status.currentQuiz].at = new Date().getTime()
 
 					db.ref(`participants/${senderID}`).set(playerInfo)
+					
 				} else if (quizType == 'CHOICES' && quiz[status.currentQuiz].choices.indexOf(messageQRPayload) > -1) {
+
 					// current quiz use choices
 					console.log('hello from inside CHOICE answer')
 
@@ -1244,9 +1152,11 @@ function receivedMessage (event) {
 
 						db.ref(`participants/${senderID}`).set(playerInfo)
 					}
+
 				} else if (playerInfo.answerPack[status.currentQuiz].ans) sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
 				else if (!status.canAnswer) sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
 				else {
+
 					sendTextMessage(senderID, 'พิมพ์ตอบจะไม่ได้คะแนนนะ กดตอบเอา')
 
 					let quickReplyChoices = []
@@ -1268,13 +1178,9 @@ function receivedMessage (event) {
 						sendQuickReplies(senderID, quizMessage)
 					}, 1000)
 				}
+
 			} else if (messageQRPayload == 'เข้าร่วม' && !playerInfo && status.canEnter) {
-				// ------- USER ENTER
-				// console.log(`in the khaoruam // id : ${senderID}`)
 
-				// console.log(`in the khaoruam // allID : ${JSON.stringify(allUsers)}`)
-
-				// if(!participants[senderID]) {
 				let answerTemplate = Array(quiz.length).fill({
 					ans: '',
 					correct: false,
@@ -1306,22 +1212,24 @@ function receivedMessage (event) {
 
 					sendQuickReplies(senderID, quizMessage)
 				} else {
-					let texts = ['แชทชิงโชค วันนี้ใครจะได้รางวัลประจำสัปดาห์ 3 รางวัลไป และเดือนนี้ลุ้นรางวัลใหญ่ Galaxy Note 8\r\n', 'กติกาเพิ่มเติมอ่านได้ที่ https://droidsans.com/chatchingchoke-august-note8/\r\n', 'สามารถรับชม Live ได้ผ่านทาง https://youtu.be/yRHTbynL__4 \r\n\r\n', `ขณะนี้คุณมีคูปองอยู่ ${user.coupon} คูปอง เราขอให้คุณโชคดีกับแชทชิงโชค :)`]
 
-					sendCascadeMessage(senderID, texts)
+					db.ref('liveURL').once('value')
+					.then(urlSnap => {
+
+						let url = 'https://www.youtube.com/watch?v=' + urlSnap.val()
+						let texts = ['โอเค เข้าร่วมเรียบร้อยแล้ว เตรียมรอรับคำถามได้เลย', `อย่าลืมดู Live กิจกรรมที่ ${url} ด้วยนะ เพราะบางคำถามอาจจะต้องดูภาพควบคู่ไปด้วย` ]
+						sendCascadeMessage(senderID, texts)
+
+					})
+					
 				}
 
-				// }
-				// else {
-				//   console.log(`Already has this user in participants`)
-				// }
 			} else if (messageQRPayload == 'ไม่เข้าร่วม' && !playerInfo) {
+
 				sendTextMessage(senderID, 'ถ้าเปลี่ยนใจก็ทักมาได้นะ')
+
 			} else if (messageText) {
-				// ------- USER MESSAGE NORMALLY
-				// console.log('IN get message')
-				// If we receive a text message, check to see if it matches a keyword
-				// and send back the example. Otherwise, just echo the text we received.
+
 				if (adminAvaiability) {
 					console.log(`admin check return true : ${adminAvaiability} `)
 
@@ -1437,12 +1345,20 @@ function receivedMessage (event) {
 							}
 						}
 					}
+
 				} else if (!user || (user && !playerInfo)) {
+
 					console.log('user id not found in DB {OR} not in participants -> adding new user')
 					setTimeout(addNewUser(senderID), 1500)
+
 				} else if (!status.playing && !status.canEnter) {
+
+					// for current user
+					let text = 'ตอนนี้ยังไม่ถึงเวลากิจกรรม ไว้เราจะติดต่อกลับไปอีกครั้งนะ'
+
 					console.log('this user is in our sigth, but game is end or not started yet, tell the user!')
-					sendTextMessage(senderID, 'ขณะนี้หมดช่วงเวลาเล่นเกมแล้ว รอติดตามการจับฉลากหาผู้โชคดีว่าใครจะได้ Galaxy Note 8 ไปครองในวันศุกร์นี้เวลา 20.00 น.')
+					sendTextMessage(senderID, text)
+				
 				} else {
 					// else if(!participants)
 					if (status.playing) {
@@ -1490,7 +1406,6 @@ function receivedMessage (event) {
 			console.error(`there's an error in receiving message: ${error}`)
 		})
 
-		*/
 }
 
 // ------------------------ TIMER  -------------------------
