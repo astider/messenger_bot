@@ -34,6 +34,7 @@ let messengerFunctions = {
 }
 
 const httpsFunctions = require('./httpsTriggered.js')(util, messengerFunctions)
+const messengerProfileFunctions = require('./messengerProfile.js')(util, messengerFunctions)
 const scheduleFunctions = require('./schedule.js')(util, messengerFunctions)
 console.log('STARTING SERVICE')
 
@@ -437,32 +438,19 @@ exports.getVoteResult = functions.https.onRequest((req, res) => {
 	})
 })
 
+// -------------
+
+exports.setMessengerProperties = functions.https.onRequest((req, res) => {
+	cors(req, res, () => {
+		messengerProfileFunctions.setMessengerProperties(req, res, env.messenger)
+	})
+})
+
 // exports.assignCounponNumber = functions.https.onRequest((req, res) => {
 // 	cors(req, res, () => {
 // 		httpsFunctions.assignCounponNumber(req, res)
 // 	})
 // })
-
-exports.findMe = functions.https.onRequest((req, res) => {
-	cors(req, res, () => {
-		// 1432315113461939 nontapat
-		// 1124390080993810 robert
-		db
-			.ref('users')
-			.orderByChild('fbid')
-			.equalTo('1124390080993810')
-			.once('value')
-			.then(obj => {
-				res.json(obj.val())
-			})
-			.catch(error => {
-				console.log(`error: ${error}`)
-				res.json({
-					error: error
-				})
-			})
-	})
-})
 
 exports.sendQuiz = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
@@ -823,7 +811,7 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 		*/
 
 	// batch allow 50 commands per request, read this : https://developers.facebook.com/docs/graph-api/making-multiple-requests/
-	let batchLimit = 25 // 50
+	let batchLimit = 50
 	let maxIncre = Math.ceil(reqPack.length / batchLimit)
 
 	for (let i = 0; i < maxIncre; i++) {
@@ -853,6 +841,7 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 			}, delay * (i + 1))
 		})(i)
 	}
+	
 }
 
 function sendQuickReplies (recipientId, quickReplies) {

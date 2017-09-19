@@ -585,7 +585,7 @@ module.exports = function (util, messengerFunctions) {
 		let currentQuiz = -1
 
 		if (req.method == 'GET') res.status(403).json({ error: 'Forbidden Request' })
-		else if (!selectedChoice) res.json({ error: 'no choice was selected' })
+		else if ( selectedChoice != 0 && !selectedChoice) res.json({ error: 'no choice was selected' })
 		else if (isNaN(selectedChoice)) res.json({ error: 'selected choice data type is not a number' })
 		else {
 			util
