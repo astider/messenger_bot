@@ -148,6 +148,19 @@ exports.addTemplateMessage = functions.https.onRequest(function (req, res) {
 		httpsFunctions.addTemplateMessage(req, res)
 	})
 })
+exports.editMessageTemplate = functions.https.onRequest(function (req, res) {
+	cors(req, res, () => {
+		if (req.method != 'POST') {
+			return res.status(403).json({})
+		}
+
+		if (req.query.adminApproval != 'isTrue8768') {
+			return res.status(403).json({})
+		}
+		httpsFunctions.editTemplateMessage(req, res)
+	})
+})
+
 
 exports.testFrontFunctionFacebook = functions.https.onRequest(function (req, res) {
 	cors(req, res, () => {
