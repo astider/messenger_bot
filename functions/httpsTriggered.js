@@ -296,6 +296,10 @@ module.exports = function (util, messengerFunctions) {
 				return res.status(404).json({})
 			}
 			let oldMessage = snapshot.val()
+			console.log(oldMessage)
+			if(!oldMessage){
+				return res.status(404).json({})
+			}
 			// sort things out by its category
 			if(oldMessage.category=="text"){
 				if(!req.body.payload){
