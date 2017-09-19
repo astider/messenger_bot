@@ -15,28 +15,35 @@ module.exports = function (util, messengerFunctions) {
 
 		if (req.method == 'GET') {
 
-			axios(`https://graph.facebook.com/v2.10/me/messenger_profile?fields=${fields}&access_token=${messenger_env.page_token}`)
-			.then(response => {
+			let fields = req.query['fields']
 
-				if (response.status == 200) {
+			if (!fields) res.json({ error: 'invalid params' })
+			else {
 
+				axios(`https://graph.facebook.com/v2.10/me/messenger_profile?fields=${fields}&access_token=${messenger_env.page_token}`)
+				.then(response => {
+	
+					if (response.status == 200) {
+	
+						res.json({
+							error: null,
+							data: response.data
+						})
+	
+					}
+					else if (response.error) throw response.error
+					else throw response.status
+	
+				})
+				.catch(error => {
+	
 					res.json({
-						error: null,
-						data: response.data
+						error: error
 					})
-
-				}
-				else if (response.error) throw response.error
-				else throw response.status
-
-			})
-			.catch(error => {
-
-				res.json({
-					error: error
+	
 				})
 
-			})
+			}
 
 		}
 		else if (req.method == 'POST') {
@@ -136,6 +143,9 @@ module.exports = function (util, messengerFunctions) {
 			})
 			
 		}
+		else res.status(403).json({
+			error: 'Forbidden Request'
+		})
 
 	}
 
