@@ -29,10 +29,12 @@ let messengerFunctions = {
 	sendCascadeMessage: sendCascadeMessage,
 	sendQuickReplies: sendQuickReplies,
 	sendBatchMessage: sendBatchMessage,
-	sendBatchMessageWithDelay: sendBatchMessageWithDelay
+	sendBatchMessageWithDelay: sendBatchMessageWithDelay,
+	sendBatchMessageWithDelay2: sendBatchMessageWithDelay2
 }
 
 const httpsFunctions = require('./httpsTriggered.js')(util, messengerFunctions)
+const messengerProfileFunctions = require('./messengerProfile.js')(util, messengerFunctions)
 const scheduleFunctions = require('./schedule.js')(util, messengerFunctions)
 console.log('STARTING SERVICE')
 
@@ -449,32 +451,19 @@ exports.getVoteResult = functions.https.onRequest((req, res) => {
 	})
 })
 
+// -------------
+
+exports.setMessengerProperties = functions.https.onRequest((req, res) => {
+	cors(req, res, () => {
+		messengerProfileFunctions.setMessengerProperties(req, res, env.messenger)
+	})
+})
+
 // exports.assignCounponNumber = functions.https.onRequest((req, res) => {
 // 	cors(req, res, () => {
 // 		httpsFunctions.assignCounponNumber(req, res)
 // 	})
 // })
-
-exports.findMe = functions.https.onRequest((req, res) => {
-	cors(req, res, () => {
-		// 1432315113461939 nontapat
-		// 1124390080993810 robert
-		db
-			.ref('users')
-			.orderByChild('fbid')
-			.equalTo('1124390080993810')
-			.once('value')
-			.then(obj => {
-				res.json(obj.val())
-			})
-			.catch(error => {
-				console.log(`error: ${error}`)
-				res.json({
-					error: error
-				})
-			})
-	})
-})
 
 exports.sendQuiz = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
@@ -580,7 +569,8 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 								})
 								.then(() => {
 									console.log('sync SENDING')
-									sendBatchMessage(sendQuizBatch)
+									// sendBatchMessage(sendQuizBatch)
+									sendBatchMessageWithDelay2(sendQuizBatch, 200)
 
 									res.json({
 										error: null,
@@ -595,7 +585,8 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 								.set(true)
 								.then(() => {
 									console.log('sync SENDING / not set new FQA')
-									sendBatchMessage(sendQuizBatch)
+									// sendBatchMessage(sendQuizBatch)
+									sendBatchMessageWithDelay2(sendQuizBatch, 200)
 
 									res.json({
 										error: null,
@@ -863,6 +854,7 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 			}, delay * (i + 1))
 		})(i)
 	}
+	
 }
 
 function sendQuickReplies (recipientId, quickReplies) {
@@ -1373,7 +1365,7 @@ function receivedMessage (event) {
 						}
 					}
 
-				} else if (!user || (user && !playerInfo)) {
+				} else if (status.canEnter && (!user || (user && !playerInfo) ) ) {
 
 					console.log('user id not found in DB {OR} not in participants -> adding new user')
 					setTimeout( () => { addNewUser(senderID) }, 500)
@@ -1468,7 +1460,9 @@ exports.answerGap = functions.database.ref('canAnswer').onWrite(event => {
 exports.voting = functions.database.ref('currentQuiz').onWrite(event => {
 	let currentQuiz = event.data.val()
 
-	db
+	if (currentQuiz >= 0) {
+
+		db
 		.ref(`quiz/${currentQuiz}`)
 		.once('value')
 		.then(qSnap => {
@@ -1492,4 +1486,7 @@ exports.voting = functions.database.ref('currentQuiz').onWrite(event => {
 		.catch(error => {
 			console.error(`found error is voting onWrite: ${error}`)
 		})
+		
+	} 
+	
 })
