@@ -285,6 +285,47 @@ module.exports = function (util, messengerFunctions) {
 			.catch(e => {})
 		// db.ref(`messageTemplates/${name}`).set(message['message'])
 	}
+	module.editTemplateMessage = function (req, res) {
+		// we receive POST
+
+		let target = req.body.target
+
+		// target must be firebase key
+		db.ref(`messageTemplates/${target}`).once('value').then(snapshot=>{
+			if(!snapshot){
+				return res.status(404).json({})
+			}
+			let oldMessage = snapshot.val()
+			console.log(oldMessage)
+			if(!oldMessage){
+				return res.status(404).json({})
+			}
+			// sort things out by its category
+			if(oldMessage.category=="text"){
+				if(!req.body.payload){
+					return res.status(400).json({})
+				}
+				if(typeof req.body.payload!="string"){
+					return res.status(400).json({})
+				}
+				oldMessage.text = req.body.payload
+			}
+			else if (oldMessage.category=="image"){
+				if(!req.body.payload){
+					return res.status(400).json({})
+				}
+				if(typeof req.body.payload!="string"){
+					return res.status(400).json({})
+				}
+				oldMessage.attachment.payload.url = req.body.payload;
+			}
+			else if (oldMessage.category=="quick_reply"){
+				return res.status(404).json({})
+			}
+			db.ref(`messageTemplates/${target}`).set(oldMessage)
+
+		});
+	}
 	// --------- START HERE
 	module.getOverallStatus = function (req, res) {
 		let cq = -1
