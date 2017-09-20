@@ -801,29 +801,6 @@ function sendBatchMessageWithDelay (reqPack, delay) {
 }
 
 function sendBatchMessageWithDelay2 (reqPack, delay) {
-	//
-	// FB API call by page is tied to page rating...
-	//
-	// REQUEST FORMAT (reqPack must be array of data like this)
-	/*
-	
-			let bodyData = {
-				recipient: {
-					id: user.fbid
-				},
-				message: {
-					text: `สวัสดี ${user.firstName} ทดสอบอีกที`
-				}
-			}
-	
-			requests.push({
-				method: 'POST',
-				relative_url: 'me/messages?include_headers=false',
-				body: param(bodyData)
-			})
-		*/
-
-	// batch allow 50 commands per request, read this : https://developers.facebook.com/docs/graph-api/making-multiple-requests/
 	let batchLimit = 50
 	let maxIncre = Math.ceil(reqPack.length / batchLimit)
 
@@ -843,11 +820,21 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 						let epochTime = time.getTime()
 
 						res.forEach(response => {
+
 							db
 								.ref(`batchLogs/${date}/${epochTime}`)
 								.push()
 								.set(response['body'])
 							console.log(response['body'])
+
+							if (response['body'].recipient_id) {
+
+								let tempObj = {}
+								tempObj[response['body'].recipient_id] = true
+								db.ref(`batchSentComplete/${date}/${epochTime}`).set(tempObj)
+								
+							}
+
 						})
 					}
 				})
