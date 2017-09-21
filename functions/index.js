@@ -327,6 +327,98 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) =>
 	}
 })
 
+// ---------------------------------------- TEST BATCH
+
+exports.testBatch = functions.https.onRequest((req, res) => {
+
+	let batchRequests = []
+	let delay = (req.query['delay']) ? req.query['delay'] : 200
+
+	userManagementAPI.getAllSubscribedID()
+	.then(ids => {
+		
+		ids.map(uid => {
+
+			let bodyData = {
+				recipient: {
+					id: uid
+				},
+				message: {
+					text: `ทดลอง BATCH @${(new Date()).getTime()}`
+				}
+			}
+
+			batchRequests.push({
+				method: 'POST',
+				relative_url: 'me/messages?include_headers=false',
+				body: param(bodyData)
+			})
+			
+		})
+
+		// sendBatchMessageWithDelay2(batchRequests, 250)
+		let batchLimit = 50
+		let maxIncre = Math.ceil(batchRequests.length / batchLimit)
+		let roundLimit = (req.query['limit']) ? req.query['limit'] : maxIncre
+	
+		for (let i = 0; i < roundLimit; i++) {
+			(function (i) {
+				setTimeout(function () {
+
+					console.log(`sending batch ${i + 1}/${roundLimit}`)
+					console.log(`slicing is ${i * 50}/${i * 50 + batchLimit} from all of ${batchRequests.length}`)
+
+					FB.batch(batchRequests.slice(i * 50, i * 50 + batchLimit), (error, res) => {
+						if (error) {
+							// console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
+							console.log(`\n batch [${i}] error`)
+						} else {
+
+							console.log(`batch [${i}] / no error : `)
+							let time = new Date()
+							let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
+							let epochTime = time.getTime()
+	
+							res.forEach(response => {
+	
+								db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
+								.then(() => {
+	
+									console.log(response['body'])
+									// let data = JSON.parse(JSON.parse(response['body']))
+									let data = JSON.parse(response['body'])
+									console.log(`------------------- ${JSON.stringify(data)}`)
+	
+									if (data.recipient_id) {
+										console.log('====================')
+										console.log('====================')
+										console.log(JSON.stringify(data))
+	
+										let tempObj = {}
+										tempObj[data.recipient_id] = true
+										db.ref(`batchSentComplete/${date}/${epochTime}`).set(tempObj)
+	
+									}
+	
+								})
+								.catch(error => {
+									console.error(`SEND BATCH ERROR: ${error}`)
+								})
+	
+							})
+						}
+					})
+				}, delay * (i + 1))
+			})(i)
+		}
+
+
+		res.send('sending...')
+
+	})
+
+})
+
 // -------------------- WEB API
 
 exports.addNewUserFromWeb = functions.https.onRequest((req, res) => {
@@ -801,33 +893,10 @@ function sendBatchMessageWithDelay (reqPack, delay) {
 }
 
 function sendBatchMessageWithDelay2 (reqPack, delay) {
-	//
-	// FB API call by page is tied to page rating...
-	//
-	// REQUEST FORMAT (reqPack must be array of data like this)
-	/*
-	
-			let bodyData = {
-				recipient: {
-					id: user.fbid
-				},
-				message: {
-					text: `สวัสดี ${user.firstName} ทดสอบอีกที`
-				}
-			}
-	
-			requests.push({
-				method: 'POST',
-				relative_url: 'me/messages?include_headers=false',
-				body: param(bodyData)
-			})
-		*/
-
-	// batch allow 50 commands per request, read this : https://developers.facebook.com/docs/graph-api/making-multiple-requests/
 	let batchLimit = 50
 	let maxIncre = Math.ceil(reqPack.length / batchLimit)
 
-	for (let i = 0; i < maxIncre; i++) {
+	for (let i = 0; i < 2;/* maxIncre*/ i++) {
 		(function (i) {
 			setTimeout(function () {
 				console.log(`sending batch ${i + 1}/${maxIncre}`)
@@ -843,11 +912,28 @@ function sendBatchMessageWithDelay2 (reqPack, delay) {
 						let epochTime = time.getTime()
 
 						res.forEach(response => {
-							db
-								.ref(`batchLogs/${date}/${epochTime}`)
-								.push()
-								.set(response['body'])
-							console.log(response['body'])
+
+							db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
+							.then(() => {
+
+								console.log(response['body'])
+
+								if (response['body'].recipient_id) {
+									console.log('====================')
+									console.log('====================')
+									console.log(response['body'])
+
+									let tempObj = {}
+									tempObj[response['body'].recipient_id] = true
+									db.ref(`batchSentComplete/${date}/${epochTime}`).set(tempObj)
+
+								}
+
+							})
+							.catch(error => {
+								console.error(`SEND BATCH ERROR: ${error}`)
+							})
+
 						})
 					}
 				})
@@ -1290,7 +1376,7 @@ function receivedMessage (event) {
 										
 									})
 
-									sendBatchMessageWithDelay2(batchRequests, 200)
+									sendBatchMessageWithDelay2(batchRequests, 250)
 									// sendBatchMessage(batchRequests)
 									// tell admin that message was sent
 									sendTextMessage(senderID, '## Message sent to ALL USERS')

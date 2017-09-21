@@ -291,35 +291,35 @@ module.exports = function (util, messengerFunctions) {
 		let target = req.body.target
 
 		// target must be firebase key
-		db.ref(`messageTemplates/${target}`).once('value').then(snapshot=>{
-			if(!snapshot){
+		db.ref(`messageTemplates/${target}`).once('value').then(snapshot => {
+			if (!snapshot){
 				return res.status(404).json({})
 			}
 			let oldMessage = snapshot.val()
 			console.log(oldMessage)
-			if(!oldMessage){
+			if (!oldMessage){
 				return res.status(404).json({})
 			}
 			// sort things out by its category
-			if(oldMessage.category=="text"){
-				if(!req.body.payload){
+			if (oldMessage.category == 'text'){
+				if (!req.body.payload){
 					return res.status(400).json({})
 				}
-				if(typeof req.body.payload!="string"){
+				if (typeof req.body.payload != 'string'){
 					return res.status(400).json({})
 				}
 				oldMessage.text = req.body.payload
 			}
-			else if (oldMessage.category=="image"){
-				if(!req.body.payload){
+			else if (oldMessage.category == 'image'){
+				if (!req.body.payload){
 					return res.status(400).json({})
 				}
-				if(typeof req.body.payload!="string"){
+				if (typeof req.body.payload != 'string'){
 					return res.status(400).json({})
 				}
 				oldMessage.attachment.payload.url = req.body.payload;
 			}
-			else if (oldMessage.category=="quick_reply"){
+			else if (oldMessage.category == 'quick_reply'){
 				return res.status(404).json({})
 			}
 			db.ref(`messageTemplates/${target}`).set(oldMessage)
@@ -664,10 +664,10 @@ module.exports = function (util, messengerFunctions) {
 
 						if (playerAnswerInfo.ans == selectedAnswer && !playerAnswerInfo.correct) {
 							playerAnswerInfo.correct = true
-							participants[key].point = participants[key].point + 1
+							// participants[key].point = participants[key].point + 1
 
 							updates[`/${key}/answerPack/${currentQuiz}`] = playerAnswerInfo
-							updates[`/${key}/point`] = participants[key].point
+							// updates[`/${key}/point`] = participants[key].point
 						}
 					})
 

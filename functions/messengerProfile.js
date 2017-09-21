@@ -27,7 +27,7 @@ module.exports = function (util, messengerFunctions) {
 	
 						res.json({
 							error: null,
-							data: response.data
+							data: response.data.data
 						})
 	
 					}
@@ -118,7 +118,7 @@ module.exports = function (util, messengerFunctions) {
 		else if (req.method == 'DELETE') {
 
 			axios.delete(`https://graph.facebook.com/v2.10/me/messenger_profile?access_token=${messenger_env.page_token}`, {
-				fields: req.body.fields
+				data: req.body
 			})
 			.then(response => {
 
