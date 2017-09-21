@@ -356,13 +356,97 @@ exports.testBatch = functions.https.onRequest((req, res) => {
 			
 		})
 
-		// sendBatchMessageWithDelay2(batchRequests, 250)
+		// ---
+
 		let batchLimit = 50
 		let maxIncre = Math.ceil(batchRequests.length / batchLimit)
 		let roundLimit = (req.query['limit']) ? req.query['limit'] : maxIncre
+
+		let reformatReqPack = []
+
+		for (let i = 0; i < roundLimit; i++) {
+			reformatReqPack.push( batchRequests.slice(i * 50, i * 50 + batchLimit) )
+		}
+
+
+
+
+		reformatReqPack.reduce((promiseOrder, packOf50, i) => {
+			return promiseOrder.then(() => {
+				// console.log(message)
+				// sendTextMessage(id, message)
+
+				FB.batch(packOf50, (error, res) => {
+					if (error) {
+						// console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
+						console.log(`\n batch [${i}] error`)
+					} else {
+
+						console.log(`batch [${i}] / no error : `)
+
+						let time = new Date()
+						let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
+						let epochTime = time.getTime()
+
+						res.forEach(response => {
+
+							db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
+							.then(() => {
+
+								console.log(response['body'])
+								// let data = JSON.parse(JSON.parse(response['body']))
+								let data = JSON.parse(response['body'])
+								console.log(`------------------- ${JSON.stringify(data)}`)
+
+								if (data.recipient_id) {
+									console.log('====================')
+									console.log('====================')
+									console.log(JSON.stringify(data))
+
+									let tempObj = {}
+									tempObj[data.recipient_id] = true
+									db.ref(`batchSentComplete/${date}/${epochTime}`).set(tempObj)
+
+								}
+
+							})
+							.catch(error => {
+								console.error(`SEND BATCH ERROR: ${error}`)
+							})
+
+						})
+					}
+				})
+
+
+
+				return new Promise(res => {
+					setTimeout(res, delay)
+				})
+				
+			})
+
+		}, Promise.resolve())
+		.then(
+			() => console.log('batch request DONE!'),
+			error => {
+				console.error(`reduce error : ${error} `)
+			}
+		)
+
+		// ---
+
+		// sendBatchMessageWithDelay2(batchRequests, 250)
+		/*
+		let batchLimit = 50
+		let maxIncre = Math.ceil(batchRequests.length / batchLimit)
+		let roundLimit = (req.query['limit']) ? req.query['limit'] : maxIncre
+
 	
 		for (let i = 0; i < roundLimit; i++) {
+
 			(function (i) {
+
 				setTimeout(function () {
 
 					console.log(`sending batch ${i + 1}/${roundLimit}`)
@@ -409,9 +493,11 @@ exports.testBatch = functions.https.onRequest((req, res) => {
 						}
 					})
 				}, delay * (i + 1))
-			})(i)
-		}
 
+			})(i)
+
+		}
+		*/
 
 		res.send('sending...')
 
