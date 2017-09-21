@@ -336,6 +336,9 @@ exports.testBatch = functions.https.onRequest((req, res) => {
 
 	userManagementAPI.getAllSubscribedID()
 	.then(ids => {
+
+		console.log('got user ids')
+		let time = (new Date()).getTime()
 		
 		ids.map(uid => {
 
@@ -344,7 +347,7 @@ exports.testBatch = functions.https.onRequest((req, res) => {
 					id: uid
 				},
 				message: {
-					text: `ทดลอง BATCH @${(new Date()).getTime()}`
+					text: `ทดลอง BATCH @${time}`
 				}
 			}
 
@@ -411,7 +414,7 @@ exports.testBatch = functions.https.onRequest((req, res) => {
 							})
 
 						})
-						
+
 					}
 
 				})
