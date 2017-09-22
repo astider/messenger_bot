@@ -697,8 +697,8 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 								})
 								.then(() => {
 									console.log('sync SENDING')
-									// sendBatchMessage(sendQuizBatch)
-									sendBatchMessageWithDelay2(sendQuizBatch, 200)
+									sendBatchMessage(sendQuizBatch)
+									// sendBatchMessageWithDelay2(sendQuizBatch, 200)
 
 									res.json({
 										error: null,
@@ -713,8 +713,8 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 								.set(true)
 								.then(() => {
 									console.log('sync SENDING / not set new FQA')
-									// sendBatchMessage(sendQuizBatch)
-									sendBatchMessageWithDelay2(sendQuizBatch, 200)
+									sendBatchMessage(sendQuizBatch)
+									// sendBatchMessageWithDelay2(sendQuizBatch, 200)
 
 									res.json({
 										error: null,
@@ -795,7 +795,8 @@ exports.broadcastMessage = functions.https.onRequest((req, res) => {
 							body: param(messageBodyData)
 						})
 					})
-					sendBatchMessageWithDelay2(sendMessageBatch, 100)
+					// sendBatchMessageWithDelay2(sendMessageBatch, 100)
+					sendBatchMessage(sendMessageBatch)
 					return res.json({
 						error: null
 					})
@@ -863,7 +864,8 @@ exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
 						body: param(messageBodyData)
 					})
 				})
-				sendBatchMessageWithDelay2(sendMessageBatch, 100)
+				// sendBatchMessageWithDelay2(sendMessageBatch, 100)
+				sendBatchMessage(sendMessageBatch)
 				return res.json({
 					error: null
 				})
@@ -878,7 +880,7 @@ exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
 // ------------------- Messenger Function
 
 function sendBatchMessage (reqPack) {
-	sendBatchMessageWithDelay(reqPack, 0)
+	sendBatchMessageWithDelay(reqPack, 1)
 }
 
 function sendBatchMessageWithDelay (reqPack, delay) {
@@ -918,10 +920,10 @@ function sendBatchMessageWithDelay (reqPack, delay) {
 			FB.batch(packOf50, (error, res) => {
 				if (error) {
 					// console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
-					console.log(`\n batch [${i}] error`)
+					console.log(`\n batch [${i + 1}] error`)
 				} else {
 
-					console.log(`batch [${i}]`)
+					console.log(`batch [${i + 1}]`)
 
 					let time = new Date()
 					let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
@@ -1457,7 +1459,7 @@ function receivedMessage (event) {
 										
 									})
 
-									sendBatchMessageWithDelay2(batchRequests, 250)
+									sendBatchMessage(batchRequests, 250)
 									// sendBatchMessage(batchRequests)
 									// tell admin that message was sent
 									sendTextMessage(senderID, '## Message sent to ALL USERS')
@@ -1494,7 +1496,7 @@ function receivedMessage (event) {
 												// sendTextMessage(id, text)
 											})
 
-											sendBatchMessageWithDelay2(batchRequests, 200)
+											sendBatchMessage(batchRequests, 200)
 											// sendBatchMessage(batchRequests)
 											// tell admin that message was sent
 											sendTextMessage(senderID, '## Message sent to ALL PARTICIPANTS')

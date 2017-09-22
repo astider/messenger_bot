@@ -594,8 +594,8 @@ module.exports = function (util, messengerFunctions) {
 					// sendQuickReplies(id, inviteMessage)
 				})
 
-				// messengerFunctions.sendBatchMessage(sendRequestBatch)
-				messengerFunctions.sendBatchMessage(sendRequestBatch, 200)
+				messengerFunctions.sendBatchMessage(sendRequestBatch)
+				// messengerFunctions.sendBatchMessageWithDelay2(sendRequestBatch, 200)
 
 				res.json({
 					error: null,
@@ -1249,7 +1249,8 @@ module.exports = function (util, messengerFunctions) {
 					requestArray[i].body = param(requestArray[i].body)
 				}
 
-				messengerFunctions.sendBatchMessageWithDelay(requestArray, 500)
+				// messengerFunctions.sendBatchMessageWithDelay(requestArray, 500)
+				messengerFunctions.sendBatchMessage(requestArray)
 
 				res.json({
 					error: null,
@@ -1639,7 +1640,8 @@ module.exports = function (util, messengerFunctions) {
 					// sendTextMessage(id, text)
 				})
 
-				messengerFunctions.sendBatchMessageWithDelay(batchRequests, 200)
+				// messengerFunctions.sendBatchMessageWithDelay(batchRequests, 200)
+				messengerFunctions.sendBatchMessage(batchRequests)
 				res.send('sent!')
 			})
 			.catch(error => {
