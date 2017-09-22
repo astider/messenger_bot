@@ -333,6 +333,7 @@ exports.testBatch = functions.https.onRequest((req, res) => {
 
 	let batchRequests = []
 	let delay = (req.query['delay']) ? req.query['delay'] : 200
+	let limitVal = parseInt(req.query['limit'])
 
 	userManagementAPI.getAllSubscribedID()
 	.then(ids => {
@@ -363,7 +364,7 @@ exports.testBatch = functions.https.onRequest((req, res) => {
 
 		let batchLimit = 50
 		let maxIncre = Math.ceil(batchRequests.length / batchLimit)
-		let roundLimit = maxIncre
+		let roundLimit = (limitVal > 0) ? limitVal : maxIncre
 
 		let reformatReqPack = []
 
@@ -392,19 +393,13 @@ exports.testBatch = functions.https.onRequest((req, res) => {
 							db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
 							.then(() => {
 
-								console.log(response['body'])
-								// let data = JSON.parse(JSON.parse(response['body']))
 								let data = JSON.parse(response['body'])
-								console.log(`------------------- ${JSON.stringify(data)}`)
 
+								// if messege delivered successfully, record user's id
 								if (data.recipient_id) {
-									console.log('====================')
-									console.log('====================')
-									console.log(JSON.stringify(data))
 
-									let tempObj = {}
-									tempObj[data.recipient_id] = true
-									db.ref(`batchSentComplete/${date}/${epochTime}`).set(tempObj)
+									console.log(`id [${data.recipient_id}] received message!`)
+									db.ref(`batchSentComplete/${date}/${epochTime}/${data.recipient_id}`).set(true)
 
 								}
 
