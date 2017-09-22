@@ -339,6 +339,8 @@ exports.testBatch = functions.https.onRequest((req, res) => {
 	.then(ids => {
 
 		console.log('got user ids')
+		console.log(`${ids.length} will get this message`)
+		
 		let time = (new Date()).getTime()
 		
 		ids.map(uid => {
@@ -372,17 +374,21 @@ exports.testBatch = functions.https.onRequest((req, res) => {
 			reformatReqPack.push( batchRequests.slice(i * 50, i * 50 + batchLimit) )
 		}
 
+		console.log(`reformat reqpack size = ${reformatReqPack.length}`)
+		let usersCount = 0
 
 		reformatReqPack.reduce((promiseOrder, packOf50, i) => {
 			return promiseOrder.then(() => {
 
+				usersCount += packOf50.length
+
 				FB.batch(packOf50, (error, res) => {
 					if (error) {
 						// console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
-						console.log(`\n batch [${i}] error`)
+						console.log(`\n batch [${i + 1}] error`)
 					} else {
 
-						console.log(`batch [${i}] / no error : `)
+						console.log(`running through batch [${i + 1}]`)
 
 						let time = new Date()
 						let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
@@ -424,6 +430,15 @@ exports.testBatch = functions.https.onRequest((req, res) => {
 		.then(
 			() => {
 				console.log('batch request DONE!')
+				console.log('====================')
+				console.log(`send to ${usersCount} users`)
+				console.log('====================')
+
+				let texts = [
+					'batch request done',
+					`send to ${usersCount} users`
+				]
+				sendCascadeMessage('1432315113461939', texts)
 
 			},
 			error => {
@@ -432,7 +447,7 @@ exports.testBatch = functions.https.onRequest((req, res) => {
 		)
 
 
-		res.send('sending...')
+		res.send(`sending with delay = ${delay} ...`)
 
 	})
 
@@ -1565,7 +1580,7 @@ function receivedMessage (event) {
 				console.log(JSON.stringify(message))
 				console.log('Message with attachment received')
 
-				if (!user || !playerInfo) {
+				if (status.canEnter && (!user || !playerInfo)) {
 					console.log('[ATTACHMENT] user id not found in DB {OR} not in participants -> adding new user')
 					setTimeout( () => { addNewUser(senderID) }, 500)
 				}
