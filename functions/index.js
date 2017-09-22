@@ -1248,7 +1248,7 @@ function receivedMessage (event) {
 
 			// console.log(`USER PAYLOAD = ${messageQRPayload}`)
 
-			if (messageQRPayload != 'เข้าร่วม' && messageQRPayload != 'ไม่เข้าร่วม' && status.playing && status.currentQuiz > -1 && status.currentQuiz < quiz.length && playerInfo) {
+			if (!adminAvaiability && messageQRPayload != 'เข้าร่วม' && messageQRPayload != 'ไม่เข้าร่วม' && status.playing && status.currentQuiz > -1 && status.currentQuiz < quiz.length && playerInfo) {
 				console.log('in answer validation process')
 
 				// idea is : if stringAnswer is true => use messageText else check payload
