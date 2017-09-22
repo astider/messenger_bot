@@ -445,131 +445,6 @@ exports.testBatch = functions.https.onRequest((req, res) => {
 
 
 
-exports.tempSendUpdateCouponMessage = functions.https.onRequest((req, res) => {
-	
-	
-	let batchRequests = []
-	let delay = (req.query['delay']) ? req.query['delay'] : 200
-
-	db.ref('users').once('value')
-	.then(u => {
-
-		let users = u.val()
-		let filteredKey = Object.keys(users).filter(key => {
-			return users[key].coupon > 0
-		})
-	
-		let whoGetCoupon = filteredKey.map(val => {
-			// if (users[val].coupon > 0) console.log(`${users[val].fbid} : ${users[val].coupon}`)
-			return users[val].fbid
-		})
-
-		console.log('got user ids')
-		
-		whoGetCoupon.map(uid => {
-
-			let bodyData = {
-				recipient: {
-					id: uid
-				},
-				message: {
-					text: 'ระบบได้อัพเดตคูปองให้กับคุณแล้ว สามารถตรวจสอบจำนวนได้ที่เมนูด้านข้างของ Messenger เลยจ้า'
-				}
-			}
-
-			batchRequests.push({
-				method: 'POST',
-				relative_url: 'me/messages?include_headers=false',
-				body: param(bodyData)
-			})
-			
-		})
-
-		// ---
-
-		let batchLimit = 50
-		let maxIncre = Math.ceil(batchRequests.length / batchLimit)
-		let roundLimit = maxIncre
-
-		let reformatReqPack = []
-
-		for (let i = 0; i < roundLimit; i++) {
-			reformatReqPack.push( batchRequests.slice(i * 50, i * 50 + batchLimit) )
-		}
-
-
-		reformatReqPack.reduce((promiseOrder, packOf50, i) => {
-			return promiseOrder.then(() => {
-
-				FB.batch(packOf50, (error, res) => {
-					if (error) {
-						// console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
-						console.log(`\n batch [${i}] error`)
-					} else {
-
-						console.log(`batch [${i}] / no error : `)
-
-						let time = new Date()
-						let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
-						let epochTime = time.getTime()
-
-						res.forEach(response => {
-
-							db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
-							.then(() => {
-
-								console.log(response['body'])
-								// let data = JSON.parse(JSON.parse(response['body']))
-								let data = JSON.parse(response['body'])
-								console.log(`------------------- ${JSON.stringify(data)}`)
-
-								if (data.recipient_id) {
-									console.log('====================')
-									console.log('====================')
-									console.log(JSON.stringify(data))
-
-									let tempObj = {}
-									tempObj[data.recipient_id] = true
-									db.ref(`batchSentComplete/${date}/${epochTime}`).set(tempObj)
-
-								}
-
-							})
-							.catch(error => {
-								console.error(`SEND BATCH ERROR: ${error}`)
-							})
-
-						})
-
-					}
-
-				})
-
-				return new Promise(res => {
-					setTimeout(res, delay)
-				})
-				
-			})
-
-		}, Promise.resolve())
-		.then(
-			() => {
-				console.log('batch request DONE!')
-
-			},
-			error => {
-				console.error(`reduce error : ${error} `)
-			}
-		)
-
-
-		res.send('sending...')
-
-	})
-
-	
-})
-
 // -------------------- WEB API
 
 exports.addNewUserFromWeb = functions.https.onRequest((req, res) => {
@@ -1020,14 +895,12 @@ function sendBatchMessageWithDelay (reqPack, delay) {
 
 	let batchLimit = 50
 	let maxIncre = Math.ceil(reqPack.length / batchLimit)
-	let roundLimit = maxIncre
 
 	let reformatReqPack = []
 
-	for (let i = 0; i < roundLimit; i++) {
+	for (let i = 0; i < maxIncre; i++) {
 		reformatReqPack.push( reqPack.slice(i * 50, i * 50 + batchLimit) )
 	}
-
 
 	reformatReqPack.reduce((promiseOrder, packOf50, i) => {
 		return promiseOrder.then(() => {
@@ -1038,7 +911,7 @@ function sendBatchMessageWithDelay (reqPack, delay) {
 					console.log(`\n batch [${i}] error`)
 				} else {
 
-					console.log(`batch [${i}] / no error : `)
+					console.log(`batch [${i}]`)
 
 					let time = new Date()
 					let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
@@ -1049,19 +922,13 @@ function sendBatchMessageWithDelay (reqPack, delay) {
 						db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
 						.then(() => {
 
-							console.log(response['body'])
-							// let data = JSON.parse(JSON.parse(response['body']))
 							let data = JSON.parse(response['body'])
-							console.log(`------------------- ${JSON.stringify(data)}`)
 
+							// if messege delivered successfully, record user's id
 							if (data.recipient_id) {
-								console.log('====================')
-								console.log('====================')
-								console.log(JSON.stringify(data))
 
-								let tempObj = {}
-								tempObj[data.recipient_id] = true
-								db.ref(`batchSentComplete/${date}/${epochTime}`).set(tempObj)
+								console.log(`id [${data.recipient_id}] received message!`)
+								db.ref(`batchSentComplete/${date}/${epochTime}/${data.recipient_id}`).set(true)
 
 							}
 
