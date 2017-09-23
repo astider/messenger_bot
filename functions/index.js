@@ -880,7 +880,7 @@ exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
 // ------------------- Messenger Function
 
 function sendBatchMessage (reqPack) {
-	sendBatchMessageWithDelay(reqPack, 1)
+	sendBatchMessageWithDelay(reqPack, 150)
 }
 
 function sendBatchMessageWithDelay (reqPack, delay) {
