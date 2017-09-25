@@ -1459,7 +1459,7 @@ function receivedMessage (event) {
 										
 									})
 
-									sendBatchMessage(batchRequests, 250)
+									sendBatchMessage(batchRequests)
 									// sendBatchMessage(batchRequests)
 									// tell admin that message was sent
 									sendTextMessage(senderID, '## Message sent to ALL USERS')
@@ -1496,7 +1496,7 @@ function receivedMessage (event) {
 												// sendTextMessage(id, text)
 											})
 
-											sendBatchMessage(batchRequests, 200)
+											sendBatchMessage(batchRequests)
 											// sendBatchMessage(batchRequests)
 											// tell admin that message was sent
 											sendTextMessage(senderID, '## Message sent to ALL PARTICIPANTS')
