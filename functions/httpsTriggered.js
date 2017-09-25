@@ -622,6 +622,7 @@ module.exports = function (util, messengerFunctions) {
 
 	module.selectVoteAnswer = function (req, res) {
 		let selectedChoice = req.body.choice
+		let point = (req.body.point) ? 1 : 0 // req.body.point -- bool
 		let selectedAnswer = null
 		let currentQuiz = -1
 
@@ -664,7 +665,7 @@ module.exports = function (util, messengerFunctions) {
 
 						if (playerAnswerInfo.ans == selectedAnswer && !playerAnswerInfo.correct) {
 							playerAnswerInfo.correct = true
-							// participants[key].point = participants[key].point + 1
+							participants[key].point = participants[key].point + point
 
 							updates[`/${key}/answerPack/${currentQuiz}`] = playerAnswerInfo
 							// updates[`/${key}/point`] = participants[key].point
