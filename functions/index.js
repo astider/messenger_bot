@@ -697,7 +697,7 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 								})
 								.then(() => {
 									console.log('sync SENDING')
-									sendBatchMessage(sendQuizBatch)
+									sendBatchMessageWithDelay(sendQuizBatch, 100)
 									// sendBatchMessageWithDelay2(sendQuizBatch, 200)
 
 									res.json({
@@ -880,7 +880,7 @@ exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
 // ------------------- Messenger Function
 
 function sendBatchMessage (reqPack) {
-	sendBatchMessageWithDelay(reqPack, 150)
+	sendBatchMessageWithDelay(reqPack, 200)
 }
 
 function sendBatchMessageWithDelay (reqPack, delay) {
@@ -1541,11 +1541,36 @@ function receivedMessage (event) {
 
 				} else if (!status.playing && !status.canEnter) {
 
-					// for current user
-					let text = 'ตอนนี้ยังไม่ถึงเวลากิจกรรม ไว้เราจะติดต่อกลับไปอีกครั้งนะ'
+					if (messageText == 'ตรวจสอบคูปอง') {
 
-					console.log('this user is in our sigth, but game is end or not started yet, tell the user!')
-					sendTextMessage(senderID, text)
+						let id = senderID
+
+						db.ref('users').orderByChild('fbid').equalTo(id).once('value')
+						.then(userInfo => {
+							let userObject = userInfo.val()
+							let user = null
+							if (userObject && Object.keys(userObject).length > 0) {
+								user = userObject[Object.keys(userObject)[0]]
+								let couponCount = user.coupon
+
+								let couponText = `ขณะนี้คุณมีคูปองสะสมรวม ${couponCount} คูปอง`
+
+								sendTextMessage(id, couponText)
+							}
+						})
+						.catch(error => {
+							console.error(`error getting coupon info for user : ${error}`)
+						})
+
+					}
+					else {
+						// for current user
+						let text = 'ตอนนี้ยังไม่ถึงเวลากิจกรรม ไว้เราจะติดต่อกลับไปอีกครั้งนะ'
+
+						console.log('this user is in our sigth, but game is end or not started yet, tell the user!')
+						sendTextMessage(senderID, text)
+					}
+					
 				
 				} else {
 					// else if(!participants)
