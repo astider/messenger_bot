@@ -697,7 +697,7 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 								})
 								.then(() => {
 									console.log('sync SENDING')
-									sendBatchMessageWithDelay(sendQuizBatch, 100)
+									sendBatchMessageWithDelay(sendQuizBatch, 30)
 									// sendBatchMessageWithDelay2(sendQuizBatch, 200)
 
 									res.json({
@@ -880,7 +880,7 @@ exports.broadcastMessageToTestUsers = functions.https.onRequest((req, res) => {
 // ------------------- Messenger Function
 
 function sendBatchMessage (reqPack) {
-	sendBatchMessageWithDelay(reqPack, 200)
+	sendBatchMessageWithDelay(reqPack, 100)
 }
 
 function sendBatchMessageWithDelay (reqPack, delay) {
