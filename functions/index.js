@@ -713,7 +713,7 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 								.set(true)
 								.then(() => {
 									console.log('sync SENDING / not set new FQA')
-									sendBatchMessage(sendQuizBatch)
+									sendBatchMessageWithDelay(sendQuizBatch, 30)
 									// sendBatchMessageWithDelay2(sendQuizBatch, 200)
 
 									res.json({
@@ -1459,6 +1459,7 @@ function receivedMessage (event) {
 										
 									})
 
+									console.log('------------------------------- sending -------------------------------')
 									sendBatchMessage(batchRequests)
 									// sendBatchMessage(batchRequests)
 									// tell admin that message was sent
