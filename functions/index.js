@@ -697,7 +697,7 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 								})
 								.then(() => {
 									console.log('sync SENDING')
-									sendBatchMessageWithDelay(sendQuizBatch, 30)
+									sendBatchMessageWithDelay(sendQuizBatch, 10)
 									// sendBatchMessageWithDelay2(sendQuizBatch, 200)
 
 									res.json({
@@ -713,7 +713,7 @@ exports.sendQuiz = functions.https.onRequest((req, res) => {
 								.set(true)
 								.then(() => {
 									console.log('sync SENDING / not set new FQA')
-									sendBatchMessageWithDelay(sendQuizBatch, 30)
+									sendBatchMessageWithDelay(sendQuizBatch, 10)
 									// sendBatchMessageWithDelay2(sendQuizBatch, 200)
 
 									res.json({
@@ -1261,24 +1261,6 @@ function receivedMessage (event) {
 
 					if (!status.canAnswer) sendTextMessage(senderID, 'หมดเวลาตอบข้อนี้แล้วจ้า')
 					else if (playerInfo.answerPack[status.currentQuiz].ans) sendTextMessage(senderID, 'คุณได้ตอบคำถามข้อนี้ไปแล้วนะ')
-					
-					// else if (messageQRPayload == 'noValue') {
-					// 	let lowerCasedAnswer = messageText.toLowerCase()
-
-					// 	let confirmAns = {
-					// 		text: `ยืนยันคำตอบเป็น "${messageText}" ?\r\nหากต้องการเปลี่ยนคำตอบให้พิมพ์ใหม่ได้เลย`,
-					// 		quick_replies: [
-					// 			{
-					// 				content_type: 'text',
-					// 				title: 'ยืนยัน',
-					// 				payload: lowerCasedAnswer
-					// 			}
-					// 		]
-					// 	}
-
-					// 	sendQuickReplies(senderID, confirmAns)
-					// }
-					
 					else {
 
 						let lowerCasedAnswer = messageText.toLowerCase()
@@ -1385,6 +1367,7 @@ function receivedMessage (event) {
 				db.ref(`participants/${senderID}`).set(tempParticipant)
 
 				if (status.playing && status.canAnswer) {
+					/*
 					let quizMessage = {
 						text: quiz[status.currentQuiz].q,
 						quick_replies: quiz[status.currentQuiz].choices.map(choice => {
@@ -1397,6 +1380,7 @@ function receivedMessage (event) {
 					}
 
 					sendQuickReplies(senderID, quizMessage)
+					*/
 				} else {
 
 					db.ref('liveURL').once('value')
