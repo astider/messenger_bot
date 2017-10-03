@@ -125,8 +125,13 @@ function getSharedPostsByApp (pageID, postID, accessToken) {
 	})
 }
 
+
+// ------------------------------------------------------------------------------------------------------------
+
 module.exports = function (util, messengerFunctions) {
+
 	let module = {}
+
 	module.testCheckUserSharedPost = function (req, res) {
 		checkUserPostsForShare(req.query.userID, req.pageID, req.postID, req.accessToken)
 			.then(found => {
@@ -285,6 +290,7 @@ module.exports = function (util, messengerFunctions) {
 			.catch(e => {})
 		// db.ref(`messageTemplates/${name}`).set(message['message'])
 	}
+
 	module.editTemplateMessage = function (req, res) {
 		// we receive POST
 
@@ -326,237 +332,10 @@ module.exports = function (util, messengerFunctions) {
 
 		});
 	}
+
+
 	// --------- START HERE
-	module.getOverallStatus = function (req, res) {
-		let cq = -1
-		let fqa = null
-		let q = null
-		let p = []
-		let ucount = 0
-
-		util
-			.getStatus()
-			.then(status => {
-				cq = status.currentQuiz
-				return util.getQuiz()
-			})
-			.then(snapshot => {
-				q = snapshot.val()
-				return util.getFireQuizAt()
-			})
-			.then(snapshot => {
-				fqa = snapshot.val()
-				return util.getParticipants()
-			})
-			.then(partSnap => {
-				let tp = partSnap.val()
-				if (tp) {
-					Object.keys(tp).forEach(key => {
-						p.push(tp[key])
-					})
-				}
-
-				return db.ref('/userIds').once('value')
-			})
-			.then(uidSnap => {
-				let uids = uidSnap.val()
-
-				if (uids) ucount = Object.keys(uids).length
-
-				res.json({
-					currentQuiz: cq,
-					quizLength: q ? q.length : 0,
-					fireQuizAt: fqa,
-					quiz: q,
-					userAmount: ucount,
-					participantsAmount: p.length,
-					participants: p
-				})
-			})
-			.catch(error => {
-				console.log(`there's an error in getQuizStatus: ${error}`)
-				res.json({
-					error: `error in ${error} `
-				})
-			})
-	}
-
-	module.getParticipants = function (req, res) {
-		util
-			.getParticipants()
-			.then(snapshot => {
-				res.json({
-					participants: snapshot.val()
-				})
-			})
-			.catch(error => {
-				console.log(`there's an error in getParticipants: ${error}`)
-				res.end()
-			})
-	}
-
-	module.showRandomCorrectUsers = function (req, res) {
-		let quiz = null
-		let participants = null
-		let currentQuiz = -1
-
-		util
-			.getStatus()
-			.then(status => {
-				currentQuiz = status.currentQuiz
-				return util.getQuiz()
-			})
-			.then(quizSnapshot => {
-				quiz = quizSnapshot.val()
-				return util.getParticipants()
-			})
-			.then(participantsSnapshot => {
-				participants = participantsSnapshot.val()
-
-				if (!req.query.quizno) res.json({ error: 'please specify quiz no.' })
-				else if (!quiz) res.json({ error: 'quiz not ready' })
-				else if (!participants) res.json({ error: 'participants not found' })
-				else if (req.query.quizno < 0 || req.query.quizno > quiz.length - 1) res.json({ error: 'incorrect quiz no.' })
-				else {
-					let targetQuizNo = parseInt(req.query.quizno)
-
-					let answerAmount = 0
-					let answerRate = quiz[targetQuizNo].choices.reduce((obj, choiceValue) => {
-						obj[choiceValue] = 0
-						return obj
-					}, {})
-
-					console.log('answerRate = ' + JSON.stringify(answerRate))
-					console.log('quiz = ' + JSON.stringify(quiz))
-					console.log('participant = ' + JSON.stringify(participants))
-
-					if (targetQuizNo > -1 || targetQuizNo < quiz.length) {
-						let correctUsers = Object.keys(participants).map(key => {
-							if (participants[key].answerPack[targetQuizNo].ans.length > 0) {
-								answerAmount++
-								answerRate[participants[key].answerPack[targetQuizNo].ans]++
-								console.log('>>> in map : answerRate = ' + JSON.stringify(answerRate))
-							}
-
-							if (participants[key].answerPack[targetQuizNo].correct == true) {
-								return {
-									id: key,
-									firstName: participants[key].firstName,
-									lastName: participants[key].lastName,
-									profilePic: participants[key].profilePic,
-									answerTime: participants[key].answerPack[targetQuizNo].at
-								}
-							}
-						})
-
-						correctUsers = correctUsers.filter(n => {
-							return n != undefined
-						})
-
-						for (let key in answerRate) {
-							answerRate[key] = Math.round(answerRate[key] / answerAmount * 100)
-						}
-
-						console.log('>>> AFTER % : answerRate = ' + JSON.stringify(answerRate))
-						let range = correctUsers.length
-						let sortCorrectUsers = []
-
-						if (range <= 25) {
-							if (range > 1)
-								sortCorrectUsers = correctUsers.sort((a, b) => {
-									return a.answerTime - b.answerTime
-								})
-							else sortCorrectUsers = correctUsers
-
-							console.log(`sortCorrectUsers : ${sortCorrectUsers}`)
-
-							res.json({
-								error: null,
-								answerRate: answerRate,
-								correctUsers: sortCorrectUsers
-							})
-						} else {
-							let array = correctUsers
-							for (let i = array.length - 1; i > 0; i--) {
-								let j = Math.floor(Math.random() * (i + 1))
-								let temp = array[i]
-								array[i] = array[j]
-								array[j] = temp
-							}
-
-							res.json({
-								error: null,
-								answerRate: answerRate,
-								correctUsers: array
-							})
-						}
-					} else
-						res.json({
-							error: 'quiz no. incorrect',
-							text: `you requested quiz number ${targetQuizNo}
-               but current quiz number is ${currentQuiz} and quiz length is ${quiz.length}`
-						})
-				}
-			})
-			.catch(error => {
-				res.json({
-					error: error,
-					text: "there should be error, but i dont' know what it is. system don't tell me"
-				})
-			})
-	}
-
-	module.getTopUsers = function (req, res) {
-		let fq = null
-		let participants = null
-
-		util
-			.getFireQuizAt()
-			.then(snapshot => {
-				fq = snapshot.val()
-				return util.getParticipants()
-			})
-			.then(snapshot => {
-				if (!fq) res.json({ error: 'no quiz sent OR no sent time collected' })
-				else {
-					participants = snapshot.val()
-					let candidate = Object.keys(participants).map(key => {
-						let timeUsedBeforeAnswer = participants[key].answerPack.reduce((collector, ansDetail, idx) => {
-							console.log('firequiz time : ' + fq[idx])
-							return ansDetail.ans ? collector + (ansDetail.at - fq[idx]) : collector
-						}, 0)
-
-						return {
-							id: key,
-							firstName: participants[key].firstName,
-							lastName: participants[key].lastName,
-							profilePic: participants[key].profilePic,
-							point: participants[key].point,
-							totalTimeUsed: timeUsedBeforeAnswer
-						}
-					})
-
-					let topUsers = candidate.sort((a, b) => {
-						if (b.point - a.point == 0) return a.totalTimeUsed - b.totalTimeUsed
-						else return b.point - a.point
-					})
-
-					if (topUsers.length > 15) {
-						topUsers = topUsers.splice(0, 15)
-					}
-
-					res.json({
-						error: null,
-						topUsers: topUsers
-					})
-				}
-			})
-			.catch(error => {
-				console.log(`there's an error in getTopUsers: ${error}`)
-				res.end()
-			})
-	}
-
+	
 	module.sendRequest = function (req, res) {
 		db.ref('canEnter').set(true)
 
@@ -620,82 +399,6 @@ module.exports = function (util, messengerFunctions) {
 		})
 	}
 
-	module.selectVoteAnswer = function (req, res) {
-		let selectedChoice = req.body.choice
-		let point = (req.body.point) ? 1 : 0 // req.body.point -- bool
-		let selectedAnswer = null
-		let currentQuiz = -1
-
-
-		if (req.method == 'GET') res.status(403).json({ error: 'Forbidden Request' })
-		else if ( selectedChoice != 0 && !selectedChoice) res.json({ error: 'no choice was selected' })
-		else if (isNaN(selectedChoice)) res.json({ error: 'selected choice data type is not a number' })
-		else {
-			util
-				.getStatus()
-				.then(status => {
-					currentQuiz = status.currentQuiz
-
-					console.log(JSON.stringify(status))
-
-					if (status.canAnswer) res.json({ error: 'cannot perform this function', message: 'time is not up yet, please wait' })
-					else if (!status.voting) res.json({ error: 'cannot perform this function', message: 'voting value is FALSE' })
-					else return db.ref(`quiz/${currentQuiz}`).once('value')
-				})
-				.then(qSnap => {
-					let quizInfo = qSnap.val()
-
-					if (quizInfo.type != 'VOTE') res.json({ error: 'cannot perform this function', message: 'This function is available only for VOTE type' })
-					else if (selectedChoice < 0 || selectedChoice > quizInfo.choices.length) res.json({ error: 'cannot perform this function', message: 'choice out of bound' })
-					else {
-						selectedAnswer = quizInfo.choices[selectedChoice]
-						quizInfo.a = selectedAnswer
-						return db.ref(`quiz/${qSnap.key}`).set(quizInfo)
-					}
-				})
-				.then(() => {
-					console.log('selected choice saved!')
-					return db.ref('participants').once('value')
-				})
-				.then(partSnap => {
-					let participants = partSnap.val()
-					let updates = {}
-
-					Object.keys(participants).map(key => {
-						let playerAnswerInfo = participants[key].answerPack[currentQuiz]
-
-						if (playerAnswerInfo.ans == selectedAnswer && !playerAnswerInfo.correct) {
-							playerAnswerInfo.correct = true
-							participants[key].point = participants[key].point + point
-
-							
-							if (key == '1425637910807433') console.log(`point : ${participants[key].point}`)
-
-							updates[`/${key}/answerPack/${currentQuiz}`] = playerAnswerInfo
-							updates[`/${key}/point`] = participants[key].point
-						}
-					})
-
-					db
-						.ref('participants')
-						.update(updates)
-						.then(() => {
-							console.log('update completed')
-							res.json({
-								error: null,
-								message: 'updated!'
-							})
-						})
-				})
-				.catch(error => {
-					console.error(`selectVoteAnswer error: ${error}`)
-					res.json({
-						error: error,
-						message: 'error found'
-					})
-				})
-		}
-	}
 
 	module.sendResult = function (req, res) {
 		db.ref('canAnswer').set(false)
@@ -752,42 +455,6 @@ module.exports = function (util, messengerFunctions) {
 		})
 	}
 
-	/*
-  module.sendEndMessage = function (req, res) {
-
-    let participants = null
-
-    util.getStatus()
-    .then(status => {
-      if (status.canAnswer) db.ref('canAnswer').set(false)
-      if (status.canEnter) db.ref('canEnter').set(false)
-      if (status.playing) db.ref('playing').set(false)
-
-      return util.getParticipants()
-    })
-    .then(participantsSnapshot => {
-
-			participants = participantsSnapshot.val()
-
-      Object.keys(participants).forEach(id => {
-				messengerFunctions.sendTextMessage(
-					id,
-					'บ๊ายบาย ไว้มาร่วมสนุกกับพวกเราได้ใหม่วันจันทร์หน้านะ :)'
-				)
-			})
-
-			res.json({
-        'error': null,
-        'message': 'send ending message success'
-			})
-		})
-		.catch(error => {
-			console.log(`there's an error in sendResult: ${error}`)
-			res.end()
-		})
-
-  }
-	*/
 
 	module.readLog = function (req, res) {
 		let date = req.query['date']

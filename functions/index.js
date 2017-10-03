@@ -36,6 +36,11 @@ let messengerFunctions = {
 const httpsFunctions = require('./httpsTriggered.js')(util, messengerFunctions)
 const messengerProfileFunctions = require('./messengerProfile.js')(util, messengerFunctions)
 const scheduleFunctions = require('./schedule.js')(util, messengerFunctions)
+
+const playGround = require('./playGround.js')(util, messengerFunctions)
+
+const ingameManagement = require('./game/ingameManagement.js')(util, messengerFunctions)
+const eventFunctions = require('./event/event.js')(util, messengerFunctions)
 console.log('STARTING SERVICE')
 
 // ----------------------- Cloud Functions ------------------------
@@ -330,125 +335,8 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) =>
 // ---------------------------------------- TEST BATCH
 
 exports.testBatch = functions.https.onRequest((req, res) => {
-
-	let batchRequests = []
-	let delay = (req.query['delay']) ? req.query['delay'] : 200
-	let limitVal = parseInt(req.query['limit'])
-
-	userManagementAPI.getAllSubscribedID()
-	.then(ids => {
-
-		console.log('got user ids')
-		console.log(`${ids.length} will get this message`)
-		
-		let time = (new Date()).getTime()
-		
-		ids.map(uid => {
-
-			let bodyData = {
-				recipient: {
-					id: uid
-				},
-				message: {
-					text: `ทดลอง BATCH @${time}`
-				}
-			}
-
-			batchRequests.push({
-				method: 'POST',
-				relative_url: 'me/messages?include_headers=false',
-				body: param(bodyData)
-			})
-			
-		})
-
-		// ---
-
-		let batchLimit = 50
-		let maxIncre = Math.ceil(batchRequests.length / batchLimit)
-		let roundLimit = (limitVal > 0) ? limitVal : maxIncre
-
-		let reformatReqPack = []
-
-		for (let i = 0; i < roundLimit; i++) {
-			reformatReqPack.push( batchRequests.slice(i * 50, i * 50 + batchLimit) )
-		}
-
-		console.log(`reformat reqpack size = ${reformatReqPack.length}`)
-		let usersCount = 0
-
-		reformatReqPack.reduce((promiseOrder, packOf50, i) => {
-			return promiseOrder.then(() => {
-
-				usersCount += packOf50.length
-
-				FB.batch(packOf50, (error, res) => {
-					if (error) {
-						// console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
-						console.log(`\n batch [${i + 1}] error`)
-					} else {
-
-						console.log(`running through batch [${i + 1}]`)
-
-						let time = new Date()
-						let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
-						let epochTime = time.getTime()
-
-						res.forEach(response => {
-
-							db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
-							.then(() => {
-
-								let data = JSON.parse(response['body'])
-
-								// if messege delivered successfully, record user's id
-								if (data.recipient_id) {
-
-									console.log(`id [${data.recipient_id}] received message!`)
-									db.ref(`batchSentComplete/${date}/${epochTime}/${data.recipient_id}`).set(true)
-
-								}
-
-							})
-							.catch(error => {
-								console.error(`SEND BATCH ERROR: ${error}`)
-							})
-
-						})
-
-					}
-
-				})
-
-				return new Promise(res => {
-					setTimeout(res, delay)
-				})
-				
-			})
-
-		}, Promise.resolve())
-		.then(
-			() => {
-				console.log('batch request DONE!')
-				console.log('====================')
-				console.log(`send to ${usersCount} users`)
-				console.log('====================')
-
-				let texts = [
-					'batch request done',
-					`send to ${usersCount} users`
-				]
-				sendCascadeMessage('1432315113461939', texts)
-
-			},
-			error => {
-				console.error(`reduce error : ${error} `)
-			}
-		)
-
-
-		res.send(`sending with delay = ${delay} ...`)
-
+	cors(req, res, () => {
+		playGround.testBatch(req, res)
 	})
 
 })
@@ -473,25 +361,28 @@ exports.answerFromWeb = functions.https.onRequest((req, res) => {
 
 exports.getQuizStatus = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.getOverallStatus(req, res)
+		// httpsFunctions.getOverallStatus(req, res)
+		ingameManagement.getOverallStatus(req, res)
 	})
 })
 
 exports.getParticipants = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.getParticipants(req, res)
+		ingameManagement.getParticipants(req, res)
 	})
 })
 
 exports.showRandomCorrectUsers = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.showRandomCorrectUsers(req, res)
+		// httpsFunctions.showRandomCorrectUsers(req, res)
+		ingameManagement.showRandomCorrectUsers(req, res)
 	})
 })
 
 exports.getTopUsers = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.getTopUsers(req, res)
+		// httpsFunctions.getTopUsers(req, res)
+		ingameManagement.getTopUsers(req, res)
 	})
 })
 
@@ -509,7 +400,8 @@ exports.addQuiz = functions.https.onRequest((req, res) => {
 
 exports.selectVoteAnswer = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.selectVoteAnswer(req, res)
+		// httpsFunctions.selectVoteAnswer(req, res)
+		ingameManagement.selectVoteAnswer(req, res)
 	})
 })
 
@@ -595,142 +487,7 @@ exports.setMessengerProperties = functions.https.onRequest((req, res) => {
 
 exports.sendQuiz = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		let status = null
-		let participants = null
-		let quiz = null
-		let fireQuizAt = null
-
-		_getStatus()
-			.then(fetchedStatus => {
-				status = fetchedStatus
-				return _getFireQuizAt()
-			})
-			.then(fqaSnapshot => {
-				fireQuizAt = fqaSnapshot.val()
-				return _getParticipants()
-			})
-			.then(participantsSnapshot => {
-				participants = participantsSnapshot.val()
-				return _getQuiz()
-			})
-			.then(quizSnapshot => {
-				quiz = quizSnapshot.val()
-
-				if (!status.playing) db.ref('playing').set(true)
-
-				if (!quiz)
-					res.json({
-						error: 'quiz not ready, try again later',
-						quiz: quiz
-					})
-				else if (!participants)
-					res.json({
-						error: 'no participants, try again later'
-					})
-				else {
-					let oldc = status.currentQuiz
-					if (req.query.next == 'true' && status.currentQuiz < quiz.length) {
-						db.ref('currentQuiz').set(status.currentQuiz + 1)
-						status.currentQuiz += 1
-						console.log(`update currentQuiz to ${oldc + 1} // is it : ${status.currentQuiz}`)
-					}
-
-					if (status.currentQuiz > quiz.length - 1 || status.currentQuiz < 0)
-						res.json({
-							error: 'quiz no. out of bound',
-							currentQuiz: status.currentQuiz,
-							suggestion: "if this is the first question don't forget to use ?next=true param"
-						})
-					else {
-						let quickReplyChoices = []
-						let answerTime = req.query.timer ? parseInt(req.query.timer) + 10 : 70
-
-						db.ref('answerWindow').set(answerTime)
-
-						// check if this quiz has choices
-						if (quiz[status.currentQuiz].choices) {
-							quickReplyChoices = quiz[status.currentQuiz].choices.map(choice => {
-								return {
-									content_type: 'text',
-									title: choice,
-									payload: choice
-								}
-							})
-						}
-
-						// ---------- start preparing batch request
-
-						let sendQuizBatch = []
-
-						Object.keys(participants).forEach(id => {
-							let quizBodyData = {
-								recipient: {
-									id: id
-								},
-								message: {
-									text: quiz[status.currentQuiz].q
-								}
-							}
-
-							// if chocies prepared, add choices to quick replies button
-							if (quickReplyChoices.length > 0) {
-								quizBodyData.message.quick_replies = quickReplyChoices
-							}
-
-							sendQuizBatch.push({
-								method: 'POST',
-								relative_url: 'me/messages?include_headers=false',
-								body: param(quizBodyData)
-							})
-						})
-
-						if (!fireQuizAt) fireQuizAt = Array(quiz.length).fill(0)
-
-						if (fireQuizAt[status.currentQuiz] == 0) {
-							fireQuizAt[status.currentQuiz] = new Date().getTime()
-
-							db
-								.ref('fireQuizAt')
-								.set(fireQuizAt)
-								.then(() => {
-									return db.ref('canAnswer').set(true)
-								})
-								.then(() => {
-									console.log('sync SENDING')
-									sendBatchMessageWithDelay(sendQuizBatch, 10)
-									// sendBatchMessageWithDelay2(sendQuizBatch, 200)
-
-									res.json({
-										error: null,
-										qno: status.currentQuiz,
-										q: quiz[status.currentQuiz].q,
-										choices: quiz[status.currentQuiz].choices
-									})
-								})
-						} else {
-							db
-								.ref('canAnswer')
-								.set(true)
-								.then(() => {
-									console.log('sync SENDING / not set new FQA')
-									sendBatchMessageWithDelay(sendQuizBatch, 10)
-									// sendBatchMessageWithDelay2(sendQuizBatch, 200)
-
-									res.json({
-										error: null,
-										qno: status.currentQuiz,
-										q: quiz[status.currentQuiz].q,
-										choices: quiz[status.currentQuiz].choices
-									})
-								})
-						}
-					}
-				}
-			})
-			.catch(error => {
-				console.log(`there's an error in sendQuiz: ${error}`)
-				res.end()
-			})
+		ingameManagement.sendQuiz(req, res)
 	})
 })
 
@@ -975,56 +732,6 @@ function sendBatchMessageWithDelay (reqPack, delay) {
 
 }
 
-function sendBatchMessageWithDelay2 (reqPack, delay) {
-	let batchLimit = 50
-	let maxIncre = Math.ceil(reqPack.length / batchLimit)
-
-	for (let i = 0; i < 2;/* maxIncre*/ i++) {
-		(function (i) {
-			setTimeout(function () {
-				console.log(`sending batch ${i + 1}/${maxIncre}`)
-				console.log(`slicing is ${i * 50}/${i * 50 + batchLimit} from all of ${reqPack.length}`)
-				FB.batch(reqPack.slice(i * 50, i * 50 + batchLimit), (error, res) => {
-					if (error) {
-						// console.log(`\n batch [${i}] error : ${JSON.stringify(error)} \n`)
-						console.log(`\n batch [${i}] error`)
-					} else {
-						console.log(`batch [${i}] / no error : `)
-						let time = new Date()
-						let date = time.getFullYear() + '-' + (time.getMonth() + 1) + '-' + time.getDate()
-						let epochTime = time.getTime()
-
-						res.forEach(response => {
-
-							db.ref(`batchLogs/${date}/${epochTime}`).push().set(response['body'])
-							.then(() => {
-
-								console.log(response['body'])
-
-								if (response['body'].recipient_id) {
-									console.log('====================')
-									console.log('====================')
-									console.log(response['body'])
-
-									let tempObj = {}
-									tempObj[response['body'].recipient_id] = true
-									db.ref(`batchSentComplete/${date}/${epochTime}`).set(tempObj)
-
-								}
-
-							})
-							.catch(error => {
-								console.error(`SEND BATCH ERROR: ${error}`)
-							})
-
-						})
-					}
-				})
-			}, delay * (i + 1))
-		})(i)
-	}
-	
-}
 
 function sendQuickReplies (recipientId, quickReplies) {
 	let messageData = {
@@ -1606,66 +1313,11 @@ function receivedMessage (event) {
 
 }
 
-// ------------------------ TIMER  -------------------------
 
-// this approach has problem with rapidly fire quiz
-// so, don't do it
 exports.answerGap = functions.database.ref('canAnswer').onWrite(event => {
-	let canAnswer = event.data.val()
-	console.log(`canAnswer was changed to : ${canAnswer} `)
-
-	if (canAnswer) {
-		db
-			.ref('answerWindow')
-			.once('value')
-			.then(awSnap => {
-				let gap = awSnap.val()
-				console.log(`cuz canAnswer is [${canAnswer}] -> set [${gap}] seconds timer `)
-
-				setTimeout(() => {
-					return db.ref('canAnswer').set(false)
-				}, gap * 1000)
-			})
-			.then(() => {
-				console.log('_______________________')
-				console.log("NOW YOU CAN'T ANSWER ME")
-			})
-			.catch(error => {
-				console.log(`get answer gap error in answerGap trigerr: ${error} `)
-			})
-	}
+	eventFunctions.answerGap(event)
 })
 
 exports.voting = functions.database.ref('currentQuiz').onWrite(event => {
-	let currentQuiz = event.data.val()
-
-	if (currentQuiz >= 0) {
-
-		db
-		.ref(`quiz/${currentQuiz}`)
-		.once('value')
-		.then(qSnap => {
-			let quizInfo = qSnap.val()
-			if (quizInfo.type == 'VOTE') {
-				db
-					.ref('voting')
-					.set(true)
-					.then(() => {
-						console.log(`running ${quizInfo.type} question, set 'voting' to TRUE`)
-					})
-			} else {
-				db
-					.ref('voting')
-					.set(false)
-					.then(() => {
-						console.log(`running ${quizInfo.type} question, set 'voting' to FALSE`)
-					})
-			}
-		})
-		.catch(error => {
-			console.error(`found error is voting onWrite: ${error}`)
-		})
-		
-	} 
-	
+	eventFunctions.voting(event)
 })
