@@ -33,14 +33,19 @@ let messengerFunctions = {
 	sendBatchMessageWithDelay2: sendBatchMessageWithDelay2
 }
 
+const scheduleFunctions = require('./schedule.js')(util, messengerFunctions)
 const httpsFunctions = require('./httpsTriggered.js')(util, messengerFunctions)
 const messengerProfileFunctions = require('./messengerProfile.js')(util, messengerFunctions)
-const scheduleFunctions = require('./schedule.js')(util, messengerFunctions)
-
-const playGround = require('./playGround.js')(util, messengerFunctions)
-
+const outgameManagement = require('./game/outgameManagement.js')(util, messengerFunctions)
 const ingameManagement = require('./game/ingameManagement.js')(util, messengerFunctions)
+const webManagement = require('./game/web.js')(util, messengerFunctions)
+const couponManagement = require('./game/coupon.js')(util, messengerFunctions)
+
 const eventFunctions = require('./event/event.js')(util, messengerFunctions)
+const playGround = require('./playGround.js')(util, messengerFunctions)
+const logs = require('./logs/logs.js')
+
+
 console.log('STARTING SERVICE')
 
 // ----------------------- Cloud Functions ------------------------
@@ -347,17 +352,19 @@ exports.testBatch = functions.https.onRequest((req, res) => {
 
 exports.addNewUserFromWeb = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.addNewUserFromWeb(req, res, env.messenger)
+		webManagement.addNewUserFromWeb(req, res, env.messenger)
 	})
 })
 
 exports.answerFromWeb = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.answerFromWeb(req, res)
+		webManagement.answerFromWeb(req, res)
 	})
 })
 
-// ---------------------------------------------------------------
+
+
+// --------------------- In Game Management --------------------------
 
 exports.getQuizStatus = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
@@ -369,6 +376,12 @@ exports.getQuizStatus = functions.https.onRequest((req, res) => {
 exports.getParticipants = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
 		ingameManagement.getParticipants(req, res)
+	})
+})
+
+exports.sendQuiz = functions.https.onRequest((req, res) => {
+	cors(req, res, () => {
+		ingameManagement.sendQuiz(req, res)
 	})
 })
 
@@ -386,18 +399,6 @@ exports.getTopUsers = functions.https.onRequest((req, res) => {
 	})
 })
 
-exports.sendRequest = functions.https.onRequest((req, res) => {
-	cors(req, res, () => {
-		httpsFunctions.sendRequest(req, res)
-	})
-})
-
-exports.addQuiz = functions.https.onRequest((req, res) => {
-	cors(req, res, () => {
-		httpsFunctions.addQuiz(req, res)
-	})
-})
-
 exports.selectVoteAnswer = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
 		// httpsFunctions.selectVoteAnswer(req, res)
@@ -405,17 +406,35 @@ exports.selectVoteAnswer = functions.https.onRequest((req, res) => {
 	})
 })
 
+
+// --------------------- Out Game Management --------------------------
+
+
+exports.sendRequest = functions.https.onRequest((req, res) => {
+	cors(req, res, () => {
+		outgameManagement.sendRequest(req, res)
+	})
+})
+
+exports.addQuiz = functions.https.onRequest((req, res) => {
+	cors(req, res, () => {
+		outgameManagement.addQuiz(req, res)
+	})
+})
+
 exports.sendResult = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.sendResult(req, res)
+		outgameManagement.sendResult(req, res)
 	})
 })
 
 exports.restart = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.restart(req, res)
+		outgameManagement.restart(req, res)
 	})
 })
+
+ // -------- Logs management ---------
 
 exports.readLog = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
@@ -423,53 +442,51 @@ exports.readLog = functions.https.onRequest((req, res) => {
 	})
 })
 
+
+// --------- Coupon Management --------
+
 exports.sendCoupon = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.sendCoupon(req, res)
+		couponManagement.sendCoupon(req, res)
 	})
 })
 
 exports.sendCouponUpdate = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.updateCouponBalanceToUsers(req, res)
+		couponManagement.updateCouponBalanceToUsers(req, res)
 	})
 })
 
 exports.getCouponPair = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.getCouponPair(req, res)
+		couponManagement.getCouponPair(req, res)
 	})
 })
 
 exports.sendCouponNumber = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.sendCouponNumber(req, res)
+		couponManagement.sendCouponNumber(req, res)
 	})
 })
 
 exports.addWinner = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.addWinner(req, res)
+		couponManagement.addWinner(req, res)
 	})
 })
 
 exports.sendMessageToWhoGetSmallPrize = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.sendMessageToWhoGetSmallPrize(req, res)
+		couponManagement.sendMessageToWhoGetSmallPrize(req, res)
 	})
 })
 
 exports.sendToAll = functions.https.onRequest((req, res) => {
 	cors(req, res, () => {
-		httpsFunctions.sendToAll(req, res)
+		couponManagement.sendToAll(req, res)
 	})
 })
 
-exports.getVoteResult = functions.https.onRequest((req, res) => {
-	cors(req, res, () => {
-		httpsFunctions.getVoteResult(req, res)
-	})
-})
 
 // -------------
 
@@ -481,15 +498,11 @@ exports.setMessengerProperties = functions.https.onRequest((req, res) => {
 
 // exports.assignCounponNumber = functions.https.onRequest((req, res) => {
 // 	cors(req, res, () => {
-// 		httpsFunctions.assignCounponNumber(req, res)
+// 		outgameManagement.assignCounponNumber(req, res)
 // 	})
 // })
 
-exports.sendQuiz = functions.https.onRequest((req, res) => {
-	cors(req, res, () => {
-		ingameManagement.sendQuiz(req, res)
-	})
-})
+
 
 exports.getAllTemplateMessages = functions.https.onRequest((req, res) => {
 	return res.status(404).json({})
@@ -1313,6 +1326,8 @@ function receivedMessage (event) {
 
 }
 
+
+ // ------------ Event Listener -----------
 
 exports.answerGap = functions.database.ref('canAnswer').onWrite(event => {
 	eventFunctions.answerGap(event)
