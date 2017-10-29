@@ -57,6 +57,7 @@ const getAllSubscribedID = function () {
 					
 				}, [])
         
+        console.log('get all subscribed IDs done!')
         return resolve(idArray)
       }
       else return resolve([])

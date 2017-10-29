@@ -1424,6 +1424,8 @@ function receivedMessage (event) {
 								userManagementAPI.getAllSubscribedID()
 								.then(ids => {
 									
+									console.log('processing id array with length of ' + ids.length)
+
 									ids.map(uid => {
 
 										let bodyData = {
