@@ -131,6 +131,142 @@ function _getStatus () {
 	})
 }
 
+
+// ------------------------------------------------------------------------------
+
+exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) => {
+
+	if (req.method == 'GET') {
+		
+		if (req.query['hub.mode'] === 'subscribe' && req.query['hub.verify_token'] === env.messenger.verify_token) {
+			// console.log("Validating webhook")
+			res.status(200).send(req.query['hub.challenge'])
+		} else {
+			console.error('Failed validation. Make sure the validation tokens match.')
+			res.sendStatus(403)
+		}
+
+	} else if (req.method == 'POST') {
+
+		let data = req.body
+
+		// Make sure this is a page subscription
+		if (data.object === 'page') {
+			
+			data.entry.forEach(function (entry) {
+				let pageID = entry.id
+				let timeOfEvent = entry.time
+				console.log(`page id [${pageID}] , TOE ${timeOfEvent}`)
+
+				// Iterate over each messaging event
+				entry.messaging.forEach(function (event) {
+					if (event.message) {
+						receivedMessage(event)
+					} else {
+
+						if (event.postback) {
+
+							switch (event.postback.payload) {
+								case 'userPressedGetStartedButton':
+									console.log(`receive get started action from ${event.sender.id}`)
+									addNewUser(event.sender.id)
+									break
+
+								case 'checkMyCoupon':
+									checkCouponMessenger(event.sender.id)
+									break
+
+								case 'checkMyCouponNumber':
+									checkCouponNumberMessenger(event.sender.id)
+									break
+
+								default:
+									console.log(`Webhook Unknown Event: ${JSON.stringify(event)}`)
+
+							}
+
+						}
+
+						if (event.postback && event.postback.payload == 'unSubscribe') {
+							let id = event.sender.id
+
+							db.ref(`userIds/${id}/subscribed`).set(false)
+							.then(() => {
+									sendTextMessage(id, 'ยกเลิกการรับข้อความเรียบร้อยจ้า ถ้าต้องการกลับมาเล่นกิจกรรมใหม่สามารถทักมาได้เลยนะ')
+							})
+							.catch(error => {
+								console.error(`error unsubscribe user : ${error}`)
+							})
+							
+						} else 
+
+					}
+				})
+			})
+
+			// Assume all went well.
+			//
+			// You must send back a 200, within 20 seconds, to let us know
+			// you've successfully received the callback. Otherwise, the request
+			// will time out and we will keep trying to resend.
+			res.sendStatus(200)
+		}
+	}
+})
+
+
+function checkCouponMessenger (id) {
+
+	db.ref('users').orderByChild('fbid').equalTo(id).once('value')
+	.then(userInfo => {
+	
+		let userObject = userInfo.val()
+		let user = null
+		
+		if (userObject && Object.keys(userObject).length > 0) {
+		
+			user = userObject[Object.keys(userObject)[0]]
+			let couponCount = user.coupon
+			let couponText = `ขณะนี้คุณมีคูปองสะสมรวม ${couponCount} คูปอง`
+
+			sendTextMessage(id, couponText)
+		}
+
+	})
+	.catch(error => {
+		console.error(`error getting coupon info for user : ${error}`)
+	})
+
+}
+
+function checkCouponNumberMessenger (id) {
+
+	db.ref('users').orderByChild('fbid').equalTo(id).once('value')
+	.then(userInfo => {
+
+		let userObject = userInfo.val()
+		let user = null
+
+		if (userObject && Object.keys(userObject).length > 0) {
+
+			user = userObject[Object.keys(userObject)[0]]
+			let couponNumbers = user.couponNumber
+
+			let couponText = 'คุณมีคูปองหมายเลข'
+			couponNumbers.map(number => {
+				couponText += ` ${number}`
+			})
+
+			sendTextMessage(id, couponText)
+		}
+
+	})
+	.catch(error => {
+		console.error(`error getting coupon info for user : ${error}`)
+	})
+
+}
+
 // ------------------------------
 exports.addScheduleMessage = functions.https.onRequest(function (req, res) {
 	cors(req, res, () => {
@@ -225,117 +361,7 @@ exports.testViewSharedPosts = functions.https.onRequest(function (req, res) {
 	})
 })
 
-exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) => {
-	if (req.method == 'GET') {
-		// console.log('GET Requested')
-		if (req.query['hub.mode'] === 'subscribe' && req.query['hub.verify_token'] === env.messenger.verify_token) {
-			// console.log("Validating webhook")
-			res.status(200).send(req.query['hub.challenge'])
-		} else {
-			console.error('Failed validation. Make sure the validation tokens match.')
-			res.sendStatus(403)
-		}
-	} else if (req.method == 'POST') {
-		let data = req.body
 
-		// Make sure this is a page subscription
-		if (data.object === 'page') {
-			// Iterate over each entry - there may be multiple if batched
-			data.entry.forEach(function (entry) {
-				let pageID = entry.id
-				let timeOfEvent = entry.time
-				console.log(`page id [${pageID}] , TOE ${timeOfEvent}`)
-
-				// Iterate over each messaging event
-				entry.messaging.forEach(function (event) {
-					if (event.message) {
-						receivedMessage(event)
-						// } else if (event.delivery) {
-						//	console.log(`Message delivered to ${event.sender.id}`)
-					} else {
-						if (event.postback && event.postback.payload == 'userPressedGetStartedButton') {
-
-							console.log(`receive get started action from ${event.sender.id}`)
-							addNewUser(event.sender.id)
-
-						} else if (event.postback && event.postback.payload == 'checkMyCoupon') {
-
-							let id = event.sender.id
-
-							db
-								.ref('users')
-								.orderByChild('fbid')
-								.equalTo(id)
-								.once('value')
-								.then(userInfo => {
-									let userObject = userInfo.val()
-									let user = null
-									if (userObject && Object.keys(userObject).length > 0) {
-										user = userObject[Object.keys(userObject)[0]]
-										let couponCount = user.coupon
-
-										let couponText = `ขณะนี้คุณมีคูปองสะสมรวม ${couponCount} คูปอง`
-
-										sendTextMessage(id, couponText)
-									}
-								})
-								.catch(error => {
-									console.error(`error getting coupon info for user : ${error}`)
-								})
-
-						} else if (event.postback && event.postback.payload == 'checkMyCouponNumber') {
-							let id = event.sender.id
-
-							db
-								.ref('users')
-								.orderByChild('fbid')
-								.equalTo(id)
-								.once('value')
-								.then(userInfo => {
-									let userObject = userInfo.val()
-									let user = null
-									if (userObject && Object.keys(userObject).length > 0) {
-										user = userObject[Object.keys(userObject)[0]]
-										let couponNumbers = user.couponNumber
-
-										let couponText = 'คุณมีคูปองหมายเลข'
-										couponNumbers.map(number => {
-											couponText += ` ${number}`
-										})
-
-										sendTextMessage(id, couponText)
-									}
-								})
-								.catch(error => {
-									console.error(`error getting coupon info for user : ${error}`)
-								})
-
-						} else if (event.postback && event.postback.payload == 'unSubscribe') {
-							let id = event.sender.id
-
-							db.ref(`userIds/${id}/subscribed`).set(false)
-							.then(() => {
-									sendTextMessage(id, 'ยกเลิกการรับข้อความเรียบร้อยจ้า ถ้าต้องการกลับมาเล่นกิจกรรมใหม่สามารถทักมาได้เลยนะ')
-							})
-							.catch(error => {
-								console.error(`error unsubscribe user : ${error}`)
-							})
-							
-						} else console.log(`Webhook Unknown Event: ${JSON.stringify(event)}`)
-
-					}
-				})
-			})
-
-			// Assume all went well.
-			//
-			// You must send back a 200, within 20 seconds, to let us know
-			// you've successfully received the callback. Otherwise, the request
-			// will time out and we will keep trying to resend.
-			res.sendStatus(200)
-		}
-	}
-})
 
 // ---------------------------------------- TEST BATCH
 
