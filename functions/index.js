@@ -286,12 +286,10 @@ exports.hookerYOLOitsMeMessengerChatYO = functions.https.onRequest((req, res) =>
 									let user = null
 									if (userObject && Object.keys(userObject).length > 0) {
 										user = userObject[Object.keys(userObject)[0]]
-										let couponNumbers = user.couponNumber
-
-										let couponText = 'คุณมีคูปองหมายเลข'
-										couponNumbers.map(number => {
-											couponText += ` ${number}`
-										})
+										let couponCount = user.coupon
+										let couponNumber = user.couponNumber
+		
+										let couponText = `คูปอง ${couponCount} คูปองมีหมายเลขคือ ${couponNumber}`
 
 										sendTextMessage(id, couponText)
 									}
@@ -587,9 +585,9 @@ exports.setMessengerProperties = functions.https.onRequest((req, res) => {
 	})
 })
 
-// exports.assignCounponNumber = functions.https.onRequest((req, res) => {
+// exports.assignCouponNumber = functions.https.onRequest((req, res) => {
 // 	cors(req, res, () => {
-// 		httpsFunctions.assignCounponNumber(req, res)
+// 		httpsFunctions.assignCouponNumber(req, res)
 // 	})
 // })
 
@@ -1541,6 +1539,30 @@ function receivedMessage (event) {
 								let couponCount = user.coupon
 
 								let couponText = `ขณะนี้คุณมีคูปองสะสมรวม ${couponCount} คูปอง`
+
+								sendTextMessage(id, couponText)
+							}
+						})
+						.catch(error => {
+							console.error(`error getting coupon info for user : ${error}`)
+						})
+
+					}
+					if (messageText == 'ตรวจสอบหมายเลขคูปอง' || messageText == 'ตรวจหมายเลขคูปอง' || messageText == 'เลขคูปอง') {
+
+						let id = senderID
+
+						db.ref('users').orderByChild('fbid').equalTo(id).once('value')
+						.then(userInfo => {
+							let userObject = userInfo.val()
+							let user = null
+							if (userObject && Object.keys(userObject).length > 0) {
+								
+								user = userObject[Object.keys(userObject)[0]]
+								let couponCount = user.coupon
+								let couponNumber = user.couponNumber
+
+								let couponText = `คูปอง ${couponCount} คูปองมีหมายเลขคือ ${couponNumber}`
 
 								sendTextMessage(id, couponText)
 							}

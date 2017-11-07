@@ -1087,20 +1087,31 @@ module.exports = function (util, messengerFunctions) {
 			})
 	}
 
-	module.assignCounponNumber = function (req, res) {
+	module.assignCouponNumber = function (req, res) {
 		db
 			.ref('/users')
 			.once('value')
 			.then(usersSnap => {
+
 				let couponCount = 0
+				let earlybird = 0
 				let couponMatching = {}
 				let users = usersSnap.val()
 
 				Object.keys(users).map(key => {
+
 					couponCount += users[key].coupon ? users[key].coupon : 0
+
+					if (users[key].iPhoneEarlyBirdCoupon) {
+						console.log(`${key} has early bird coupon`)
+						couponCount++
+						earlybird++
+					}
+
 				})
 
 				console.log(`coupon amount: ${couponCount}`)
+				console.log(`early coupon : ${earlybird}`)
 
 				let numbers = []
 				for (let i = 1; i <= couponCount; i++) numbers.push(i)
@@ -1119,7 +1130,10 @@ module.exports = function (util, messengerFunctions) {
 					if (mutableUsers[key].coupon) {
 						mutableUsers[key].couponNumber = []
 
-						for (let i = 0; i < mutableUsers[key].coupon; i++) {
+						let earlyBirdCount = (users[key].iPhoneEarlyBirdCoupon) ? 1 : 0
+
+						for (let i = 0; i < mutableUsers[key].coupon + earlyBirdCount; i++) {
+
 							mutableUsers[key].couponNumber.push(numbers[counter])
 							couponMatching[numbers[counter]] = {
 								fbid: mutableUsers[key].fbid,
@@ -1129,6 +1143,7 @@ module.exports = function (util, messengerFunctions) {
 							}
 
 							counter++
+							
 						}
 					}
 				})
