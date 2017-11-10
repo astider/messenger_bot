@@ -1127,12 +1127,15 @@ module.exports = function (util, messengerFunctions) {
 				let mutableUsers = users
 
 				Object.keys(users).map(key => {
-					if (mutableUsers[key].coupon) {
+					
+					let earlyBirdCount = (users[key].iPhoneEarlyBirdCoupon) ? 1 : 0
+					let playerCouponCount = mutableUsers[key].coupon + earlyBirdCount
+
+					if (playerCouponCount > 0) {
+
 						mutableUsers[key].couponNumber = []
 
-						let earlyBirdCount = (users[key].iPhoneEarlyBirdCoupon) ? 1 : 0
-
-						for (let i = 0; i < mutableUsers[key].coupon + earlyBirdCount; i++) {
+						for (let i = 0; i < playerCouponCount; i++) {
 
 							mutableUsers[key].couponNumber.push(numbers[counter])
 							couponMatching[numbers[counter]] = {
@@ -1156,6 +1159,7 @@ module.exports = function (util, messengerFunctions) {
 				// 	users: mutableUsers,
 				// 	pair: couponMatching
 				// })
+
 				db.ref('/users').set(mutableUsers)
 				db.ref('/couponPair').set(couponMatching)
 
